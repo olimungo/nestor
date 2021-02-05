@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             setTagValue('motor-reversed', response.motorReversed);
             setTagValue('essid', response.essid);
 
-            document.title = `Shade ${response.netId}`; 
+            document.title = `Shade ${response.netId}`;
         });
 });
 
@@ -63,42 +63,42 @@ function displaySettings() {
 
 async function fetchWithTimeout(resource, options) {
     const { timeout = 8000 } = options;
-    
+
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
-  
+
     const response = await fetch(resource, {
-      ...options,
-      signal: controller.signal  
+        ...options,
+        signal: controller.signal
     });
     clearTimeout(id);
-  
+
     return response;
 }
 
 function checkConnection() {
     try {
         return fetchWithTimeout('/settings/values', {
-          timeout: 3000
+            timeout: 3000
         })
-        .then(response => response.json())
-        .then(response => {
-            if (response.ip != '192.168.4.1') {
-                setTagValue('new-ip', response.ip);
+            .then(response => response.json())
+            .then(response => {
+                if (response.ip != '192.168.4.1') {
+                    setTagValue('new-ip', response.ip);
 
-                const spinner = document.getElementById('spinner'),
-                    newIp = document.getElementById('new-ip');
+                    const spinner = document.getElementById('spinner'),
+                        newIp = document.getElementById('new-ip');
 
-                spinner.classList.add('hidden');
-                newIp.classList.remove('hidden');
-            }
-            else {
-                setTimeout(checkConnection, 3000);
-            }
-        });
-      } catch (error) {
+                    spinner.classList.add('hidden');
+                    newIp.classList.remove('hidden');
+                }
+                else {
+                    setTimeout(checkConnection, 3000);
+                }
+            });
+    } catch (error) {
         setTimeout(checkConnection, 3000);
-      }
+    }
 }
 
 function connect() {
