@@ -4,7 +4,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Clock</title>
+    <title>Shade</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -15,86 +15,43 @@
     </div>
 
     <div id="main">
-        <div class="title align-vertical">
-            <div>CLOCK</div>
+        <div class="title align-horizontal margin-bottom">
+            <div>Shade</div>
             <div id="tag-net-id" class="tag"></div>
         </div>
 
-        <div class="align-horizontal">
-            <div class="label align-left margin-bottom-small">BRIGHTNESS</div>
+        <div class="align-vertical">
+            <button class="margin-bottom-small" onclick="fetch('/action/go-up').then()">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -1 32 32" xml:space="preserve"
+                    class="svg">
+                    <path d="M18.221,7.206l9.585,9.585c0.879,0.879,0.879,2.317,0,3.195l-0.8,0.801c-0.877,0.878-2.316,0.878-3.194,0 
+                        l-7.315-7.315l-7.315,7.315c-0.878,0.878-2.317,0.878-3.194,0l-0.8-0.801c-0.879-0.878-0.879-2.316,0-3.195l9.587-9.585 
+                        c0.471-0.472,1.103-0.682,1.723-0.647C17.115,6.524,17.748,6.734,18.221,7.206z" fill="#e9f7ff" />
+                </svg>
+            </button>
 
-            <input type="range" min="1" max="99" value="50" class="slider" id="slider">
+            <button class="margin-bottom-small" onclick="fetch('/action/stop').then()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -150 1792 2042" class="svg">
+                    <path d="M1216 1184v-576q0-14-9-23t-23-9h-576q-14 0-23 9t-9 23v576q0 14 9 23t23 9h576q14 0 23-9t9-23zm448-288q0 
+                        209-103 385.5t-279.5 279.5-385.5 103-385.5-103-279.5-279.5-103-385.5 
+                        103-385.5 279.5-279.5 385.5-103 385.5 103 279.5 279.5 103 385.5z" fill="#e9f7ff" />
+                </svg>
+            </button>
 
-            <div class="align-horizontal margin-bottom-small">
-                <div class="align-vertical">
-                    <button class="button-small margin-right action"
-                        onclick="send('/action/brightness/more')">+</button>
+            <button class="margin-bottom-large" onclick="fetch('/action/go-down').then()">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -1 32 32" xml:space="preserve"
+                    class="svg">
+                    <path d="M14.77,23.795L5.185,14.21c-0.879-0.879-0.879-2.317,0-3.195l0.8-0.801c0.877-0.878,2.316-0.878,3.194,0 
+                        l7.315,7.315l7.316-7.315c0.878-0.878,2.317-0.878,3.194,0l0.8,0.801c0.879,0.878,0.879,2.316,0,3.195l-9.587,9.585 
+                        c-0.471,0.472-1.104,0.682-1.723,0.647C15.875,24.477,15.243,24.267,14.77,23.795z"
+                        fill="#e9f7ff" />
+                </svg>
+            </button>
 
-                    <button class="button-small action" onclick="send('/action/brightness/less')">-</button>
-                </div>
-            </div>
+            <div class="spacer-vertical-big"></div>
+            <div class="spacer-vertical-big"></div>
 
-            <div class="label align-left margin-bottom-small">COLOR</div>
-
-            <div class="align-horizontal margin-bottom-small">
-                <div class="align-vertical margin-bottom-small">
-                    <button class="button-circle action color-pink margin-right"
-                        onclick="send('/action/color?hex=ff3f5f')"></button>
-                    <button class="button-circle action color-orange margin-right"
-                        onclick="send('/action/color?hex=d63600')"></button>
-                    <button class="button-circle action color-red margin-right"
-                        onclick="send('/action/color?hex=ff0000')"></button>
-                    <button class="button-circle action color-blue-violet margin-right"
-                        onclick="send('/action/color?hex=8a2be2')"></button>
-                </div>
-
-                <div class="align-vertical">
-                    <button class="button-circle action color-blue margin-right"
-                        onclick="send('/action/color?hex=0000ff')"></button>
-                    <button class="button-circle action color-yellow margin-right"
-                        onclick="send('/action/color?hex=ffff00')"></button>
-                    <button class="button-circle action color-green margin-right"
-                        onclick="send('/action/color?hex=13d713')"></button>
-                </div>
-            </div>
-
-            <div class="label align-left margin-bottom-small">SCOREBOARD</div>
-
-            <div class="align-horizontal margin-bottom-small">
-                <div class="align-vertical margin-bottom">
-                    <div class="align-horizontal">
-                        <button class="button-small action margin-bottom-small scoreboard-green"
-                            onclick="send('/action/scoreboard/green/more')">+</button>
-                        <button class="button-small action scoreboard-green"
-                            onclick="send('/action/scoreboard/green/less')">-</button>
-                    </div>
-
-                    <div class="colon">:</div>
-
-                    <div class="align-horizontal">
-                        <button class="button-small action margin-bottom-small scoreboard-red"
-                            onclick="send('/action/scoreboard/red/more')">+</button>
-                        <button class="button-small action scoreboard-red"
-                            onclick="send('/action/scoreboard/red/less')">-</button>
-                    </div>
-                </div>
-
-                <div class="align-vertical margin-bottom-small">
-                    <button class="button-wide action" onclick="send('/action/scoreboard/reset')">RESET</button>
-                </div>
-            </div>
-
-            <div class="label align-left margin-bottom-small">DISPLAY</div>
-
-            <div class="align-horizontal margin-bottom-large">
-                <div class="align-vertical margin-bottom-small">
-                    <button class="button-wide action margin-right"
-                        onclick="send('/action/clock/display')">CLOCK</button>
-                    <button class="button-wide action" onclick="send('/action/scoreboard/display')">SCOREBOARD</button>
-                </div>
-            </div>
-
-            <button onclick="displaySettings()" class="margin-bottom">
+            <button onclick="displaySettings()">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -3 32 37" xml:space="preserve"
                     class="svg-clog" onclick="displaySettings()">
                     <path d="M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25 
@@ -109,7 +66,7 @@
     </div>
 
     <div class="hidden" id="settings">
-        <div class="title align-vertical settings margin-bottom">
+        <div class="title align-horizontal settings margin-bottom">
             <button class="button-back" onclick="displayMain()">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
                     class="svg-back">
@@ -119,35 +76,50 @@
                         fill="#e9f7ff" />
                 </svg>
             </button>
-
             <div>Settings</div>
         </div>
 
-        <div class="align-horizontal">
-            <div class="align-vertical space-between margin-bottom-small">
-                <div class="label">Clock number</div>
+        <div class="spacer-vertical-big"></div>
 
-                <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
-                    oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
+        <form onsubmit="return false">
+            <div class="align-vertical">
+                <div class="align-horizontal space-between margin-bottom-small">
+                    <div class="label">
+                        Shade number
+                    </div>
+
+                    <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
+                        oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
+                </div>
+
+                <div class="align-horizontal space-between margin-bottom-small">
+                    <div class="label">
+                        Motor reversed
+                    </div>
+
+                    <input id="motor-reversed" class="switch" type="checkbox" %%MOTOR_REVERSED%%
+                        onclick="fetch('/settings/reverse-motor').then()" />
+                </div>
+
+                <div class="label align-left">Group</div>
+
+                <input id="group" type="text" class="margin-bottom-small" value="%%GROUP%%"
+                    oninput="debouncedSetGroup(this.value)" />
+
+                <div class="label align-left">SSID</div>
+
+                <input id="essid" type="text" class="margin-bottom-small" value="%%ESSID%%" />
+
+                <div class="label align-left">Password</div>
+
+                <input id="pwd" type="password" class="margin-bottom" />
+
+                <button type="submit" class="connect-button" onclick="connect()">CONNECT</button>
             </div>
-
-            <div class="label align-left">Group</div>
-
-            <input id="group" type="text" class="margin-bottom-small" oninput="debouncedSetGroup(this.value)" />
-
-            <div class="label align-left">Wifi network name (SSID)</div>
-
-            <input id="essid" type="text" class="margin-bottom-small" />
-
-            <div class="label align-left">Password</div>
-
-            <input id="pwd" type="password" class="margin-bottom" />
-
-            <button class="connect-button" onclick="connect()">CONNECT</button>
-        </div>
+        </form>
     </div>
 
-    <div id="connection" class="align-horizontal hidden">
+    <div id="connection" class="align-vertical hidden">
         <div class="connection">
             Connection in progress
         </div>

@@ -1,34 +1,21 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-    var slider = document.getElementById("slider");
-
-    slider.oninput = function () {
-        debouncedSlider(this.value);
-    }
-
-    const xhr = send('/settings/values');
-
-    xhr.onload = function () {
-        if (xhr.status == 200) {
-            const response = JSON.parse(xhr.response);
-
+    fetch('/settings/values')
+        .then(response => response.json())
+        .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             setTagValue('tag-net-id', response.netId);
             setTagValue('group', response.group);
+            setTagValue('motor-reversed', response.motorReversed);
             setTagValue('essid', response.essid);
 
-            document.title += ` ${response.netId}`;
-        }
-    };
+            document.title = `Shade ${response.netId}`;
+        });
 });
-
-const debouncedSlider = debounce((val) => {
-    console.log("val: " + val)
-}, 500);
 
 function setTagValue(tagId, value) {
     const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? (tag.value = value) : (tag.textContent = value);
+    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
 }
 
 function debounce(fn, wait = 100) {
@@ -43,24 +30,17 @@ function debounce(fn, wait = 100) {
     };
 }
 
-function send(action) {
-    const http = new XMLHttpRequest();
-    http.open('GET', action);
-    http.send();
-
-    return http;
-}
-
 function setNetId(value) {
-    send(`/settings/net?id=${value}`);
+    fetch(`/settings/net?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
+    document.title = `Shade ${value}`;
 }
 
 const debouncedSetNetId = debounce(setNetId, 500);
 
 function setGroup(value) {
-    send(`/settings/group?name=${value}`);
+    fetch(`/settings/group?name=${value}`).then();
 }
 
 const debouncedSetGroup = debounce(setGroup, 500);
@@ -68,6 +48,7 @@ const debouncedSetGroup = debounce(setGroup, 500);
 function displayMain() {
     const main = document.getElementById('main'),
         settings = document.getElementById('settings');
+
     main.classList.remove('hidden');
     settings.classList.add('hidden');
 }
@@ -75,54 +56,61 @@ function displayMain() {
 function displaySettings() {
     const main = document.getElementById('main'),
         settings = document.getElementById('settings');
+
     main.classList.add('hidden');
     settings.classList.remove('hidden');
 }
 
-function displayConnectionInProgress() {
-    const settings = document.getElementById('settings'),
+async function fetchWithTimeout(resource, options) {
+    const { timeout = 8000 } = options;
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+    });
+    clearTimeout(id);
+
+    return response;
+}
+
+function checkConnection() {
+    try {
+        return fetchWithTimeout('/settings/values', {
+            timeout: 3000
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.ip != '192.168.4.1') {
+                    setTagValue('new-ip', response.ip);
+
+                    const spinner = document.getElementById('spinner'),
+                        newIp = document.getElementById('new-ip');
+
+                    spinner.classList.add('hidden');
+                    newIp.classList.remove('hidden');
+                }
+                else {
+                    setTimeout(checkConnection, 3000);
+                }
+            });
+    } catch (error) {
+        setTimeout(checkConnection, 3000);
+    }
+}
+
+function connect() {
+    const essid = document.getElementById('essid'),
+        pwd = document.getElementById('pwd'),
+        settings = document.getElementById('settings'),
         connection = document.getElementById('connection');
+
+    fetch(`/connect?essid=${essid.value}&password=${pwd.value}`).then();
+
     settings.classList.add('hidden');
     connection.classList.remove('hidden');
 
     setTimeout(checkConnection, 3000);
-}
-
-function checkConnection() {
-    const xhr = send('/settings/values');
-
-    xhr.onload = function () {
-        let tryAgain = false;
-
-        if (xhr.status == 200) {
-            const response = JSON.parse(xhr.response);
-
-            if (response.ip != "192.168.4.1") {
-                setTagValue('new-ip', response.ip);
-
-                const spinner = document.getElementById('spinner'),
-                    newIp = document.getElementById('new-ip');
-
-                spinner.classList.add('hidden');
-                newIp.classList.remove('hidden');
-            } else {
-                tryAgain = true;
-            }
-        } else {
-            tryAgain = true;
-        }
-
-        if (tryAgain) {
-            setTimeout(checkConnection, 3000)
-        }
-    };
-}
-
-function connect() {
-    const essid = document.getElementById('essid');
-    const pwd = document.getElementById('pwd');
-
-    send(`/connect?essid=${essid.value}&password=${pwd.value}`);
-
-    displayConnectionInProgress();
 }

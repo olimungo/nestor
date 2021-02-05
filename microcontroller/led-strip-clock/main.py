@@ -7,23 +7,24 @@ from network import WLAN, STA_IF
 from WifiManager import WifiManager
 from HttpServer import HttpServer
 from mDnsServer import mDnsServer
-from MqttManager import MqttManager
 from Clock import Clock
 from Settings import Settings
 from Credentials import Credentials
 
 PUBLIC_NAME = b"Clock"
-BROKER_NAME = b"nestor.local"
 ORANGE = (255, 98, 0)
 SPINNER_RATE = const(120)
+
 
 class Player:
     GREEN = 0
     RED = 1
 
+
 class Mode:
     CLOCK = 0
     SCOREBOARD = 1
+
 
 class Main:
     def __init__(self):
@@ -34,7 +35,6 @@ class Main:
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
-        self.mqtt = MqttManager(self.mdns, BROKER_NAME, self.settings.net_id, PUBLIC_NAME.lower())
 
         routes = {
             b"/": b"./index.html",
@@ -43,8 +43,7 @@ class Main:
             b"/connect": self.connect,
             b"/action/color": self.set_color,
             b"/action/clock/display": self.display_clock,
-            b"/action/brightness/more": self.brightness_more,
-            b"/action/brightness/less": self.brightness_less,
+            b"/action/brightness": self.set_brightness,
             b"/action/scoreboard/display": self.display_scoreboard,
             b"/action/scoreboard/green/more": self.scoreboard_green_more,
             b"/action/scoreboard/green/less": self.scoreboard_green_less,
@@ -53,7 +52,7 @@ class Main:
             b"/action/scoreboard/reset": self.scoreboard_reset,
             b"/settings/values": self.settings_values,
             b"/settings/net": self.settings_net,
-            b"/settings/group": self.settings_group
+            b"/settings/group": self.settings_group,
         }
 
         self.http = HttpServer(routes)
@@ -63,7 +62,6 @@ class Main:
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_wifi())
-        # self.loop.create_task(self.check_mqtt())
         self.loop.run_forever()
         self.loop.close()
 
@@ -83,22 +81,18 @@ class Main:
             while self.sta_if.isconnected():
                 await sleep_ms(1000)
 
-    # async def check_mqtt(self):
-    #     while True:
-    #         message = self.mqtt.check_messages()
-
-    #         if message:
-    #             print("message: {}".format(message))
-
-    #         await sleep_ms(500)
-
     def settings_values(self, params):
         essid = self.credentials.essid
 
         if not essid:
             essid = b""
 
-        result = b'{"ip": "%s", "netId": "%s", "group": "%s", "essid": "%s"}' % (self.wifi.ip, self.settings.net_id, self.settings.group, essid)
+        _, _, l = self.clock.hsl
+
+        result = (
+            b'{"ip": "%s", "netId": "%s", "group": "%s", "essid": "%s", "brightness": "%s"}'
+            % (self.wifi.ip, self.settings.net_id, self.settings.group, essid, l)
+        )
 
         return result
 
@@ -155,15 +149,12 @@ class Main:
 
         self.display_scoreboard()
 
-    def brightness_more(self, params):
-        self.display_clock()
-        self.clock.set_brighter()
-        self.settings.color = b"%s" % self.clock.hex
-        self.settings.write()
+    def set_brightness(self, params):
+        l = params.get(b"l", None)
 
-    def brightness_less(self, params):
         self.display_clock()
-        self.clock.set_darker()
+        self.clock.set_brightness(l)
+
         self.settings.color = b"%s" % self.clock.hex
         self.settings.write()
 
@@ -185,6 +176,7 @@ class Main:
         if name:
             self.settings.group = name
             self.settings.write()
+
 
 try:
     collect()

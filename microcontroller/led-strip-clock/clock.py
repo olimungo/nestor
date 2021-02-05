@@ -9,22 +9,20 @@ from NtpTime import NtpTime
 LEDS = 59
 DIGIT = [1, 15, 31, 45]
 DOTS = 29
-EFFECT_INIT = [(0, 1), (2, 3), (4, 5), (12, 13), (10 ,11), (8 ,9)]
+EFFECT_INIT = [(0, 1), (2, 3), (4, 5), (12, 13), (10, 11), (8, 9)]
+
 
 class Gpio:
-    DATA = 4 # D2
+    DATA = 4  # D2
+
 
 class Clock:
     hour1 = hour2 = minute1 = minute2 = second = -1
-    rgb = None
-    hex = None
+    rgb = hex = hsl = None
     tick_timer = Timer(-1)
     play_spinner_timer = Timer(-1)
-    effect_to_play = None
-    effect_original = None
-    stop_effect_init = None
-    score_green = 0
-    score_red = 0
+    effect_to_play = effect_original = stop_effect_init = None
+    score_green = score_red = 0
 
     def __init__(self, color="0000ff"):
         self.leds_strip = NeoPixel(Pin(Gpio.DATA), LEDS)
@@ -65,9 +63,10 @@ class Clock:
         return False
 
     def update(self, position, value, rgb):
+        leds = []
         start = DIGIT[position - 1]
 
-        for i in range (start, start + 7 * 2):
+        for i in range(start, start + 7 * 2):
             self.leds_strip[i] = (0, 0, 0)
 
         if value == 0:
@@ -147,21 +146,19 @@ class Clock:
 
     def set_color(self, hex, no_refresh=True):
         if isinstance(hex, bytes):
-            hex = hex.decode('ascii')
+            hex = hex.decode("ascii")
 
         self.hex = hex
         self.rgb = colors.hex_to_rgb(hex)
+        self.hsl = colors.rgb_to_hsl(self.rgb)
 
         if no_refresh:
             self.force_refresh()
 
-    def set_brighter(self):
-        self.rgb = colors.brighter(self.rgb)
-        self.hex = colors.rgb_to_hex(self.rgb)
-        self.force_refresh()
-
-    def set_darker(self):
-        self.rgb = colors.darker(self.rgb)
+    def set_brightness(self, l):
+        h, s, _ = colors.rgb_to_hsl(self.rgb)
+        self.hsl = (h, s, l)
+        self.rgb = colors.hsl_to_rgb(self.hsl)
         self.hex = colors.rgb_to_hex(self.rgb)
         self.force_refresh()
 
@@ -175,11 +172,13 @@ class Clock:
 
         self.clear_all()
 
-        self.play_spinner_timer.init(period=period, mode=Timer.PERIODIC, callback=self.play_spinner_tick)
+        self.play_spinner_timer.init(
+            period=period, mode=Timer.PERIODIC, callback=self.play_spinner_tick
+        )
 
     def play_spinner_tick(self, timer):
         if self.stop_effect_init:
-        
+
             timer.deinit()
         else:
             if len(self.effect_to_play) == 0:
@@ -188,9 +187,9 @@ class Clock:
             currentStep = self.effect_to_play.pop(0)
 
             for start in DIGIT:
-                for i in range (start, start + 7 * 2):
+                for i in range(start, start + 7 * 2):
                     self.leds_strip[i] = (0, 0, 0)
-                    
+
                 self.leds_strip[start + currentStep[0]] = self.effect_color
                 self.leds_strip[start + currentStep[1]] = self.effect_color
 
