@@ -93,7 +93,7 @@ class Main:
 
         result = (
             b'{"ip": "%s", "netId": "%s", "group": "%s", "essid": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, self.settings.net_id, self.settings.group, essid, l)
+            % (self.wifi.ip, self.settings.net_id, self.settings.group, essid, int(l))
         )
 
         return result
@@ -127,9 +127,12 @@ class Main:
         if color:
             self.clock.set_color(color)
 
-            # Comment the following lines in order to NOT save the selected color for the next boot
             self.settings.color = color
             self.settings.write()
+
+        _, _, l = self.clock.hsl
+
+        return b'{"brightness": "%s"}' % int(l)
 
     def scoreboard_green_more(self, params):
         self.scoreboard_update(Player.GREEN, 1)
@@ -152,7 +155,7 @@ class Main:
         self.display_scoreboard()
 
     def set_brightness(self, params):
-        l = params.get(b"l", None)
+        l = int(params.get(b"l", 0))
 
         self.display_clock()
         self.clock.set_brightness(l)
