@@ -41,6 +41,7 @@ class Main:
             b"/index.html": b"./index.html",
             b"/scripts.js": b"./scripts.js",
             b"/style.css": b"./style.css",
+            b"/color-wheel.png": b"./color-wheel.png",
             b"/favicon.ico": self.favicon,
             b"/connect": self.connect,
             b"/action/color": self.set_color,
