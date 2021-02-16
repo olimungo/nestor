@@ -15,48 +15,39 @@
     </div>
 
     <div id="main">
-        <div class="title align-vertical">
+        <div class="title align-vertical margin-bottom-small">
             <div>CLOCK</div>
             <div id="tag-net-id" class="tag"></div>
         </div>
 
         <div class="align-horizontal">
-            <div class="label align-left margin-bottom-small">BRIGHTNESS</div>
+            <div class="label align-left margin-bottom">BRIGHTNESS</div>
 
-            <input type="range" min="1" max="99" value="50" class="slider" id="slider">
+            <input type="range" min="1" max="63" value="0" class="slider" id="slider">
 
-            <div class="align-horizontal margin-bottom-small">
-                <div class="align-vertical">
-                    <button class="button-small margin-right action"
-                        onclick="send('/action/brightness/more')">+</button>
-
-                    <button class="button-small action" onclick="send('/action/brightness/less')">-</button>
-                </div>
-            </div>
+            <div class="margin-bottom"></div>
 
             <div class="label align-left margin-bottom-small">COLOR</div>
 
             <div class="align-horizontal margin-bottom-small">
                 <div class="align-vertical margin-bottom-small">
-                    <button class="button-circle action color-pink margin-right"
-                        onclick="send('/action/color?hex=ff3f5f')"></button>
+                    <button class="button-circle action color-pink margin-right" onclick="setColor('ff3f5f')"></button>
                     <button class="button-circle action color-orange margin-right"
-                        onclick="send('/action/color?hex=d63600')"></button>
-                    <button class="button-circle action color-red margin-right"
-                        onclick="send('/action/color?hex=ff0000')"></button>
+                        onclick="setColor('d63600')"></button>
+                    <button class="button-circle action color-red margin-right" onclick="setColor('ff0000')"></button>
                     <button class="button-circle action color-blue-violet margin-right"
-                        onclick="send('/action/color?hex=8a2be2')"></button>
+                        onclick="setColor('8a2be2')"></button>
                 </div>
 
-                <div class="align-vertical">
-                    <button class="button-circle action color-blue margin-right"
-                        onclick="send('/action/color?hex=0000ff')"></button>
+                <div class="align-vertical margin-bottom-small">
+                    <button class="button-circle action color-blue margin-right" onclick="setColor('0000ff')"></button>
                     <button class="button-circle action color-yellow margin-right"
-                        onclick="send('/action/color?hex=ffff00')"></button>
-                    <button class="button-circle action color-green margin-right"
-                        onclick="send('/action/color?hex=13d713')"></button>
+                        onclick="setColor('ffff00')"></button>
+                    <button class="button-circle action color-green margin-right" onclick="setColor('13d713')"></button>
                 </div>
             </div>
+
+            <!-- <canvas id="canvas" class="canvas margin-bottom" width="400" height="400"></canvas> -->
 
             <div class="label align-left margin-bottom-small">SCOREBOARD</div>
 
