@@ -60,31 +60,37 @@ function displayMain() {
 
 function displaySettings() {
     hideAll();
-    const settings = document.getElementById('settings');
-    settings.classList.remove('hidden');
+    const settings = document.getElementById('settings'),
+        ssidsList = document.getElementById('ssids-list');
 
-    console.log('000');
+    settings.classList.remove('hidden');
+    ssidsList.innerHTML = '';
 
     fetch('/settings/ssids')
         .then(response => response.json())
         .then(response => response.ssids)
         .then(response => {
-            const ssidsList = document.getElementById('ssids-list');
 
-            response.forEach(element => {
-                const li = document.createElement("li");
-                const text = document.createTextNode(element);
+            response.forEach(elem => {
+                const li = document.createElement("li"),
+                    text = document.createTextNode(elem),
+                    ssid = document.getElementById('ssid');
 
-                li.onclick(displayPassword)
+                li.classList.add('li');
+
+                li.onclick = _ => { 
+                    ssid.textContent = elem;
+                    displayPassword();
+                };
 
                 li.appendChild(text);
                 ssidsList.appendChild(li);
             });
         })
+        .catch(err => console.log(err));
 }
 
-function displayPassword(event) {
-    console.log(event);
+function displayPassword() {
     hideAll();
     const password = document.getElementById('password');
     password.classList.remove('hidden');
@@ -103,15 +109,13 @@ function displayConnectionSuccess() {
 }
 
 async function fetchWithTimeout(resource, options) {
-    const { timeout = 8000 } = options;
-
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-
-    const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal
-    });
+    const { timeout = 8000 } = options,
+        controller = new AbortController(),
+        id = setTimeout(() => controller.abort(), timeout),
+        response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
 
     clearTimeout(id);
 
@@ -119,40 +123,37 @@ async function fetchWithTimeout(resource, options) {
 }
 
 function checkConnection() {
-    try {
-        return fetchWithTimeout('/settings/values', {
-            timeout: 3000
+    fetchWithTimeout('/settings/values', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.ip != '192.168.4.1') {
+                setTagValue('new-ip', response.ip);
+
+                const connection = document.getElementById('connection'),
+                    connectionSuccess = document.getElementById('connection-success');
+
+                connection.classList.add('hidden');
+                connectionSuccess.classList.remove('hidden');
+            }
+            else {
+                setTimeout(checkConnection, 3000);
+            }
         })
-            .then(response => response.json())
-            .then(response => {
-                if (response.ip != '192.168.4.1') {
-                    setTagValue('new-ip', response.ip);
-
-                    const connection = document.getElementById('connection');
-                    const connectionSuccess = document.getElementById('connection-success');
-
-                    connection.classList.add('hidden');
-                    connectionSuccess.classList.remove('hidden');
-                }
-                else {
-                    setTimeout(checkConnection, 3000);
-                }
-            });
-    } catch (error) {
-        setTimeout(checkConnection, 3000);
-    }
+        .catch(err => setTimeout(checkConnection, 3000));
 }
 
 function connect() {
-    const essid = document.getElementById('essid'),
+    const ssid = document.getElementById('ssid').textContent,
         pwd = document.getElementById('pwd'),
-        settings = document.getElementById('settings'),
+        password = document.getElementById('password'),
         connection = document.getElementById('connection');
-
-    fetch(`/connect?essid=${essid.value}&password=${pwd.value}`).then();
-
-    settings.classList.add('hidden');
+        
+    password.classList.add('hidden');
     connection.classList.remove('hidden');
+
+    fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
     setTimeout(checkConnection, 3000);
 }

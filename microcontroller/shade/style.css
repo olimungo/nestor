@@ -60,7 +60,7 @@ button:active {
     background-color: #fac372;
 }
 
-li {
+.li {
     background: #ccc;
     color: #222;
     font-size: 2rem;

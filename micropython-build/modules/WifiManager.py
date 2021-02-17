@@ -14,6 +14,7 @@ CHECK_CONNECTED = const(250)
 
 class WifiManager:
     ip = "0.0.0.0"
+    ssids = []
 
     def __init__(self, ap_essid=None):
         self.sta_if = WLAN(STA_IF)
@@ -85,6 +86,8 @@ class WifiManager:
             self.ap_if.ifconfig(),
         )
 
+        self.loop.create_task(self.scan_ssids())
+
     async def connect(self, autoLoop=False):
         if not self.sta_if.isconnected() or not autoLoop:
             if self.credentials.load().is_valid():
@@ -111,11 +114,22 @@ class WifiManager:
     def set_ap_essid(self, ap_essid):
         self.ap_essid = ap_essid
 
+    async def scan_ssids(self):
+        while not self.sta_if.isconnected():
+            print("> WifiManager.get_ssids(): start scan")
+
+            scan = self.sta_if.scan()
+
+            print("> WifiManager.get_ssids(): scan ended")
+
+            ssids = []
+
+            for ssid in scan:
+                ssids.append('"%s"' % ssid[0].decode("ascii"))
+
+            self.ssids = b'{"ssids": [%s]}' % (",".join(ssids))
+
+            await sleep_ms(15000)
+
     def get_ssids(self):
-        scan = self.sta_if.scan()
-        ssids = []
-
-        for ssid in scan:
-            ssids.append('"%s"' % ssid[0].decode("ascii"))
-
-        return b'{"ssids": [%s]}' % (",".join(ssids))
+        return self.ssids
