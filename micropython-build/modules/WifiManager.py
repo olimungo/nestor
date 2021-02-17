@@ -4,12 +4,13 @@ from uasyncio import get_event_loop, sleep_ms
 from Blink import Blink
 
 from Credentials import Credentials, FILE
-    
+
 AP_IP = "192.168.4.1"
 WAIT_FOR_CONNECT = const(6000)
 WAIT_BEFORE_RECONNECT = const(10000)
 WAIT_BEFORE_AP_SHUTDOWN = const(10000)
 CHECK_CONNECTED = const(250)
+
 
 class WifiManager:
     ip = "0.0.0.0"
@@ -33,7 +34,7 @@ class WifiManager:
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_wifi())
-            
+
     async def check_wifi(self):
         while True:
             self.loop.create_task(self.connect(True))
@@ -50,8 +51,12 @@ class WifiManager:
             self.ip = self.sta_if.ifconfig()[0]
 
             Blink().flash3TimesFast()
-            
-            print("> Connected to {} with IP: {}".format(self.credentials.essid.decode('ascii'), self.ip))
+
+            print(
+                "> Connected to {} with IP: {}".format(
+                    self.credentials.essid.decode("ascii"), self.ip
+                )
+            )
 
             if self.ap_if.active():
                 # Leave a bit of time so the client can retrieve the Wifi IP address
@@ -65,24 +70,29 @@ class WifiManager:
 
     async def start_access_point(self):
         self.ap_if.active(True)
-        
+
         while not self.ap_if.active():
             await sleep_ms(CHECK_CONNECTED)
 
         self.ip = AP_IP
 
         # IP address, netmask, gateway, DNS
-        self.ap_if.ifconfig(
-            (self.ip, "255.255.255.0", self.ip, self.ip)
-        )
+        self.ap_if.ifconfig((self.ip, "255.255.255.0", self.ip, self.ip))
 
         self.ap_if.config(essid=self.ap_essid, authmode=AUTH_OPEN)
-        print("> AP mode configured: {} ".format(self.ap_essid.decode("utf-8")), self.ap_if.ifconfig())
+        print(
+            "> AP mode configured: {} ".format(self.ap_essid.decode("utf-8")),
+            self.ap_if.ifconfig(),
+        )
 
     async def connect(self, autoLoop=False):
         if not self.sta_if.isconnected() or not autoLoop:
             if self.credentials.load().is_valid():
-                print("> Connecting to {:s}/{:s}".format(self.credentials.essid, self.credentials.password))
+                print(
+                    "> Connecting to {:s}/{:s}".format(
+                        self.credentials.essid, self.credentials.password
+                    )
+                )
 
                 self.sta_if.active(False)
                 self.sta_if.active(True)
@@ -100,3 +110,12 @@ class WifiManager:
 
     def set_ap_essid(self, ap_essid):
         self.ap_essid = ap_essid
+
+    def get_ssids(self):
+        scan = self.sta_if.scan()
+        ssids = []
+
+        for ssid in scan:
+            ssids.append('"%s"' % ssid[0].decode("ascii"))
+
+        return b'{"ssids": [%s]}' % (",".join(ssids))

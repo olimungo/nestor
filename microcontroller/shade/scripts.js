@@ -5,13 +5,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             setTagValue('tag-net-id', response.netId);
-            setTagValue('group', response.group);
             setTagValue('motor-reversed', response.motorReversed);
-            setTagValue('essid', response.essid);
 
             document.title = `Shade ${response.netId}`;
         });
 });
+
 
 function setTagValue(tagId, value) {
     const tag = document.getElementById(tagId);
@@ -39,26 +38,68 @@ function setNetId(value) {
 
 const debouncedSetNetId = debounce(setNetId, 500);
 
-function setGroup(value) {
-    fetch(`/settings/group?name=${value}`).then();
+function hideAll() {
+    const main = document.getElementById('main'),
+        settings = document.getElementById('settings'),
+        password = document.getElementById('password'),
+        connection = document.getElementById('connection'),
+        connectionSuccess = document.getElementById('connection-success');
+
+    main.classList.add('hidden');
+    settings.classList.add('hidden');
+    password.classList.add('hidden');
+    connection.classList.add('hidden');
+    connectionSuccess.classList.add('hidden');
 }
 
-const debouncedSetGroup = debounce(setGroup, 500);
-
 function displayMain() {
-    const main = document.getElementById('main'),
-        settings = document.getElementById('settings');
-
+    hideAll();
+    const main = document.getElementById('main');
     main.classList.remove('hidden');
-    settings.classList.add('hidden');
 }
 
 function displaySettings() {
-    const main = document.getElementById('main'),
-        settings = document.getElementById('settings');
-
-    main.classList.add('hidden');
+    hideAll();
+    const settings = document.getElementById('settings');
     settings.classList.remove('hidden');
+
+    console.log('000');
+
+    fetch('/settings/ssids')
+        .then(response => response.json())
+        .then(response => response.ssids)
+        .then(response => {
+            const ssidsList = document.getElementById('ssids-list');
+
+            response.forEach(element => {
+                const li = document.createElement("li");
+                const text = document.createTextNode(element);
+
+                li.onclick(displayPassword)
+
+                li.appendChild(text);
+                ssidsList.appendChild(li);
+            });
+        })
+}
+
+function displayPassword(event) {
+    console.log(event);
+    hideAll();
+    const password = document.getElementById('password');
+    password.classList.remove('hidden');
+}
+
+function displayConnection() {
+    hideAll();
+    const connection = document.getElementById('connection');
+    connection.classList.remove('hidden');
+}
+
+function displayConnectionSuccess() {
+    hideAll();
+    const connectionSucces = document.getElementById('connection-succes');
+    connectionSucces.classList.remove('hidden');
 }
 
 async function fetchWithTimeout(resource, options) {
@@ -71,6 +112,7 @@ async function fetchWithTimeout(resource, options) {
         ...options,
         signal: controller.signal
     });
+
     clearTimeout(id);
 
     return response;
@@ -86,11 +128,11 @@ function checkConnection() {
                 if (response.ip != '192.168.4.1') {
                     setTagValue('new-ip', response.ip);
 
-                    const spinner = document.getElementById('spinner'),
-                        newIp = document.getElementById('new-ip');
+                    const connection = document.getElementById('connection');
+                    const connectionSuccess = document.getElementById('connection-success');
 
-                    spinner.classList.add('hidden');
-                    newIp.classList.remove('hidden');
+                    connection.classList.add('hidden');
+                    connectionSuccess.classList.remove('hidden');
                 }
                 else {
                     setTimeout(checkConnection, 3000);

@@ -22,7 +22,7 @@ class Main:
         self.sta_if = WLAN(STA_IF)
         self.settings = Settings().load()
         self.credentials = Credentials().load()
-        self.udps = UdpServer()
+        # self.udps = UdpServer()
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
@@ -41,7 +41,8 @@ class Main:
             b"/settings/values": self.settings_values,
             b"/settings/net": self.settings_net,
             b"/settings/group": self.settings_group,
-            b"/settings/reverse-motor": self.reverse_motor
+            b"/settings/reverse-motor": self.reverse_motor,
+            b"/settings/ssids": self.get_ssids
         }
 
         self.http = HttpServer(routes)
@@ -178,6 +179,9 @@ class Main:
             self.mqtt.publish_state(state)
         except Exception as e:
             print("> Main.send_state_mqtt exception: {}".format(e))
+
+    def get_ssids(self, params):
+        return self.wifi.get_ssids()
 
 try:
     collect()
