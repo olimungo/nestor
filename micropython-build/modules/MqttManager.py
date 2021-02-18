@@ -6,7 +6,7 @@ from network import WLAN, STA_IF
 
 WAIT_FOR_MDNS = const(1000)
 WAIT_FOR_CONNECT = const(3000)
-WAIT_FOR_MESSAGE = const(100)
+WAIT_FOR_MESSAGE = const(250)
 
 class MqttManager:
     def __init__(self, mdns, broker_name, net_id, topic_name):

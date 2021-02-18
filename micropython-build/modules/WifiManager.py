@@ -8,13 +8,13 @@ from Credentials import Credentials, FILE
 AP_IP = "192.168.4.1"
 WAIT_FOR_CONNECT = const(6000)
 WAIT_BEFORE_RECONNECT = const(10000)
-WAIT_BEFORE_AP_SHUTDOWN = const(10000)
+WAIT_BEFORE_AP_SHUTDOWN = const(30000)
 CHECK_CONNECTED = const(250)
 
 
 class WifiManager:
     ip = "0.0.0.0"
-    ssids = []
+    ssids = b'{"ssids": []}'
 
     def __init__(self, ap_essid=None):
         self.sta_if = WLAN(STA_IF)
@@ -116,20 +116,25 @@ class WifiManager:
 
     async def scan_ssids(self):
         while not self.sta_if.isconnected():
-            print("> WifiManager.get_ssids(): start scan")
+            try:
+                print("> WifiManager.get_ssids(): start scan")
 
-            scan = self.sta_if.scan()
+                scan = self.sta_if.scan()
 
-            print("> WifiManager.get_ssids(): scan ended")
+                print("> WifiManager.get_ssids(): scan ended")
 
-            ssids = []
+                ssids = []
 
-            for ssid in scan:
-                ssids.append('"%s"' % ssid[0].decode("ascii"))
+                for ssid in scan:
+                    ssids.append('"%s"' % ssid[0].decode("ascii"))
 
-            self.ssids = b'{"ssids": [%s]}' % (",".join(ssids))
+                self.ssids = b'{"ssids": [%s]}' % (",".join(ssids))
+            except Exception as e:
+                print("> WifiManager.scan_ssids(): %s" % e)
 
             await sleep_ms(15000)
+
+        self.ssids = b'{"ssids": []}'
 
     def get_ssids(self):
         return self.ssids

@@ -6,7 +6,7 @@ from gc import collect
 
 MAX_PACKET_SIZE = const(1024)
 HTTP_PORT = const(80)
-IDLE_TIME_BETWEEN_CHECKS = const(25)
+IDLE_TIME_BETWEEN_CHECKS = const(250)
 
 HEADER_OK = b"HTTP/1.1 200 OK\r\n\r\n"
 HEADER_REDIRECT = b"HTTP/1.1 302 Found\r\nLocation: index.html\r\n\r\n"

@@ -1,20 +1,19 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-    fetch('/settings/values')
-        .then(response => response.json())
-        .then(response => {
-            setTagValue('ip', response.ip);
-            setTagValue('net-id', response.netId);
-            setTagValue('tag-net-id', response.netId);
-            setTagValue('motor-reversed', response.motorReversed);
-
-            document.title = `Shade ${response.netId}`;
-        });
+    getValues();
 });
 
+async function fetchWithTimeout(resource, options) {
+    const { timeout = 8000 } = options,
+        controller = new AbortController(),
+        id = setTimeout(() => controller.abort(), timeout),
+        response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
 
-function setTagValue(tagId, value) {
-    const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
+    clearTimeout(id);
+
+    return response;
 }
 
 function debounce(fn, wait = 100) {
@@ -27,6 +26,27 @@ function debounce(fn, wait = 100) {
             fn.apply(this, args);
         }, wait);
     };
+}
+
+function getValues() {
+    fetchWithTimeout('/settings/values', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => {
+            setTagValue('ip', response.ip);
+            setTagValue('net-id', response.netId);
+            setTagValue('tag-net-id', response.netId);
+            setTagValue('motor-reversed', response.motorReversed);
+
+            document.title = `Shade ${response.netId}`;
+        })
+        .catch(() => getValues());
+}
+
+function setTagValue(tagId, value) {
+    const tag = document.getElementById(tagId);
+    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
 }
 
 function setNetId(value) {
@@ -66,28 +86,7 @@ function displaySettings() {
     settings.classList.remove('hidden');
     ssidsList.innerHTML = '';
 
-    fetch('/settings/ssids')
-        .then(response => response.json())
-        .then(response => response.ssids)
-        .then(response => {
-
-            response.forEach(elem => {
-                const li = document.createElement("li"),
-                    text = document.createTextNode(elem),
-                    ssid = document.getElementById('ssid');
-
-                li.classList.add('li');
-
-                li.onclick = _ => { 
-                    ssid.textContent = elem;
-                    displayPassword();
-                };
-
-                li.appendChild(text);
-                ssidsList.appendChild(li);
-            });
-        })
-        .catch(err => console.log(err));
+    getSsids();
 }
 
 function displayPassword() {
@@ -108,18 +107,32 @@ function displayConnectionSuccess() {
     connectionSucces.classList.remove('hidden');
 }
 
-async function fetchWithTimeout(resource, options) {
-    const { timeout = 8000 } = options,
-        controller = new AbortController(),
-        id = setTimeout(() => controller.abort(), timeout),
-        response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
+function getSsids() {
+    fetchWithTimeout('/settings/ssids', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => response.ssids)
+        .then(response => {
+            const ssidsList = document.getElementById('ssids-list');
 
-    clearTimeout(id);
+            response.forEach(elem => {
+                const li = document.createElement("li"),
+                    text = document.createTextNode(elem),
+                    ssid = document.getElementById('ssid');
 
-    return response;
+                li.classList.add('li');
+
+                li.onclick = _ => {
+                    ssid.textContent = elem;
+                    displayPassword();
+                };
+
+                li.appendChild(text);
+                ssidsList.appendChild(li);
+            });
+        })
+        .catch((err) => getSsids());
 }
 
 function checkConnection() {
@@ -149,7 +162,7 @@ function connect() {
         pwd = document.getElementById('pwd'),
         password = document.getElementById('password'),
         connection = document.getElementById('connection');
-        
+
     password.classList.add('hidden');
     connection.classList.remove('hidden');
 

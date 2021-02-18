@@ -6,7 +6,7 @@
         {
             "label": "Upload",
             "type": "shell",
-            "command": "pkill mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput ${fileBasename}'",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput ${fileBasename}'",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -16,7 +16,7 @@
         {
             "label": "Upload All",
             "type": "shell",
-            "command": "pkill mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput .*\\.py; mput index.html; mput style.css; mput scripts.js'",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput .*\\.py; mput index.html; mput style.css; mput scripts.js'",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -36,7 +36,7 @@
         {
             "label": "Erase and flash ESP with custom micropython",
             "type": "shell",
-            "command": "pkill mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -46,7 +46,7 @@
         {
             "label": "Erase ESP",
             "type": "shell",
-            "command": "pkill mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -56,7 +56,7 @@
         {
             "label": "Erase and Flash ESP with micropython 1.14",
             "type": "shell",
-            "command": "pkill mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210202-v1.14.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210202-v1.14.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -66,7 +66,7 @@
         {
             "label": "Flash ESP with custom micropython",
             "type": "shell",
-            "command": "pkill mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -76,7 +76,7 @@
         {
             "label": "Shell and REPL",
             "type": "shell",
-            "command": "pkill mpfshell; cd ${fileDirname}; mpfshell -c open ${env:MICROCONTROLLER_USB_PORT}",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -c open ${env:MICROCONTROLLER_USB_PORT}",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

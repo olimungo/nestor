@@ -11,7 +11,7 @@ from MqttManager import MqttManager
 from Motor import Motor
 from Settings import Settings
 from Credentials import Credentials
-from UdpServer import UdpServer
+# from UdpServer import UdpServer
 
 PUBLIC_NAME = b"Shade"
 BROKER_NAME = b"nestor.local"

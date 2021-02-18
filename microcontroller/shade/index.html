@@ -13,7 +13,7 @@
     <div id="main">
         <div class="inline">
             <h1>Shade</h1>
-            <div id="tag-net-id" class="tag">9</div>
+            <div id="tag-net-id" class="tag"></div>
         </div>
 
         <div class="block center-horizontal">
@@ -72,32 +72,28 @@
             <h1>Settings</h1>
         </div>
 
-        <form onsubmit="return false">
-            <div class="">
-                <div class="inline space-between margin-bottom-small">
-                    <div class="label">
-                        Shade number
-                    </div>
-
-                    <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
-                        oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
-                </div>
-
-                <div class="inline space-between margin-bottom-small">
-                    <div class="label">
-                        Motor reversed
-                    </div>
-
-                    <input id="motor-reversed" class="switch" type="checkbox" %%MOTOR_REVERSED%%
-                        onclick="fetch('/settings/reverse-motor').then()" />
-                </div>
-
-                <div class="label margin-bottom">Wifi networks</div>
-
-                <ul id="ssids-list" class="margin-bottom">
-                </ul>
+        <div class="inline space-between margin-bottom-small">
+            <div class="label">
+                Shade number
             </div>
-        </form>
+
+            <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
+                oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
+        </div>
+
+        <div class="inline space-between margin-bottom-small">
+            <div class="label">
+                Motor reversed
+            </div>
+
+            <input id="motor-reversed" class="switch" type="checkbox" %%MOTOR_REVERSED%%
+                onclick="fetch('/settings/reverse-motor').then()" />
+        </div>
+
+        <div class="label margin-bottom">Wifi networks</div>
+
+        <ul id="ssids-list" class="margin-bottom">
+        </ul>
     </div>
 
     <div id="password" class="block hidden">
@@ -114,10 +110,14 @@
             <h1>Password</h1>
         </div>
 
-        <input id="pwd" type="password" class="margin-bottom" />
-        <div id="ssid" class="hidden"></div>
+        <form onsubmit="return false">
+            <span class="label margin-bottom">for</span>&nbsp;
+            <span id="ssid" class="label margin-bottom"></span>
 
-        <button type="submit" class="connect-button" onclick="connect()">CONNECT</button>
+            <input id="pwd" type="text" class="margin-bottom" />
+
+            <button type="submit" class="connect-button" onclick="connect()">CONNECT</button>
+        </form>
     </div>
 
     <div id="connection" class="block hidden">
