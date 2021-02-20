@@ -49,11 +49,10 @@ button {
     border-radius: 60px;
     background: none;
     outline: none;
-    border: solid 1px #e9f7ff;
+    border: solid 0.3rem #e9f7ff;
     color: #e9f7ff;
     width: 18rem;
     height: 9rem;
-    border-width: 0.4rem;
 }
 
 button:active {
@@ -66,7 +65,7 @@ button:active {
     font-size: 2rem;
     padding: 1rem;
     margin: 0.5rem;
-    border-radius: 11px;
+    border-radius: 1rem;
     font-weight: 500;
 }
 
@@ -103,7 +102,7 @@ li:active {
 input[type='number'],
 input[type='password'],
 input[type='text'] {
-    border: solid 3px #e9f7ff;
+    border: solid 0.3rem #e9f7ff;
     outline: none;
     background: none;
     border-radius: 25px;
@@ -121,22 +120,6 @@ input[type='number'] {
 input[type='password'],
 input[type='text'] {
     width: 40rem;
-}
-
-input.switch {
-    position: relative;
-    -webkit-appearance: none;
-    outline: none;
-    width: 10.5rem;
-    height: 4rem;
-    background-color: #e9f7ff;
-    border: 3px solid #e9f7ff;
-    border-radius: 5rem;
-    box-shadow: inset -6rem 0 0 0 rgb(184, 68, 68);
-}
-
-input.switch:checked {
-    box-shadow: inset 6rem 0 0 0 rgb(40, 117, 30);
 }
 
 .label {
@@ -262,6 +245,70 @@ input.switch:checked {
     40% {
         -webkit-transform: scale(1);
         transform: scale(1);
+    }
+}
+
+.toggle-container {
+    display: flex;
+}
+
+.toggle {
+    display: none;
+}
+
+.toggle-background {
+    background-color: #888;
+    border-radius: 50px;
+    cursor: pointer;
+    display: inline-block;
+    width: 10.3rem;
+    height: 3.9rem;
+    position: relative;
+    border: 0.3rem solid #eee;
+}
+
+.toggle:checked + .toggle-background {
+    background-color: rgb(73, 165, 73);
+}
+
+.ball {
+    background: #e9f7ff;
+    height: 3.4rem;
+    width: 3.4rem;
+    border-radius: 50%;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    animation: slideOff 0.2s linear forwards;
+}
+
+.toggle:checked + .toggle-background .ball {
+    animation: slideOn 0.2s linear forwards;
+}
+
+@keyframes slideOn {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(6.4rem) scale(1);
+    }
+}
+
+@keyframes slideOff {
+    0% {
+        transform: translateX(6.4rem) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(0) scale(1);
     }
 }
 

@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-    getValues();
+    // getValues();
 });
 
 async function fetchWithTimeout(resource, options) {
@@ -108,31 +108,31 @@ function displayConnectionSuccess() {
 }
 
 function getSsids() {
-    fetchWithTimeout('/settings/ssids', {
-        timeout: 3000
-    })
-        .then(response => response.json())
-        .then(response => response.ssids)
-        .then(response => {
-            const ssidsList = document.getElementById('ssids-list');
+    // fetchWithTimeout('/settings/ssids', {
+    //     timeout: 3000
+    // })
+    //     .then(response => response.json())
+    //     .then(response => response.ssids)
+    //     .then(response => {
+    //         const ssidsList = document.getElementById('ssids-list');
 
-            response.forEach(elem => {
-                const li = document.createElement("li"),
-                    text = document.createTextNode(elem),
-                    ssid = document.getElementById('ssid');
+    //         response.forEach(elem => {
+    //             const li = document.createElement("li"),
+    //                 text = document.createTextNode(elem),
+    //                 ssid = document.getElementById('ssid');
 
-                li.classList.add('li');
+    //             li.classList.add('li');
 
-                li.onclick = _ => {
-                    ssid.textContent = elem;
-                    displayPassword();
-                };
+    //             li.onclick = _ => {
+    //                 ssid.textContent = elem;
+    //                 displayPassword();
+    //             };
 
-                li.appendChild(text);
-                ssidsList.appendChild(li);
-            });
-        })
-        .catch((err) => getSsids());
+    //             li.appendChild(text);
+    //             ssidsList.appendChild(li);
+    //         });
+    //     })
+    //     .catch((err) => getSsids());
 }
 
 function checkConnection() {

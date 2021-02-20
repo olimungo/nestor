@@ -86,8 +86,13 @@
                 Motor reversed
             </div>
 
-            <input id="motor-reversed" class="switch" type="checkbox" %%MOTOR_REVERSED%%
-                onclick="fetch('/settings/reverse-motor').then()" />
+            <div class="toggle-container">
+                <input id="motor-reversed2" name="motor-reversed2" class="toggle" type="checkbox" %%MOTOR_REVERSED%%
+                    onclick="fetch('/settings/reverse-motor').then()" />
+                <label for="motor-reversed2" class="toggle-background">
+                    <div class="ball"></div>
+                </label>
+            </div>
         </div>
 
         <div class="label margin-bottom">Wifi networks</div>
