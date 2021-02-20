@@ -46,14 +46,14 @@ h1 {
 }
 
 button {
-    border-radius: 7px;
+    border-radius: 60px;
     background: none;
     outline: none;
     border: solid 1px #e9f7ff;
     color: #e9f7ff;
     width: 18rem;
     height: 9rem;
-    border-width: 0.2rem;
+    border-width: 0.4rem;
 }
 
 button:active {
@@ -103,7 +103,7 @@ li:active {
 input[type='number'],
 input[type='password'],
 input[type='text'] {
-    border: solid 1px #e9f7ff;
+    border: solid 3px #e9f7ff;
     outline: none;
     background: none;
     border-radius: 25px;
@@ -127,16 +127,16 @@ input.switch {
     position: relative;
     -webkit-appearance: none;
     outline: none;
-    width: 10rem;
+    width: 10.5rem;
     height: 4rem;
     background-color: #e9f7ff;
-    border: 1px solid #e9f7ff;
+    border: 3px solid #e9f7ff;
     border-radius: 5rem;
-    box-shadow: inset -6rem 0 0 0 #222;
+    box-shadow: inset -6rem 0 0 0 rgb(184, 68, 68);
 }
 
 input.switch:checked {
-    box-shadow: inset 6rem 0 0 0 #222;
+    box-shadow: inset 6rem 0 0 0 rgb(40, 117, 30);
 }
 
 .label {
