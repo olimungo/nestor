@@ -261,8 +261,8 @@ input[type='text'] {
     border-radius: 50px;
     cursor: pointer;
     display: inline-block;
-    width: 10.3rem;
-    height: 3.9rem;
+    width: 16rem;
+    height: 6rem;
     position: relative;
     border: 0.3rem solid #eee;
 }
@@ -273,8 +273,8 @@ input[type='text'] {
 
 .ball {
     background: #e9f7ff;
-    height: 3.4rem;
-    width: 3.4rem;
+    height: 5.5rem;
+    width: 5.5rem;
     border-radius: 50%;
     position: absolute;
     top: 0.25rem;
@@ -293,19 +293,19 @@ input[type='text'] {
         transform: translateX(0) scale(1);
     }
     50% {
-        transform: translateX(3.2rem) scale(1.2);
+        transform: translateX(5rem) scale(1.2);
     }
     100% {
-        transform: translateX(6.4rem) scale(1);
+        transform: translateX(10rem) scale(1);
     }
 }
 
 @keyframes slideOff {
     0% {
-        transform: translateX(6.4rem) scale(1);
+        transform: translateX(10rem) scale(1);
     }
     50% {
-        transform: translateX(3.2rem) scale(1.2);
+        transform: translateX(5rem) scale(1.2);
     }
     100% {
         transform: translateX(0) scale(1);

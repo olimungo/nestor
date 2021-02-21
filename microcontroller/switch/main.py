@@ -1,6 +1,6 @@
 from uasyncio import get_event_loop, sleep_ms
 from gc import collect, mem_free
-from machine import reset
+from machine import reset, Pin
 from time import sleep
 from network import WLAN, STA_IF
 
@@ -8,15 +8,17 @@ from WifiManager import WifiManager
 from HttpServer import HttpServer
 from mDnsServer import mDnsServer
 from MqttManager import MqttManager
-from Motor import Motor
 from Settings import Settings
 from Credentials import Credentials
 
 # from UdpServer import UdpServer
 
-PUBLIC_NAME = b"Shade"
+PUBLIC_NAME = b"Switch"
 BROKER_NAME = b"nestor.local"
-MQTT_TOPIC_NAME = b"shades"
+MQTT_TOPIC_NAME = b"switches"
+
+PIN_SWITCH_1 = 5  # D1
+PIN_SWITCH_2 = 0  # D3
 
 
 class Main:
@@ -25,6 +27,9 @@ class Main:
         self.settings = Settings().load()
         self.credentials = Credentials().load()
         # self.udps = UdpServer()
+
+        self.switch1 = Pin(PIN_SWITCH_1, Pin.OUT)
+        self.switch2 = Pin(PIN_SWITCH_2, Pin.OUT)
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
@@ -39,20 +44,14 @@ class Main:
             b"/style.css": b"./style.css",
             b"/favicon.ico": self.favicon,
             b"/connect": self.connect,
-            b"/action/go-up": self.go_up,
-            b"/action/go-down": self.go_down,
-            b"/action/stop": self.stop,
+            b"/action/toggle": self.toggle,
             b"/settings/values": self.settings_values,
             b"/settings/net": self.settings_net,
-            b"/settings/group": self.settings_group,
-            b"/settings/reverse-motor": self.reverse_motor,
             b"/settings/ssids": self.get_ssids,
         }
 
         self.http = HttpServer(routes)
         print("> HTTP server up and running")
-
-        self.motor = Motor()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_wifi())
@@ -77,10 +76,6 @@ class Main:
         while True:
             while self.mqtt.connected:
                 self.check_message_mqtt()
-
-                if self.motor.check_stopped_by_ir_sensor():
-                    self.send_state_mqtt()
-
                 await sleep_ms(100)
 
             while not self.mqtt.connected:
@@ -110,12 +105,13 @@ class Main:
             essid = b""
 
         result = (
-            b'{"ip": "%s", "netId": "%s", "group": "%s", "motorReversed": "%s", "essid": "%s"}'
+            b'{"ip": "%s", "netId": "%s", "group": "%s", "state1": "%s", "state2": "%s", "essid": "%s"}'
             % (
                 self.wifi.ip,
                 self.settings.net_id,
                 self.settings.group,
-                self.settings.motor_reversed,
+                self.settings.state1,
+                self.settings.state2,
                 essid,
             )
         )
@@ -132,17 +128,29 @@ class Main:
 
         self.loop.create_task(self.wifi.connect())
 
-    def go_up(self, params=None):
-        self.motor.go_up()
-        self.send_state_mqtt()
+    def toggle(self, params):
+        id = params.get(b"id", None)
+        action = params.get(b"action", None)
 
-    def go_down(self, params=None):
-        self.motor.go_down()
-        self.send_state_mqtt()
+        if id and action:
+            if id == b"1":
+                switch = self.switch1
+            else:
+                switch = self.switch2
 
-    def stop(self, params=None):
-        self.motor.stop()
-        self.send_state_mqtt()
+            if action == b"on":
+                switch.on()
+                value = b"1"
+            else:
+                switch.off()
+                value = b"0"
+
+            if id == 1:
+                self.settings.switch1 = value
+            else:
+                self.settings.switch2 = value
+
+            self.settings.write()
 
     def settings_net(self, params):
         id = params.get(b"id", None)
@@ -156,26 +164,6 @@ class Main:
             self.mdns.set_net_id(id)
             self.mqtt.set_net_id(id)
 
-    def settings_group(self, params):
-        name = params.get(b"name", None)
-
-        if name:
-            self.settings.group = name
-            self.settings.write()
-
-    def reverse_motor(self, params):
-        motor_reversed = self.settings.motor_reversed
-
-        if motor_reversed == b"0":
-            motor_reversed = b"1"
-        else:
-            motor_reversed = b"0"
-
-        self.settings.motor_reversed = motor_reversed
-        self.settings.write()
-
-        self.motor.reverse_direction()
-
     async def send_state(self):
         while True:
             self.send_state_mqtt()
@@ -183,9 +171,10 @@ class Main:
 
     def send_state_mqtt(self):
         try:
-            state = b'{"group": "%s", "state": "%s"}' % (
+            state = b'{"group": "%s", "state1": "%s", "state2": "%s"}' % (
                 self.settings.group,
-                self.motor.get_state(),
+                self.settings.state1,
+                self.settings.state2,
             )
             self.mqtt.publish_state(state)
         except Exception as e:

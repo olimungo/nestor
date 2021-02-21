@@ -37,11 +37,21 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             setTagValue('tag-net-id', response.netId);
-            setTagValue('motor-reversed', response.motorReversed);
+            setTagValue('switch1', response.state1);
+            setTagValue('switch2', response.state2);
 
-            document.title = `Shade ${response.netId}`;
+            document.title = `Switch ${response.netId}`;
         })
         .catch(() => getValues());
+}
+
+function toggle(switchId) {
+    const action = document.getElementById(`switch${switchId}`).checked ? 'on' : 'off';
+
+    fetchWithTimeout(`/action/toggle?action=${action}&id=${switchId}`, {
+        timeout: 3000
+    })
+        .catch(() => toggle(switchId));
 }
 
 function setTagValue(tagId, value) {
