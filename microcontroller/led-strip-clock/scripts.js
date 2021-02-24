@@ -6,11 +6,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
         debouncedSlider(this.value);
     }
 
-    // canvas.onclick = colorWheelMouse;
-    // window.onresize = setCanvasSize;
-
-    // setCanvasSize()
-
     const p = document.body.appendChild(document.createElement("p"));
 
     const xhr = send('/settings/values');

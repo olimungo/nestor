@@ -31,6 +31,12 @@ class Main:
         self.switch1 = Pin(PIN_SWITCH_1, Pin.OUT)
         self.switch2 = Pin(PIN_SWITCH_2, Pin.OUT)
 
+        if self.settings.state1 == b"1":
+            self.switch1.on()
+
+        if self.settings.state2 == b"1":
+            self.switch2.on()
+
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
         self.mqtt = MqttManager(
@@ -145,10 +151,10 @@ class Main:
                 switch.off()
                 value = b"0"
 
-            if id == 1:
-                self.settings.switch1 = value
+            if id == b"1":
+                self.settings.state1 = value
             else:
-                self.settings.switch2 = value
+                self.settings.state2 = value
 
             self.settings.write()
 
