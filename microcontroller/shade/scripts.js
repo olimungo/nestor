@@ -41,7 +41,7 @@ function getValues() {
 
             document.title = `Shade ${response.netId}`;
         })
-        .catch(() => getValues());
+        .catch(() => setTimeout(getValues(), 3000));
 }
 
 function setTagValue(tagId, value) {
@@ -132,7 +132,7 @@ function getSsids() {
                 ssidsList.appendChild(li);
             });
         })
-        .catch((err) => getSsids());
+        .catch((err) => setTimeout(getSsids, 3000));
 }
 
 function checkConnection() {
@@ -163,10 +163,9 @@ function connect() {
         password = document.getElementById('password'),
         connection = document.getElementById('connection');
 
-    password.classList.add('hidden');
-    connection.classList.remove('hidden');
 
     fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
+    displayConnection();
     setTimeout(checkConnection, 3000);
 }

@@ -56,6 +56,7 @@ class Main:
             b"/settings/values": self.settings_values,
             b"/settings/net": self.settings_net,
             b"/settings/group": self.settings_group,
+            b"/settings/ssids": self.get_ssids,
         }
 
         self.http = HttpServer(routes)
@@ -182,6 +183,9 @@ class Main:
         if name:
             self.settings.group = name
             self.settings.write()
+
+    def get_ssids(self, params):
+        return self.wifi.get_ssids()
 
 
 try:

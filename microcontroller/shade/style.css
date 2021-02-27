@@ -29,6 +29,11 @@ h1 {
     flex-direction: column;
 }
 
+.hidden {
+    visibility: hidden;
+    position: fixed;
+}
+
 .margin-bottom-small {
     margin-bottom: 2rem;
 }
@@ -43,6 +48,13 @@ h1 {
 
 .center-horizontal {
     align-items: center;
+    justify-content: center;
+}
+
+.space-between {
+    width: 100%;
+    justify-content: space-between;
+    width: 41rem;
 }
 
 button {
@@ -53,6 +65,21 @@ button {
     color: #e9f7ff;
     width: 18rem;
     height: 9rem;
+}
+
+.button-back {
+    width: 5rem;
+    height: 4rem;
+    align-self: center;
+    border: none;
+}
+
+.connect-button {
+    width: 41rem;
+    font-size: 3rem;
+    height: 6rem;
+    color: #222;
+    background-color: #e9f7ff;
 }
 
 button:active {
@@ -72,31 +99,17 @@ button:active {
 li:active {
     background-color: #fac372;
 }
-
-.button-back {
-    width: 5rem;
-    height: 4rem;
-    align-self: center;
-    border: none;
-}
-
 .svg {
     width: 7rem;
 }
 
 .svg-clog {
-    width: 6rem;
+    width: 5rem;
 }
 
 .svg-back {
     width: 4rem;
     margin-right: 1rem;
-}
-
-.space-between {
-    width: 100%;
-    justify-content: space-between;
-    width: 41rem;
 }
 
 input[type='number'],
@@ -127,14 +140,6 @@ input[type='text'] {
     color: #e9f7ff;
 }
 
-.connect-button {
-    width: 41rem;
-    font-size: 3rem;
-    height: 6rem;
-    color: #222;
-    background-color: #e9f7ff;
-}
-
 .ip {
     font-size: 2rem;
     margin: 1rem;
@@ -143,11 +148,6 @@ input[type='text'] {
 .align-left {
     align-self: flex-start;
     margin-left: 2rem;
-}
-
-.hidden {
-    visibility: hidden;
-    position: fixed;
 }
 
 .tag {
