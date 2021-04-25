@@ -2,7 +2,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const slider = document.getElementById("slider");
 
     slider.oninput = (event) => {
-        console.log(event.target.value);
         debouncedSlider(event.target.value);
     }
 
@@ -151,7 +150,7 @@ function getSsids() {
 
 function setColor(hex) {
     fetch(`/action/color?hex=${hex}`)
-        .then(response => JSON.parse(response))
+        .then(response => response.json())
         .then(response => {
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
