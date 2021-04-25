@@ -14,30 +14,57 @@ body {
     margin: 0;
 }
 
-hr {
-    border-color: #e9f7ff;
+h1 {
+    font-size: 5rem;
+    font-weight: 100;
+}
+
+.inline {
+    display: flex;
+    align-items: center;
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+}
+
+.hidden {
+    visibility: hidden;
+    position: fixed;
+}
+
+.margin-bottom-small {
+    margin-bottom: 2rem;
+}
+
+.margin-bottom-large {
+    margin-bottom: 10rem;
+}
+
+.margin-bottom {
+    margin-bottom: 4rem;
+}
+
+.center-horizontal {
+    align-items: center;
+    justify-content: center;
+}
+
+.space-between {
+    width: 100%;
+    justify-content: space-between;
+    width: 41rem;
 }
 
 button {
-    border-radius: 7px;
+    border-radius: 60px;
     background: none;
     outline: none;
-    border: solid 1px #e9f7ff;
+    border: solid 0.3rem #e9f7ff;
     color: #e9f7ff;
     width: 18rem;
     height: 9rem;
-    border-width: 0.2rem;
-}
-
-.button-tiny {
-    width: 8rem;
-    height: 6rem;
-    font-size: 2rem;
-}
-
-.button-small {
-    width: 12rem;
-    font-size: 2rem;
 }
 
 .button-back {
@@ -47,61 +74,37 @@ button {
     border: none;
 }
 
-button:active {
-    background-color: #99d9ff;
-}
-
-.hidden {
-    visibility: hidden;
-    position: fixed;
-}
-
-.align-horizontal {
-    display: flex;
-    align-items: center;
-}
-
-.align-vertical {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.space-between {
-    width: 100%;
-    justify-content: space-between;
+.connect-button {
     width: 41rem;
-}
-
-.title {
-    font-size: 5rem;
-}
-
-.tag {
-    font-size: 2.5rem;
-    font-weight: 400;
-    width: 3.5rem;
-    height: 3.5rem;
-    background-color: #e9f7ff;
+    font-size: 3rem;
+    height: 6rem;
     color: #222;
-    border-radius: 50%;
-    margin-left: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: #e9f7ff;
 }
 
-.ip {
+button:active {
+    background-color: #fac372;
+}
+
+.li {
+    background: #ccc;
+    color: #222;
     font-size: 2rem;
-    margin: 1rem;
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 1rem;
+    font-weight: 500;
 }
 
+li:active {
+    background-color: #fac372;
+}
 .svg {
     width: 7rem;
 }
 
 .svg-clog {
-    width: 6rem;
+    width: 5rem;
 }
 
 .svg-back {
@@ -109,56 +112,13 @@ button:active {
     margin-right: 1rem;
 }
 
-.settings {
-    align-items: baseline;
-}
-
-.label {
-    font-size: 2.5rem;
-    color: #e9f7ff;
-}
-
-.label-small {
-    font-size: 1.5rem;
-    color: #e9f7ff;
-}
-
-.align-left {
-    align-self: flex-start;
-    margin-left: 2rem;
-}
-
-.margin-right {
-    margin-right: 1rem;
-}
-
-.margin-right-large {
-    margin-right: 3rem;
-}
-
-.margin-bottom-small {
-    margin-bottom: 2rem;
-}
-
-.margin-bottom {
-    margin-bottom: 4rem;
-}
-
-.margin-bottom-large {
-    margin-bottom: 10rem;
-}
-
-.margin-bottom-huge {
-    margin-bottom: 16rem;
-}
-
 input[type='number'],
 input[type='password'],
 input[type='text'] {
-    border: solid 1px #e9f7ff;
+    border: solid 0.3rem #e9f7ff;
     outline: none;
     background: none;
-    border-radius: 25px;
+    border-radius: 50px;
     font-size: 2.3rem;
     height: 3.5rem;
     font-weight: 300;
@@ -175,37 +135,43 @@ input[type='text'] {
     width: 40rem;
 }
 
-input.switch {
-    position: relative;
-    -webkit-appearance: none;
-    outline: none;
-    width: 10rem;
-    height: 4rem;
+.label {
+    font-size: 2.5rem;
+    color: #e9f7ff;
+}
+
+.ip {
+    font-size: 2rem;
+    margin: 1rem;
+}
+
+.align-left {
+    align-self: flex-start;
+    margin-left: 2rem;
+}
+
+.tag {
+    font-size: 2.5rem;
+    font-weight: 400;
+    width: 3.5rem;
+    height: 3.5rem;
     background-color: #e9f7ff;
-    border: 1px solid #e9f7ff;
-    border-radius: 5rem;
-    box-shadow: inset -6rem 0 0 0 #222;
-}
-
-input.switch:checked {
-    box-shadow: inset 6rem 0 0 0 #222;
-}
-
-.connect-button {
-    width: 41rem;
-    font-size: 3rem;
-    height: 6rem;
     color: #222;
-    background-color: #e9f7ff;
+    border-radius: 50%;
+    margin-left: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.connection {
-    padding: 2em 1em;
+.connection,
+.connection-details {
+    padding: 1em 1em;
+    text-align: center;
     font-size: 3.2rem;
 }
 
 .connection-details {
-    padding: 2em 3em;
     font-size: 2.5rem;
 }
 
@@ -222,7 +188,7 @@ input.switch:checked {
 .spinner {
     margin: auto 0;
     width: 70px;
-    text-align: center;
+    align-self: center;
 }
 
 .spinner > div {
@@ -253,6 +219,7 @@ input.switch:checked {
     background: #ddd;
     color: #222;
     border-radius: 5px;
+    align-self: center;
 }
 
 @-webkit-keyframes sk-bouncedelay {
@@ -278,6 +245,70 @@ input.switch:checked {
     40% {
         -webkit-transform: scale(1);
         transform: scale(1);
+    }
+}
+
+.toggle-container {
+    display: flex;
+}
+
+.toggle {
+    display: none;
+}
+
+.toggle-background {
+    background-color: #888;
+    border-radius: 50px;
+    cursor: pointer;
+    display: inline-block;
+    width: 10.3rem;
+    height: 3.9rem;
+    position: relative;
+    border: 0.3rem solid #eee;
+}
+
+.toggle:checked + .toggle-background {
+    background-color: rgb(73, 165, 73);
+}
+
+.ball {
+    background: #e9f7ff;
+    height: 3.4rem;
+    width: 3.4rem;
+    border-radius: 50%;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    animation: slideOff 0.2s linear forwards;
+}
+
+.toggle:checked + .toggle-background .ball {
+    animation: slideOn 0.2s linear forwards;
+}
+
+@keyframes slideOn {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(6.4rem) scale(1);
+    }
+}
+
+@keyframes slideOff {
+    0% {
+        transform: translateX(6.4rem) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(0) scale(1);
     }
 }
 

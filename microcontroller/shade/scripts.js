@@ -1,21 +1,19 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-    fetch('/settings/values')
-        .then(response => response.json())
-        .then(response => {
-            setTagValue('ip', response.ip);
-            setTagValue('net-id', response.netId);
-            setTagValue('tag-net-id', response.netId);
-            setTagValue('group', response.group);
-            setTagValue('motor-reversed', response.motorReversed);
-            setTagValue('essid', response.essid);
-
-            document.title = `Shade ${response.netId}`;
-        });
+    getValues();
 });
 
-function setTagValue(tagId, value) {
-    const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
+async function fetchWithTimeout(resource, options) {
+    const { timeout = 8000 } = options,
+        controller = new AbortController(),
+        id = setTimeout(() => controller.abort(), timeout),
+        response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+
+    clearTimeout(id);
+
+    return response;
 }
 
 function debounce(fn, wait = 100) {
@@ -30,6 +28,27 @@ function debounce(fn, wait = 100) {
     };
 }
 
+function getValues() {
+    fetchWithTimeout('/settings/values', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => {
+            setTagValue('ip', response.ip);
+            setTagValue('net-id', response.netId);
+            setTagValue('tag-net-id', response.netId);
+            setTagValue('motor-reversed', response.motorReversed);
+
+            document.title = `Shade ${response.netId}`;
+        })
+        .catch(() => setTimeout(getValues(), 3000));
+}
+
+function setTagValue(tagId, value) {
+    const tag = document.getElementById(tagId);
+    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
+}
+
 function setNetId(value) {
     fetch(`/settings/net?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
@@ -39,78 +58,114 @@ function setNetId(value) {
 
 const debouncedSetNetId = debounce(setNetId, 500);
 
-function setGroup(value) {
-    fetch(`/settings/group?name=${value}`).then();
+function hideAll() {
+    const main = document.getElementById('main'),
+        settings = document.getElementById('settings'),
+        password = document.getElementById('password'),
+        connection = document.getElementById('connection'),
+        connectionSuccess = document.getElementById('connection-success');
+
+    main.classList.add('hidden');
+    settings.classList.add('hidden');
+    password.classList.add('hidden');
+    connection.classList.add('hidden');
+    connectionSuccess.classList.add('hidden');
 }
 
-const debouncedSetGroup = debounce(setGroup, 500);
-
 function displayMain() {
-    const main = document.getElementById('main'),
-        settings = document.getElementById('settings');
-
+    hideAll();
+    const main = document.getElementById('main');
     main.classList.remove('hidden');
-    settings.classList.add('hidden');
 }
 
 function displaySettings() {
-    const main = document.getElementById('main'),
-        settings = document.getElementById('settings');
+    hideAll();
+    const settings = document.getElementById('settings'),
+        ssidsList = document.getElementById('ssids-list');
 
-    main.classList.add('hidden');
     settings.classList.remove('hidden');
+    ssidsList.innerHTML = '';
+
+    getSsids();
 }
 
-async function fetchWithTimeout(resource, options) {
-    const { timeout = 8000 } = options;
+function displayPassword() {
+    hideAll();
+    const password = document.getElementById('password');
+    password.classList.remove('hidden');
+}
 
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
+function displayConnection() {
+    hideAll();
+    const connection = document.getElementById('connection');
+    connection.classList.remove('hidden');
+}
 
-    const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal
-    });
-    clearTimeout(id);
+function displayConnectionSuccess() {
+    hideAll();
+    const connectionSucces = document.getElementById('connection-succes');
+    connectionSucces.classList.remove('hidden');
+}
 
-    return response;
+function getSsids() {
+    fetchWithTimeout('/settings/ssids', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => response.ssids)
+        .then(response => {
+            const ssidsList = document.getElementById('ssids-list');
+
+            response.forEach(elem => {
+                const li = document.createElement("li"),
+                    text = document.createTextNode(elem),
+                    ssid = document.getElementById('ssid');
+
+                li.classList.add('li');
+
+                li.onclick = _ => {
+                    ssid.textContent = elem;
+                    displayPassword();
+                };
+
+                li.appendChild(text);
+                ssidsList.appendChild(li);
+            });
+        })
+        .catch((err) => setTimeout(getSsids, 3000));
 }
 
 function checkConnection() {
-    try {
-        return fetchWithTimeout('/settings/values', {
-            timeout: 3000
+    fetchWithTimeout('/settings/values', {
+        timeout: 3000
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.ip != '192.168.4.1') {
+                setTagValue('new-ip', response.ip);
+
+                const connection = document.getElementById('connection'),
+                    connectionSuccess = document.getElementById('connection-success');
+
+                connection.classList.add('hidden');
+                connectionSuccess.classList.remove('hidden');
+            }
+            else {
+                setTimeout(checkConnection, 3000);
+            }
         })
-            .then(response => response.json())
-            .then(response => {
-                if (response.ip != '192.168.4.1') {
-                    setTagValue('new-ip', response.ip);
-
-                    const spinner = document.getElementById('spinner'),
-                        newIp = document.getElementById('new-ip');
-
-                    spinner.classList.add('hidden');
-                    newIp.classList.remove('hidden');
-                }
-                else {
-                    setTimeout(checkConnection, 3000);
-                }
-            });
-    } catch (error) {
-        setTimeout(checkConnection, 3000);
-    }
+        .catch(err => setTimeout(checkConnection, 3000));
 }
 
 function connect() {
-    const essid = document.getElementById('essid'),
+    const ssid = document.getElementById('ssid').textContent,
         pwd = document.getElementById('pwd'),
-        settings = document.getElementById('settings'),
+        password = document.getElementById('password'),
         connection = document.getElementById('connection');
 
-    fetch(`/connect?essid=${essid.value}&password=${pwd.value}`).then();
 
-    settings.classList.add('hidden');
-    connection.classList.remove('hidden');
+    fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
+    displayConnection();
     setTimeout(checkConnection, 3000);
 }

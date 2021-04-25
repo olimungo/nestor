@@ -6,7 +6,7 @@
         {
             "label": "Upload",
             "type": "shell",
-            "command": "pkill -f mpfshell; cd ${fileDirname}; mpfshell -n -c 'open tty.usbserial-1460; mput ${fileBasename}'",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput ${fileBasename}'",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -16,7 +16,7 @@
         {
             "label": "Upload All",
             "type": "shell",
-            "command": "pkill -f mpfshell; cd ${fileDirname}; mpfshell -n -c 'open tty.usbserial-1460; mput .*\\.py; mput index.html; mput style.css; mput scripts.js'",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput .*\\.py; mput index.html; mput style.css; mput scripts.js'",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -24,7 +24,7 @@
             }
         },
         {
-            "label": "Build custom micropython v1.13",
+            "label": "Build custom micropython v1.14",
             "type": "shell",
             "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin ..; docker rm -f micropython; docker rmi -f micropython",
             "group": "build",
@@ -34,29 +34,9 @@
             }
         },
         {
-            "label": "Build custom micropython v1.13 for Pepper-clock",
-            "type": "shell",
-            "command": "cd microcontroller/pepper-clock/docker; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin .; docker rm -f micropython; docker rmi -f micropython",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "focus": true
-            }
-        },
-        {
-            "label": "Erase and flash ESP with Pepper-clock micropython",
-            "type": "shell",
-            "command": "pkill -f mpfshell; esptool.py --port /dev/tty.usbserial-1460 erase_flash; esptool.py --port /dev/tty.usbserial-1460 --baud 460800 write_flash --flash_size=detect 0 microcontroller/pepper-clock/docker/firmware-combined.bin",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "focus": true
-            }
-        },
-        {
             "label": "Erase and flash ESP with custom micropython",
             "type": "shell",
-            "command": "pkill -f mpfshell; esptool.py --port /dev/tty.usbserial-1460 erase_flash; esptool.py --port /dev/tty.usbserial-1460 --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -66,7 +46,7 @@
         {
             "label": "Erase ESP",
             "type": "shell",
-            "command": "pkill -f mpfshell; esptool.py --port /dev/tty.usbserial-1460 erase_flash",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -74,9 +54,9 @@
             }
         },
         {
-            "label": "Erase and Flash ESP with micropython 1.13",
+            "label": "Erase and Flash ESP with micropython 1.14",
             "type": "shell",
-            "command": "pkill -f mpfshell; esptool.py --port /dev/tty.usbserial-1460 erase_flash; esptool.py --port /dev/tty.usbserial-1460 --baud 460800 write_flash --flash_size=detect 0 esp8266-20200911-v1.13.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210202-v1.14.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -86,7 +66,7 @@
         {
             "label": "Flash ESP with custom micropython",
             "type": "shell",
-            "command": "pkill -f mpfshell; esptool.py --port /dev/tty.usbserial-1460 --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -96,7 +76,7 @@
         {
             "label": "Shell and REPL",
             "type": "shell",
-            "command": "pkill -f mpfshell; cd ${fileDirname}; mpfshell -c open tty.usbserial-1460",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -c open ${env:MICROCONTROLLER_USB_PORT}",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

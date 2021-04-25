@@ -11,22 +11,26 @@ from MqttManager import MqttManager
 from Motor import Motor
 from Settings import Settings
 from Credentials import Credentials
-from UdpServer import UdpServer
+
+# from UdpServer import UdpServer
 
 PUBLIC_NAME = b"Shade"
 BROKER_NAME = b"nestor.local"
 MQTT_TOPIC_NAME = b"shades"
+
 
 class Main:
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
         self.settings = Settings().load()
         self.credentials = Credentials().load()
-        self.udps = UdpServer()
+        # self.udps = UdpServer()
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
-        self.mqtt = MqttManager(self.mdns, BROKER_NAME, self.settings.net_id, MQTT_TOPIC_NAME)
+        self.mqtt = MqttManager(
+            self.mdns, BROKER_NAME, self.settings.net_id, MQTT_TOPIC_NAME
+        )
 
         routes = {
             b"/": b"./index.html",
@@ -41,7 +45,8 @@ class Main:
             b"/settings/values": self.settings_values,
             b"/settings/net": self.settings_net,
             b"/settings/group": self.settings_group,
-            b"/settings/reverse-motor": self.reverse_motor
+            b"/settings/reverse-motor": self.reverse_motor,
+            b"/settings/ssids": self.get_ssids,
         }
 
         self.http = HttpServer(routes)
@@ -104,8 +109,16 @@ class Main:
         if not essid:
             essid = b""
 
-        result = b'{"ip": "%s", "netId": "%s", "group": "%s", "motorReversed": "%s", "essid": "%s"}' % (self.wifi.ip, self.settings.net_id,
-            self.settings.group, self.settings.motor_reversed, essid)
+        result = (
+            b'{"ip": "%s", "netId": "%s", "group": "%s", "motorReversed": "%s", "essid": "%s"}'
+            % (
+                self.wifi.ip,
+                self.settings.net_id,
+                self.settings.group,
+                self.settings.motor_reversed,
+                essid,
+            )
+        )
 
         return result
 
@@ -170,14 +183,17 @@ class Main:
 
     def send_state_mqtt(self):
         try:
-            group = self.settings.group
-            motor_state = self.motor.get_state()
-
-            state = b'{"group": "%s", "state": "%s"}' % (group, motor_state)
-
+            state = b'{"group": "%s", "state": "%s"}' % (
+                self.settings.group,
+                self.motor.get_state(),
+            )
             self.mqtt.publish_state(state)
         except Exception as e:
             print("> Main.send_state_mqtt exception: {}".format(e))
+
+    def get_ssids(self, params):
+        return self.wifi.get_ssids()
+
 
 try:
     collect()
