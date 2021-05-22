@@ -1,53 +1,120 @@
-# Docker
+# Setup the Raspberry Pi and Mosquitto
 
-## Development
+## Burn Raspian to an SD-card
 
-### Build image
+Download and install **Raspberry Pi Imager**: https://www.raspberrypi.org/downloads/
 
-```bash
-docker-compose build
-```
+Burn **Raspbian Lite** onto an SD card
 
-### Run container on development host and inject the host IP address (MacOS)
+To allow a headless config, enable ssh on the Pi. Move to the boot folder on the SD card and create an empty **ssh** file.
 
-```bash
-sed -e "s/__HOST_IP__/$(ipconfig getifaddr en1)/g" docker-compose.yml \
-    | docker-compose --file - up -d
-```
-
-### Open a shell in the container
+on Linux:
 
 ```bash
-docker exec -it nestor /bin/sh -l
+touch ssh
 ```
 
-## Build for Raspberry Pi
+Also, setup your Wifi credentials. Still in the boot folder of the SD card, edit a file called **wpa_supplicant.conf**, add the following content while replacing the **keyword** with your country code and your credentials.
 
-#### Create builder
+:exclamation: Make sure there is a **TAB** at the start of the lines with **ssid** and **psk**. :exclamation:
 
 ```bash
-docker buildx create --name nestor-builder
-docker buildx use nestor-builder
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=<Insert country code here>
+
+network={
+  ssid="<Name of your WiFi>"
+  psk="<Password for your WiFi>"
+}
 ```
 
-#### Build and push to Docker Hub
+## Setup the Pi
+
+Insert the SD-card, connect the Pi physically to the Wifi router, boot it, then ssh it with the password **raspberry**
 
 ```bash
-docker buildx build --platform linux/arm/v7 -t olimungo/nestor:alpine-0.99 --push .
+ssh pi@rapsberrypi.local
 ```
 
-#### Download and run container on Pi and inject the host IP address
+### Update the system
 
-:exclamation: Make sure that a file log.txt exists locally on the Pi (touch log.txt). Otherwise the command below will create a directory and will throw an error. :exclamation:
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get clean
+```
 
-:exclamation: Replace **wlan0** by **eth0** if the Pi is wired to your router instead of using the Wifi :exclamation:
+### Configure the Pi
+
+```bash
+sudo raspi-config
+```
+
+-   Change the hostname to "nestor"
+-   Set locale
+-   Set timezone
+-   Set keyboard layout
+
+#### Install drivers for the Wifi USB dongle (for Raspberry Pi 2)
+
+```bash
+sudo wget http://downloads.fars-robotics.net/wifi-drivers/install-wifi -O /usr/bin/install-wifi
+sudo chmod +x /usr/bin/install-wifi
+sudo install-wifi
+```
+
+After installation, reboot the Pi.
+
+## Docker on the Pi
+
+Install docker
+
+```bash
+curl -sSL https://get.docker.com | sh
+```
+
+:exclamation: To allow to run docker without sudo apply one of the following solution. :exclamation:
+
+```bash
+sudo usermod -aG docker pi
+```
+
+Then, logout from the Pin the login againg to refresh the session.
+
+## Mosquitto
+
+mosquitto.conf
+
+```bash
+persistence true
+persistence_location /mosquitto/data/
+log_dest file /mosquitto/log/mosquitto.log
+log_type all
+```
+
+### Run it
 
 ```bash
 docker run \
-    -e "HOST_IP=$(ip -4 addr show wlan0 | grep -Po 'inet \K[\d.]+')" \
-    -e "MQTT_BROKER=$(ip -4 addr show wlan0 | grep -Po 'inet \K[\d.]+')" \
-    -p 80:8081 \
-    -v ~/log.txt:/home/node/app/log.txt -d \
-    --name=nestor \
-    olimungo/nestor:alpine-0.99
+  -p 1883:1883 \
+  -p 9001:9001 \
+  -v ~/mosquitto.conf:/home/pi/mosquitto/mosquitto.conf \
+  -v ~/log:/home/pi/mosquitto/log \
+  -d \
+  --name=mosquitto \
+  eclipse-mosquitto
+```
+
+## Redis
+
+```bash
+docker pull redis
+docker run --name redis -p 6379:6379 -d redis
+```
+
+## Launch all the services
+
+```bash
+docker-compose up -d
 ```

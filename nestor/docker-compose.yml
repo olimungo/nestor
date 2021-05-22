@@ -1,18 +1,52 @@
-version: '3'
+version: '3.9'
 services:
-    node:
-        image: olimungo/nestor:alpine-0.9
-        container_name: nestor
-        build: .
-        working_dir: /home/node/app
-        environment:
-            - NODE_ENV=production
-            - HOST_IP=__HOST_IP__
-            - MQTT_BROKER=192.168.0.192
-        volumes:
-            - ./:/home/node/app
-        expose:
-            - '8081'
+    redis:
+        image: redis:alpine
+        container_name: redis
         ports:
-            - '8081:8081'
-        command: 'npm run start:dev'
+            - 6379:6379
+        expose:
+            - 6379
+    mosquitto:
+        image: olimungo/mosquitto
+        container_name: mosquitto
+        build: ./mosquitto
+        ports:
+            - 1883:1883
+        expose:
+            - 1883
+    websockets:
+        image: olimungo/nestor-websockets
+        container_name: websockets
+        build: ./websockets
+        volumes:
+            - ./websockets/scripts:/usr/src/app/scripts
+        ports:
+            - 9000:9000
+        environment:
+            - NODE_ENV=development
+            - PORT=9000
+            - REDIS_URL=redis://redis
+            - CORS_ORIGIN=http://localhost:3000
+    mqtt:
+        image: olimungo/nestor-mqtt
+        container_name: mqtt
+        build: ./mqtt
+        volumes:
+            - ./mqtt/scripts:/usr/src/app/scripts
+        ports:
+            - 9001:9001
+        environment:
+            - NODE_ENV=development
+            - PORT=9001
+            - REDIS_URL=redis://redis
+            # - MOSQUITTO_URL=mqtt://nestor.local
+            - MOSQUITTO_URL=mqtt://mosquitto
+    # nestor:
+    #     image: olimungo/nestor
+    #     container_name: nestor
+    #     build: ./nestor
+    #     ports:
+    #         - 80:80
+    #     environment:
+    #         - NODE_ENV=development

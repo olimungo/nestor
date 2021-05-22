@@ -1,0 +1,18 @@
+version: '3'
+services:
+    node:
+        image: olimungo/nestor:alpine-0.9
+        container_name: nestor
+        build: .
+        working_dir: /home/node/app
+        environment:
+            - NODE_ENV=production
+            - HOST_IP=__HOST_IP__
+            - MQTT_BROKER=192.168.0.192
+        volumes:
+            - ./:/home/node/app
+        expose:
+            - '8081'
+        ports:
+            - '8081:8081'
+        command: 'npm run start:dev'

@@ -50,13 +50,15 @@ class Motor:
         self.motor.brake()
         self.ir_power.off()
 
-    def disable(self, timer):
+    def disable(self):
+        print("OFF !!!!!")
         self.ir_power.off()
 
     def brake(self):
         self.ir_check_timer.deinit()
         self.motor_state = MotorState().STOPPED
         self.motor.brake()
+        self.disable()
 
     def ir_check(self, timer):
         value = self.ir_sensor.read()
