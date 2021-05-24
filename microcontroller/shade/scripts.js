@@ -50,7 +50,7 @@ function setTagValue(tagId, value) {
 }
 
 function setNetId(value) {
-    fetch(`/settings/net?id=${value}`).then();
+    fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
     document.title = `Shade ${value}`;

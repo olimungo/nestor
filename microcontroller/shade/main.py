@@ -15,14 +15,15 @@ from Credentials import Credentials
 from Tags import Tags
 
 PUBLIC_NAME = b"Shade"
-BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"nestor.local"
+BROKER_NAME = b"192.168.0.215"
 MQTT_TOPIC_NAME = b"shades"
 DEVICE_TYPE = b"MOTOR-V"
 
 STARTUP_DELAY = const(1000 * 2)
 WIFI_CHECK_CONNECTED_INTERVAL = const(1000)
 MQTT_STATUS_INTERVAL = const(1000 * 5)
-MQTT_CHECK_MESSAGE_INTERVAL = const(100)
+MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
 
@@ -50,8 +51,7 @@ class Main:
             b"/action/go-down": self.go_down,
             b"/action/stop": self.stop,
             b"/settings/values": self.settings_values,
-            b"/settings/net": self.settings_net,
-            b"/settings/group": self.settings_group,
+            b"/settings/net-id": self.settings_net_id,
             b"/settings/reverse-motor": self.reverse_motor,
             b"/settings/ssids": self.get_ssids,
         }
@@ -123,11 +123,10 @@ class Main:
             essid = b""
 
         result = (
-            b'{"ip": "%s", "netId": "%s", "group": "%s", "motorReversed": "%s", "essid": "%s"}'
+            b'{"ip": "%s", "netId": "%s", "motorReversed": "%s", "essid": "%s"}'
             % (
                 self.wifi.ip,
                 self.settings.net_id,
-                self.settings.group,
                 self.settings.motor_reversed,
                 essid,
             )
@@ -157,7 +156,7 @@ class Main:
         self.motor.stop()
         self.send_state_mqtt()
 
-    def settings_net(self, params):
+    def settings_net_id(self, params):
         id = params.get(b"id", None)
 
         if id:
@@ -168,13 +167,6 @@ class Main:
             self.wifi.set_ap_essid(b"%s-%s" % (PUBLIC_NAME, id))
             self.mdns.set_net_id(id)
             self.mqtt.set_net_id(id)
-
-    def settings_group(self, params):
-        name = params.get(b"name", None)
-
-        if name:
-            self.settings.group = name
-            self.settings.write()
 
     def reverse_motor(self, params):
         motor_reversed = self.settings.motor_reversed
@@ -194,6 +186,7 @@ class Main:
             self.send_state_mqtt()
 
             await sleep_ms(MQTT_STATUS_INTERVAL)
+
     def send_state_mqtt(self):
         try:
             tags = []

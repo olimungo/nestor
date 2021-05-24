@@ -55,4 +55,4 @@ setInterval(async () => {
             io.emit('remove-device', { device });
         })
     );
-}, 3000);
+}, 100);

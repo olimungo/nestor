@@ -1,5 +1,4 @@
-from machine import freq
-from machine import reset
+from machine import freq, Pin, ADC, reset
 from esp import sleep_type, SLEEP_NONE
 import webrepl
 
@@ -12,6 +11,22 @@ sleep_type(SLEEP_NONE)
 
 webrepl.start()
 
+ir_sensor = ADC(0)
+
 
 def rst():
     reset()
+
+def ir_on():
+    ir_power = Pin(16, Pin.OUT)
+    ir_power.on()
+
+def ir_off():
+    ir_power = Pin(16, Pin.OUT)
+    ir_power.off()
+
+def ir_read():
+    ir_sensor = ADC(0)
+    print("> IR sensor read: {}".format(ir_sensor.read()))
+
+

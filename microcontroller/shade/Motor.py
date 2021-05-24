@@ -8,7 +8,7 @@ class Gpio:
     IR_SENSOR = 0  # A0 - ADC
     IR_POWER = 16  # D0
     STDBY_PWM_POWER = 4  # D2
-    IR_SENSOR_THRESHOLD_HIGH = 100
+    IR_SENSOR_THRESHOLD_HIGH = 75
 
 class MotorDirection:
     CLOCKWISE = 0
@@ -51,11 +51,11 @@ class Motor:
         self.ir_power.off()
 
     def disable(self):
-        print("OFF !!!!!")
         self.ir_power.off()
 
     def brake(self):
         self.ir_check_timer.deinit()
+        self.motor_check_timer.deinit()
         self.motor_state = MotorState().STOPPED
         self.motor.brake()
         self.disable()
@@ -63,7 +63,7 @@ class Motor:
     def ir_check(self, timer):
         value = self.ir_sensor.read()
 
-        # print("IR SENSOR : {}".format(value))
+        print("> IR sensor read: {}".format(value))
 
         if value > Gpio().IR_SENSOR_THRESHOLD_HIGH:
             if self.motor_state == MotorState().RUNNING_UP:
@@ -92,7 +92,7 @@ class Motor:
             # If shade was on top or on bottom, delay the IR check
             # to allow to leave the reflective marker
             self.motor_check_timer.init(
-                period=2000, mode=Timer.ONE_SHOT, callback=self.motor_check
+                period=1000, mode=Timer.ONE_SHOT, callback=self.motor_check
             )
 
     def reverse_direction(self):
@@ -105,10 +105,7 @@ class Motor:
         if self.shade_state == ShadeState().TOP:
             self.force_moving = self.force_moving + 1
 
-            if self.force_moving == 3:
-                self.shade_state = ShadeState().IN_BETWEEN
-
-        if self.shade_state != ShadeState().TOP:
+        if self.shade_state != ShadeState().TOP or self.force_moving == 3:
             self.force_moving = 0
             self.move_motor(MotorDirection().CLOCKWISE)
             self.motor_state = MotorState().RUNNING_UP
@@ -117,10 +114,7 @@ class Motor:
         if self.shade_state == ShadeState().BOTTOM:
             self.force_moving = self.force_moving + 1
 
-            if self.force_moving == 3:
-                self.shade_state = ShadeState().IN_BETWEEN
-
-        if self.shade_state != ShadeState().BOTTOM:
+        if self.shade_state != ShadeState().BOTTOM or self.force_moving == 3:
             self.force_moving = 0
             self.move_motor(MotorDirection().COUNTERCLOCKWISE)
             self.motor_state = MotorState().RUNNING_DOWN

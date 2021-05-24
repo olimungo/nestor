@@ -4,7 +4,8 @@
     "description": "",
     "scripts": {
         "clean": "docker system prune -f",
-        "up": "docker-compose up -d"
+        "up": "docker compose up -d",
+        "down": "docker compose down"
     },
     "keywords": [],
     "author": "",
