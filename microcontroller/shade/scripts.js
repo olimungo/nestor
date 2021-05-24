@@ -109,7 +109,7 @@ function displayConnectionSuccess() {
 
 function getSsids() {
     fetchWithTimeout('/settings/ssids', {
-        timeout: 3000
+        timeout: 15000
     })
         .then(response => response.json())
         .then(response => response.ssids)
