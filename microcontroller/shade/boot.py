@@ -11,9 +11,6 @@ sleep_type(SLEEP_NONE)
 
 webrepl.start()
 
-ir_sensor = ADC(0)
-
-
 def rst():
     reset()
 

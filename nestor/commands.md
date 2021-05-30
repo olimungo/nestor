@@ -82,6 +82,24 @@ sudo usermod -aG docker pi
 
 Then, logout from the Pin the login againg to refresh the session.
 
+# Enable the Docker system service to start your containers on boot
+
+With this in place, containers with a restart policy set to always or unless-stopped will be re-started automatically after a reboot.
+
+```bash
+sudo systemctl enable docker
+```
+
+# Docker-compose
+
+```bash
+sudo apt-get install libffi-dev libssl-dev
+sudo apt install python3-dev
+sudo apt-get install -y python3 python3-pip
+
+sudo pip3 install docker-compose
+```
+
 ## Mosquitto
 
 mosquitto.conf

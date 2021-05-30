@@ -16,7 +16,7 @@ def clear(n):
 
 
 def fill(n):
-    set(n, 255, 0, 0)
+    set(n, 10, 0, 0)
 
 
 def clearAll():
@@ -131,7 +131,7 @@ def scrollNumber():
 setLedsStrip(LEDS)
 clearAll()
 
-for i in range(1, 15):
+for i in range(0, 60):
     fill(i)
 
 # fillAll()

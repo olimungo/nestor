@@ -3,15 +3,18 @@ import { Server } from 'socket.io';
 
 const states = {};
 
-const io = new Server(parseInt(process.env.PORT) || 3001, {
+const io = new Server(parseInt(process.env.PORT) || 9000, {
     cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost',
+        origin: process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000',
+        // origin: [process.env.CORS_ORIGIN || 'http://localhost'],
         methods: ['GET', 'POST'],
     },
 });
 
 console.log(
-    `Websockets server started on port ${process.env.PORT} with CORS opened to ${process.env.CORS_ORIGIN}`
+    `Websockets server started on port ${
+        process.env.PORT
+    } with CORS opened to ${process.env.CORS_ORIGIN.split(',')}`
 );
 
 io.on('connection', (socket) => {

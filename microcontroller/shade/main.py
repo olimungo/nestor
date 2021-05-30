@@ -15,8 +15,8 @@ from Credentials import Credentials
 from Tags import Tags
 
 PUBLIC_NAME = b"Shade"
-# BROKER_NAME = b"nestor.local"
-BROKER_NAME = b"192.168.0.215"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"192.168.0.215"
 MQTT_TOPIC_NAME = b"shades"
 DEVICE_TYPE = b"MOTOR-V"
 
