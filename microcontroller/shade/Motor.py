@@ -8,7 +8,7 @@ class Gpio:
     IR_SENSOR = 0  # A0 - ADC
     IR_POWER = 16  # D0
     STDBY_PWM_POWER = 4  # D2
-    IR_SENSOR_THRESHOLD_HIGH = 70
+    IR_SENSOR_THRESHOLD = 40
 
 class MotorDirection:
     CLOCKWISE = 0
@@ -42,7 +42,8 @@ class Motor:
         self.motor_check_timer = Timer(-1)
         self.force_moving = 0
         self.stopped_by_ir_sensor = False
-        self.speed = 10000 
+        self.speed = 10000
+        self.ir_sensor_read = 0
 
         if self.settings.motor_reversed == b"1":
             self.speed = -10000
@@ -63,9 +64,13 @@ class Motor:
     def ir_check(self, timer):
         value = self.ir_sensor.read()
 
-        print("> IR sensor read: {}".format(value))
+        print("> IR sensor read: {} / IR sensor previous value: {}".format(value, self.ir_sensor_read))
 
-        if value > Gpio().IR_SENSOR_THRESHOLD_HIGH:
+        if value < self.ir_sensor_read:
+            self.ir_sensor_read = value
+
+        # if value > Gpio().IR_SENSOR_THRESHOLD_HIGH:
+        if value > self.ir_sensor_read + Gpio().IR_SENSOR_THRESHOLD:
             if self.motor_state == MotorState().RUNNING_UP:
                 self.shade_state = ShadeState().TOP
             else:
@@ -85,6 +90,8 @@ class Motor:
             self.motor.speed(-self.speed)
 
         self.ir_power.on()
+
+        self.ir_sensor_read = self.ir_sensor.read()
 
         if self.shade_state == ShadeState().IN_BETWEEN:
             self.motor_check()
