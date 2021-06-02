@@ -59,11 +59,11 @@ function getValues() {
 
 function setTagValue(tagId, value) {
     const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? (tag.value = value) : (tag.textContent = value);
+    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
 }
 
 function setNetId(value) {
-    fetch(`/settings/net?id=${value}`).then();
+    fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
     document.title = `Clock ${value}`;
@@ -122,7 +122,7 @@ function displayConnectionSuccess() {
 
 function getSsids() {
     fetchWithTimeout('/settings/ssids', {
-        timeout: 3000
+        timeout: 15000
     })
         .then(response => response.json())
         .then(response => response.ssids)
@@ -163,7 +163,7 @@ function checkConnection() {
     })
         .then(response => response.json())
         .then(response => {
-            if (response.ip != '192.168.4.1') {
+            if (response.ip != '1.2.3.4') {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),

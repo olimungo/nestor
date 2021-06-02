@@ -2,10 +2,11 @@ from network import WLAN, STA_IF, AP_IF, AUTH_OPEN
 from ubinascii import hexlify
 from uasyncio import get_event_loop, sleep_ms
 from Blink import Blink
+from time import ticks_ms, ticks_diff
 
 from Credentials import Credentials, FILE
 
-AP_IP = "192.168.4.1"
+AP_IP = "1.2.3.4"
 WAIT_FOR_CONNECT = const(6000)
 WAIT_BEFORE_RECONNECT = const(60000)
 WAIT_BEFORE_AP_SHUTDOWN = const(30000)
@@ -15,6 +16,9 @@ CHECK_CONNECTED = const(250)
 
 class WifiManager:
     ip = "0.0.0.0"
+    ssids = []
+    ssids_timestamp = 0
+
 
     def __init__(self, ap_essid=None):
         self.sta_if = WLAN(STA_IF)
@@ -113,10 +117,16 @@ class WifiManager:
         self.ap_essid = ap_essid
 
     def get_ssids(self):
-        ssids = []
-        scan = self.sta_if.scan()
+        now = ticks_ms()
 
-        for ssid in scan:
-            ssids.append('"%s"' % ssid[0].decode("ascii"))
+        if len(self.ssids) == 0 or now > self.ssids_timestamp + 1000 * 30:
+            ssids = self.sta_if.scan()
+            self.ssids_timestamp = now
+            self.ssids = []
 
-        return b'{"ssids": [%s]}' % (",".join(ssids))
+            for ssid in ssids:
+                self.ssids.append('"%s"' % ssid[0].decode("ascii"))
+
+            self.ssids.sort()
+
+        return b'{"ssids": [%s]}' % (",".join(self.ssids))

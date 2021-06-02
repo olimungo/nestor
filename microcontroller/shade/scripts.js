@@ -41,7 +41,7 @@ function getValues() {
 
             document.title = `Shade ${response.netId}`;
         })
-        .catch(() => setTimeout(getValues(), 3000));
+        .catch(() => setTimeout(getValues, 3000));
 }
 
 function setTagValue(tagId, value) {
@@ -141,7 +141,7 @@ function checkConnection() {
     })
         .then(response => response.json())
         .then(response => {
-            if (response.ip != '192.168.4.1') {
+            if (response.ip != '1.2.3.4') {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),
@@ -162,7 +162,6 @@ function connect() {
         pwd = document.getElementById('pwd'),
         password = document.getElementById('password'),
         connection = document.getElementById('connection');
-
 
     fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
