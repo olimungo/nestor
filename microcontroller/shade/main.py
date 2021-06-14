@@ -181,6 +181,14 @@ class Main:
 
         self.motor.reverse_direction()
 
+    def settings_net_id(self, params):
+        id = params.get(b"id", None)
+
+        if id:
+            self.settings.net_id = id
+            self.settings.write()
+            self.mdns.set_net_id(id)
+
     async def send_state(self):
         while True:
             self.send_state_mqtt()
@@ -193,7 +201,7 @@ class Main:
 
             for tag in self.tags.tags:
                 tags.append("\"%s\"" % (tag.decode('utf-8')))
-                
+
             state = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
                 self.wifi.ip,
                 DEVICE_TYPE,

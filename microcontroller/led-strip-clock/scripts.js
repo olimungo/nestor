@@ -157,6 +157,19 @@ function setColor(hex) {
         });
 }
 
+function setManualColor() {
+    const hex = document.getElementById('hex');
+
+    if (hex.value.match(/\b[0-9A-F]{6}\b/gi)) {
+        fetch(`/action/color?hex=${hex.value}`)
+            .then(response => response.json())
+            .then(response => {
+                const slider = document.getElementById('slider');
+                slider.value = response.brightness;
+            });
+    }
+}
+
 function checkConnection() {
     fetchWithTimeout('/settings/values', {
         timeout: 3000

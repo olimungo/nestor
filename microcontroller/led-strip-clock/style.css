@@ -21,7 +21,8 @@ h1 {
 
 h2 {
     font-size: 2.5rem;
-    color: #7f8e96;
+    letter-spacing: 0.25rem;
+    color: #b7c4cc;
     font-weight: 100;
 }
 
@@ -74,11 +75,12 @@ button {
     outline: none;
     border: solid 0.3rem #e9f7ff;
     color: #e9f7ff;
-    width: 18rem;
+    width: 22rem;
     height: 9rem;
+    letter-spacing: 0.25rem;
 }
 
-.button-round {
+.button-circle {
     width: 8rem;
     height: 8rem;
     font-size: 2rem;
@@ -88,9 +90,15 @@ button {
     margin: 0.4rem;
 }
 
-.button-small {
+.button-small,
+.button-send {
     width: 12rem;
     font-size: 3rem;
+}
+
+.button-send {
+    width: 13rem;
+    height: 8rem;
 }
 
 .button-back {
@@ -109,7 +117,7 @@ button {
 }
 
 button:active {
-    background-color: #99d9ff;
+    background-color: #fac372;
 }
 
 ul {
@@ -174,13 +182,16 @@ input[type='text'] {
     width: 40rem;
 }
 
+.hex {
+    height: 6.8rem !important;
+    width: 15rem !important;
+    font-size: 3.5rem !important;
+    padding: 0 2rem !important;
+}
+
 .label {
     font-size: 2.5rem;
     color: #e9f7ff;
-}
-
-.title {
-    font-size: 5rem;
 }
 
 .tag {
@@ -202,13 +213,100 @@ input[type='text'] {
     margin: 1rem;
 }
 
-.settings {
-    align-items: baseline;
+.connection,
+.connection-details {
+    padding: 1em 1em;
+    text-align: center;
+    font-size: 3.2rem;
 }
 
-.colon {
-    font-size: 10rem;
-    margin: 0 4rem;
+.connection-details {
+    font-size: 2.5rem;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+    text-align: center;
+}
+
+.spinner {
+    margin: auto 0;
+    width: 70px;
+    align-self: center;
+}
+
+.spinner > div {
+    width: 18px;
+    height: 18px;
+    background-color: rgb(235, 235, 235);
+
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.spinner .bounce1 {
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+}
+
+.spinner .bounce2 {
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+}
+
+.new-ip {
+    font-size: 3em;
+    font-weight: 600;
+    padding: 0.1em 0.4em;
+    background: #ddd;
+    color: #222;
+    border-radius: 5px;
+    align-self: center;
+}
+
+@-webkit-keyframes sk-bouncedelay {
+    0%,
+    80%,
+    100% {
+        -webkit-transform: scale(0);
+    }
+
+    40% {
+        -webkit-transform: scale(1);
+    }
+}
+
+@keyframes sk-bouncedelay {
+    0%,
+    80%,
+    100% {
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+
+    40% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+}
+
+@media screen and (min-width: 400px) {
+    html {
+        font-size: 8px;
+        margin: 30px;
+        padding: 12px;
+    }
+
+    .space-between {
+        width: 400px;
+    }
 }
 
 .color-red {
@@ -249,60 +347,9 @@ input[type='text'] {
     border-color: #61b400;
 }
 
-.connection {
-    padding: 2em 1em;
-    font-size: 3.2rem;
-}
-
-.connection-details {
-    padding: 2em 3em;
-    font-size: 2.5rem;
-}
-
-.footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    text-align: center;
-}
-
-.spinner {
-    margin: auto 0;
-    width: 70px;
-    text-align: center;
-}
-
-.spinner > div {
-    width: 18px;
-    height: 18px;
-    background-color: rgb(235, 235, 235);
-
-    border-radius: 100%;
-    display: inline-block;
-    -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-}
-
-.spinner .bounce1 {
-    -webkit-animation-delay: -0.32s;
-    animation-delay: -0.32s;
-}
-
-.spinner .bounce2 {
-    -webkit-animation-delay: -0.16s;
-    animation-delay: -0.16s;
-}
-
-.new-ip {
-    font-size: 3em;
-    font-weight: 600;
-    padding: 0.1em 0.4em;
-    background: #ddd;
-    color: #222;
-    border-radius: 5px;
+.colon {
+    font-size: 10rem;
+    margin: 0 4rem;
 }
 
 .slider {
@@ -332,48 +379,4 @@ input[type='text'] {
     border-radius: 50%;
     background: #e9f7ff;
     cursor: pointer;
-}
-
-.canvas {
-    width: 40rem;
-    height: 40rem;
-}
-
-@-webkit-keyframes sk-bouncedelay {
-    0%,
-    80%,
-    100% {
-        -webkit-transform: scale(0);
-    }
-
-    40% {
-        -webkit-transform: scale(1);
-    }
-}
-
-@keyframes sk-bouncedelay {
-    0%,
-    80%,
-    100% {
-        -webkit-transform: scale(0);
-        transform: scale(0);
-    }
-
-    40% {
-        -webkit-transform: scale(1);
-        transform: scale(1);
-    }
-}
-
-@media screen and (min-width: 500px) {
-    html {
-        font-size: 10px;
-        margin: 20px;
-        padding: 8px;
-    }
-
-    .space-between {
-        width: 450px;
-        margin-left: 5px;
-    }
 }

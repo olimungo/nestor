@@ -162,6 +162,10 @@ class Clock:
         self.hex = colors.rgb_to_hex(self.rgb)
         self.force_refresh()
 
+    def off(self):
+        self.tick_timer.deinit()
+        self.clear_all()
+
     def play_spinner(self, period, color):
         gc.collect()
 
@@ -178,7 +182,6 @@ class Clock:
 
     def play_spinner_tick(self, timer):
         if self.stop_effect_init:
-
             timer.deinit()
         else:
             if len(self.effect_to_play) == 0:

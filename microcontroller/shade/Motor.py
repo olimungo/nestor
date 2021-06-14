@@ -32,11 +32,11 @@ class ShadeState:
 class Motor:
     def __init__(self):
         self.settings = Settings().load()
-        self.i2c = I2C(scl=Pin(Gpio().I2C_SCL), sda=Pin(Gpio().I2C_SDA))
-        self.motor_state = MotorState().STOPPED
-        self.shade_state = ShadeState().UNKNOWN
-        self.ir_sensor = ADC(Gpio().IR_SENSOR)
-        self.ir_power = Pin(Gpio().IR_POWER, Pin.OUT)
+        self.i2c = I2C(scl=Pin(Gpio.I2C_SCL), sda=Pin(Gpio.I2C_SDA))
+        self.motor_state = MotorState.STOPPED
+        self.shade_state = ShadeState.UNKNOWN
+        self.ir_sensor = ADC(Gpio.IR_SENSOR)
+        self.ir_power = Pin(Gpio.IR_POWER, Pin.OUT)
         self.motor = d1motor.Motor(0, self.i2c)
         self.ir_check_timer = Timer(-1)
         self.motor_check_timer = Timer(-1)
@@ -57,7 +57,7 @@ class Motor:
     def brake(self):
         self.ir_check_timer.deinit()
         self.motor_check_timer.deinit()
-        self.motor_state = MotorState().STOPPED
+        self.motor_state = MotorState.STOPPED
         self.motor.brake()
         self.disable()
 
@@ -69,12 +69,11 @@ class Motor:
         if value < self.ir_sensor_read:
             self.ir_sensor_read = value
 
-        # if value > Gpio().IR_SENSOR_THRESHOLD_HIGH:
-        if value > self.ir_sensor_read + Gpio().IR_SENSOR_THRESHOLD:
-            if self.motor_state == MotorState().RUNNING_UP:
-                self.shade_state = ShadeState().TOP
+        if value > self.ir_sensor_read + Gpio.IR_SENSOR_THRESHOLD:
+            if self.motor_state == MotorState.RUNNING_UP:
+                self.shade_state = ShadeState.TOP
             else:
-                self.shade_state = ShadeState().BOTTOM
+                self.shade_state = ShadeState.BOTTOM
 
             self.stopped_by_ir_sensor = True
 
@@ -84,7 +83,7 @@ class Motor:
         self.ir_check_timer.init(period=50, mode=Timer.PERIODIC, callback=self.ir_check)
 
     def move_motor(self, direction):
-        if direction == MotorDirection().CLOCKWISE:
+        if direction == MotorDirection.CLOCKWISE:
             self.motor.speed(self.speed)
         else:
             self.motor.speed(-self.speed)
@@ -93,7 +92,7 @@ class Motor:
 
         self.ir_sensor_read = self.ir_sensor.read()
 
-        if self.shade_state == ShadeState().IN_BETWEEN:
+        if self.shade_state == ShadeState.IN_BETWEEN:
             self.motor_check()
         else:
             # If shade was on top or on bottom, delay the IR check
@@ -109,27 +108,27 @@ class Motor:
             self.speed = 10000
 
     def go_up(self):
-        if self.shade_state == ShadeState().TOP:
+        if self.shade_state == ShadeState.TOP:
             self.force_moving = self.force_moving + 1
 
-        if self.shade_state != ShadeState().TOP or self.force_moving == 3:
+        if self.shade_state != ShadeState.TOP or self.force_moving == 3:
             self.force_moving = 0
-            self.move_motor(MotorDirection().CLOCKWISE)
-            self.motor_state = MotorState().RUNNING_UP
+            self.move_motor(MotorDirection.CLOCKWISE)
+            self.motor_state = MotorState.RUNNING_UP
 
     def go_down(self):
-        if self.shade_state == ShadeState().BOTTOM:
+        if self.shade_state == ShadeState.BOTTOM:
             self.force_moving = self.force_moving + 1
 
-        if self.shade_state != ShadeState().BOTTOM or self.force_moving == 3:
+        if self.shade_state != ShadeState.BOTTOM or self.force_moving == 3:
             self.force_moving = 0
-            self.move_motor(MotorDirection().COUNTERCLOCKWISE)
-            self.motor_state = MotorState().RUNNING_DOWN
+            self.move_motor(MotorDirection.COUNTERCLOCKWISE)
+            self.motor_state = MotorState.RUNNING_DOWN
 
     def stop(self):
-        if self.motor_state != MotorState().STOPPED:
+        if self.motor_state != MotorState.STOPPED:
             self.force_moving = 0
-            self.shade_state = ShadeState().IN_BETWEEN
+            self.shade_state = ShadeState.IN_BETWEEN
             self.brake()
 
     def check_stopped_by_ir_sensor(self):
@@ -140,9 +139,9 @@ class Motor:
         return False
 
     def get_state(self):
-        if self.motor_state != MotorState().STOPPED:
-            state = MotorState().STATE_TEXT[self.motor_state]
+        if self.motor_state != MotorState.STOPPED:
+            state = MotorState.STATE_TEXT[self.motor_state]
         else:
-            state = ShadeState().STATE_TEXT[self.shade_state]
+            state = ShadeState.STATE_TEXT[self.shade_state]
 
         return state

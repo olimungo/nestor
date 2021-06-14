@@ -21,7 +21,8 @@ h1 {
 
 h2 {
     font-size: 2.5rem;
-    color: #7f8e96;
+    letter-spacing: 0.25rem;
+    color: #b7c4cc;
     font-weight: 100;
 }
 
@@ -74,8 +75,9 @@ button {
     outline: none;
     border: solid 0.3rem #e9f7ff;
     color: #e9f7ff;
-    width: 18rem;
+    width: 22rem;
     height: 9rem;
+    letter-spacing: 0.25rem;
 }
 
 .button-back {
@@ -159,16 +161,6 @@ input[type='text'] {
     color: #e9f7ff;
 }
 
-.ip {
-    font-size: 2rem;
-    margin: 1rem;
-}
-
-.align-left {
-    align-self: flex-start;
-    margin-left: 2rem;
-}
-
 .tag {
     font-size: 2.5rem;
     font-weight: 400;
@@ -181,6 +173,11 @@ input[type='text'] {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.ip {
+    font-size: 2rem;
+    margin: 1rem;
 }
 
 .connection,
@@ -267,6 +264,18 @@ input[type='text'] {
     }
 }
 
+@media screen and (min-width: 400px) {
+    html {
+        font-size: 8px;
+        margin: 30px;
+        padding: 12px;
+    }
+
+    .space-between {
+        width: 400px;
+    }
+}
+
 .toggle-container {
     display: flex;
 }
@@ -328,18 +337,5 @@ input[type='text'] {
     }
     100% {
         transform: translateX(0) scale(1);
-    }
-}
-
-@media screen and (min-width: 640px) {
-    html {
-        font-size: 13px;
-        margin: 30px;
-        padding: 12px;
-    }
-
-    .space-between {
-        width: 533px;
-        margin-left: 5px;
     }
 }
