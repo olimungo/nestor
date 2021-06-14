@@ -2,19 +2,23 @@ from network import WLAN, STA_IF, AP_IF, AUTH_OPEN
 from ubinascii import hexlify
 from uasyncio import get_event_loop, sleep_ms
 from Blink import Blink
+from time import ticks_ms, ticks_diff
 
 from Credentials import Credentials, FILE
 
-AP_IP = "192.168.4.1"
+AP_IP = "1.2.3.4"
 WAIT_FOR_CONNECT = const(6000)
-WAIT_BEFORE_RECONNECT = const(10000)
+WAIT_BEFORE_RECONNECT = const(60000)
 WAIT_BEFORE_AP_SHUTDOWN = const(30000)
+CHECK_SSIDS = const(30000)
 CHECK_CONNECTED = const(250)
 
 
 class WifiManager:
     ip = "0.0.0.0"
-    ssids = b'{"ssids": []}'
+    ssids = []
+    ssids_timestamp = 0
+
 
     def __init__(self, ap_essid=None):
         self.sta_if = WLAN(STA_IF)
@@ -86,8 +90,6 @@ class WifiManager:
             self.ap_if.ifconfig(),
         )
 
-        self.loop.create_task(self.scan_ssids())
-
     async def connect(self, autoLoop=False):
         if not self.sta_if.isconnected() or not autoLoop:
             if self.credentials.load().is_valid():
@@ -114,27 +116,17 @@ class WifiManager:
     def set_ap_essid(self, ap_essid):
         self.ap_essid = ap_essid
 
-    async def scan_ssids(self):
-        while not self.sta_if.isconnected():
-            try:
-                print("> WifiManager.get_ssids(): start scan")
-
-                scan = self.sta_if.scan()
-
-                print("> WifiManager.get_ssids(): scan ended")
-
-                ssids = []
-
-                for ssid in scan:
-                    ssids.append('"%s"' % ssid[0].decode("ascii"))
-
-                self.ssids = b'{"ssids": [%s]}' % (",".join(ssids))
-            except Exception as e:
-                print("> WifiManager.scan_ssids(): %s" % e)
-
-            await sleep_ms(15000)
-
-        self.ssids = b'{"ssids": []}'
-
     def get_ssids(self):
-        return self.ssids
+        now = ticks_ms()
+
+        if len(self.ssids) == 0 or now > self.ssids_timestamp + 1000 * 30:
+            ssids = self.sta_if.scan()
+            self.ssids_timestamp = now
+            self.ssids = []
+
+            for ssid in ssids:
+                self.ssids.append('"%s"' % ssid[0].decode("ascii"))
+
+            self.ssids.sort()
+
+        return b'{"ssids": [%s]}' % (",".join(self.ssids))

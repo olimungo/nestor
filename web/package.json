@@ -1,0 +1,13 @@
+{
+    "name": "nestor",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "clean": "docker system prune -f",
+        "up": "docker compose up -d",
+        "down": "docker compose down"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}

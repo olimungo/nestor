@@ -7,6 +7,7 @@
     <title>Clock</title>
 
     <link rel="stylesheet" href="style.css">
+    <script defer src="scripts.js"></script>
 </head>
 
 <body>
@@ -19,23 +20,29 @@
         <div class="block">
             <h2 class="margin-bottom">BRIGHTNESS</h2>
 
-            <input type="range" min="1" max="63" value="0" class="slider margin-bottom-small" id="slider">
+            <input type="range" min="0" max="63" value="0" class="slider margin-bottom" id="slider">
 
             <h2 class="margin-bottom-small">COLOR</h2>
 
-            <div class="block center-horizontal">
+            <div class="block center-horizontal margin-bottom">
                 <div>
-                    <button class="button-round action color-pink" onclick="setColor('ff3f5f')"></button>
-                    <button class="button-round action color-orange" onclick="setColor('d63600')"></button>
-                    <button class="button-round action color-red" onclick="setColor('ff0000')"></button>
-                    <button class="button-round action color-blue-violet" onclick="setColor('8a2be2')"></button>
+                    <button class="button-circle action color-pink" onclick="setColor('ff3f5f')"></button>
+                    <button class="button-circle action color-orange" onclick="setColor('d63600')"></button>
+                    <button class="button-circle action color-red" onclick="setColor('ff0000')"></button>
+                    <button class="button-circle action color-blue-violet" onclick="setColor('68015c')"></button>
                 </div>
 
                 <div class="margin-bottom-small">
-                    <button class="button-round action color-blue" onclick="setColor('0000ff')"></button>
-                    <button class="button-round action color-yellow" onclick="setColor('ffff00')"></button>
-                    <button class="button-round action color-green" onclick="setColor('13d713')"></button>
+                    <button class="button-circle action color-blue" onclick="setColor('0000ff')"></button>
+                    <button class="button-circle action color-yellow" onclick="setColor('ffff00')"></button>
+                    <button class="button-circle action color-green" onclick="setColor('13d713')"></button>
                 </div>
+            </div>
+
+            <div class="inline margin-bottom">
+                <h2 class="margin-right">HEX#</h2>
+                <input id="hex" class="hex margin-right" type="text">
+                <button class="button-send" onclick="setManualColor()">SEND</button>
             </div>
 
             <h2 class="margin-bottom-small">SCOREBOARD</h2>
@@ -142,7 +149,6 @@
         </form>
     </div>
 
-
     <div id="connection" class="block hidden">
         <div class="connection">
             Connection in progress
@@ -176,11 +182,11 @@
         <div id="new-ip" class="new-ip">0.0.0.0</div>
     </div>
 
+    <div class="margin-bottom"></div>
+
     <div class="footer">
         <div id="ip" class="ip"></div>
     </div>
-
-    <script src="scripts.js"></script>
 </body>
 
 </html>

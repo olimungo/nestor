@@ -3,15 +3,15 @@ from uos import remove
 FILE = "./settings.csv"
 
 class Settings:
-    def __init__(self, net_id=b"0", group=b"", color=b"0000ff"):
+    def __init__(self, net_id=b"0", state=b"", color=b"0000ff"):
         self.net_id = net_id
-        self.group = group
+        self.state = state
         self.color = color
 
     def write(self):
         if self.is_valid():
             with open(FILE, "wb") as f:
-                f.write(b",".join([self.net_id, self.group, self.color]))
+                f.write(b",".join([self.net_id, self.state, self.color]))
 
     def load(self):
         try:
@@ -19,7 +19,7 @@ class Settings:
                 contents = f.read().split(b",")
 
             if len(contents) == 3:
-                self.net_id, self.group, self.color = contents
+                self.net_id, self.state, self.color = contents
 
             if not self.is_valid():
                 remove()
@@ -36,13 +36,13 @@ class Settings:
         except OSError:
             pass
 
-        self.net_id = self.group = self.color = None
+        self.net_id = self.state = self.color = None
 
     def is_valid(self):
         # Ensure the credentials are entered as bytes
         if not isinstance(self.net_id, bytes):
             return False
-        if not isinstance(self.group, bytes):
+        if not isinstance(self.state, bytes):
             return False
         if not isinstance(self.color, bytes):
             return False

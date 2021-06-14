@@ -26,7 +26,7 @@
         {
             "label": "Build custom micropython v1.14",
             "type": "shell",
-            "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin ..; docker rm -f micropython; docker rmi -f micropython",
+            "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin ..; docker rm -f micropython; docker rmi -f micropython; docker system prune -f",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

@@ -12,7 +12,9 @@ HEADER_OK = b"HTTP/1.1 200 OK\r\n\r\n"
 HEADER_REDIRECT = b"HTTP/1.1 302 Found\r\nLocation: index.html\r\n\r\n"
 HEADER_NO_CONTENT = b"HTTP/1.1 204 No Content\r\n\r\n"
 HEADER_CONTENT = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: %s\r\n\r\n%s"
-HEADER_CONTENT_CSS = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\nContent-Length: %s\r\n\r\n%s"
+HEADER_CONTENT_HTML = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
+HEADER_CONTENT_CSS = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n"
+HEADER_CONTENT_JS = b"HTTP/1.1 200 OK\r\nContent-Type: text/javascript\r\n\r\n"
 
 class HttpServer:
     def __init__(self, routes):
@@ -74,6 +76,16 @@ class HttpServer:
 
     def send_page(self, client, page):
         print("> Send page {}".format(page.decode('ascii')))
+
+        page_split = page.split(b".")
+        ext = page_split[len(page_split) - 1]
+
+        if ext == b"html":
+            client.send(HEADER_CONTENT_HTML)
+        elif ext == b"css":
+            client.send(HEADER_CONTENT_CSS)
+        elif ext == b"js":
+            client.send(HEADER_CONTENT_JS)
 
         file = open(page, "rb")
 

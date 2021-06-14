@@ -59,11 +59,11 @@ function getValues() {
 
 function setTagValue(tagId, value) {
     const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? (tag.value = value) : (tag.textContent = value);
+    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
 }
 
 function setNetId(value) {
-    fetch(`/settings/net?id=${value}`).then();
+    fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
     document.title = `Clock ${value}`;
@@ -122,7 +122,7 @@ function displayConnectionSuccess() {
 
 function getSsids() {
     fetchWithTimeout('/settings/ssids', {
-        timeout: 3000
+        timeout: 15000
     })
         .then(response => response.json())
         .then(response => response.ssids)
@@ -157,13 +157,26 @@ function setColor(hex) {
         });
 }
 
+function setManualColor() {
+    const hex = document.getElementById('hex');
+
+    if (hex.value.match(/\b[0-9A-F]{6}\b/gi)) {
+        fetch(`/action/color?hex=${hex.value}`)
+            .then(response => response.json())
+            .then(response => {
+                const slider = document.getElementById('slider');
+                slider.value = response.brightness;
+            });
+    }
+}
+
 function checkConnection() {
     fetchWithTimeout('/settings/values', {
         timeout: 3000
     })
         .then(response => response.json())
         .then(response => {
-            if (response.ip != '192.168.4.1') {
+            if (response.ip != '1.2.3.4') {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),

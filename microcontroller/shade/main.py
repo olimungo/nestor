@@ -3,6 +3,7 @@ from gc import collect, mem_free
 from machine import reset
 from time import sleep
 from network import WLAN, STA_IF
+from re import match
 
 from WifiManager import WifiManager
 from HttpServer import HttpServer
@@ -11,12 +12,19 @@ from MqttManager import MqttManager
 from Motor import Motor
 from Settings import Settings
 from Credentials import Credentials
-
-# from UdpServer import UdpServer
+from Tags import Tags
 
 PUBLIC_NAME = b"Shade"
 BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"192.168.0.215"
 MQTT_TOPIC_NAME = b"shades"
+DEVICE_TYPE = b"MOTOR-V"
+
+STARTUP_DELAY = const(1000 * 2)
+WIFI_CHECK_CONNECTED_INTERVAL = const(1000)
+MQTT_STATUS_INTERVAL = const(1000 * 5)
+MQTT_CHECK_MESSAGE_INTERVAL = const(250)
+MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
 
 class Main:
@@ -24,7 +32,7 @@ class Main:
         self.sta_if = WLAN(STA_IF)
         self.settings = Settings().load()
         self.credentials = Credentials().load()
-        # self.udps = UdpServer()
+        self.tags = Tags().load()
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
@@ -43,8 +51,7 @@ class Main:
             b"/action/go-down": self.go_down,
             b"/action/stop": self.stop,
             b"/settings/values": self.settings_values,
-            b"/settings/net": self.settings_net,
-            b"/settings/group": self.settings_group,
+            b"/settings/net-id": self.settings_net_id,
             b"/settings/reverse-motor": self.reverse_motor,
             b"/settings/ssids": self.get_ssids,
         }
@@ -63,15 +70,15 @@ class Main:
 
     async def check_wifi(self):
         while True:
-            await sleep_ms(2000)
+            await sleep_ms(STARTUP_DELAY)
 
             while not self.sta_if.isconnected():
-                await sleep_ms(1000)
+                await sleep_ms(WIFI_CHECK_CONNECTED_INTERVAL)
 
             self.send_state_mqtt()
 
             while self.sta_if.isconnected():
-                await sleep_ms(1000)
+                await sleep_ms(WIFI_CHECK_CONNECTED_INTERVAL)
 
     async def check_mqtt(self):
         while True:
@@ -81,10 +88,10 @@ class Main:
                 if self.motor.check_stopped_by_ir_sensor():
                     self.send_state_mqtt()
 
-                await sleep_ms(100)
+                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
 
             while not self.mqtt.connected:
-                await sleep_ms(1000)
+                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
 
             self.send_state_mqtt()
 
@@ -93,7 +100,13 @@ class Main:
             message = self.mqtt.check_messages()
 
             if message:
-                if message == b"up":
+                if match("add-tag/", message):
+                    tag = message.split(b"/")[1]
+                    self.tags.append(tag)
+                elif match("remove-tag/", message):
+                    tag = message.split(b"/")[1]
+                    self.tags.remove(tag)
+                elif message == b"up":
                     self.go_up()
                 elif message == b"down":
                     self.go_down()
@@ -110,11 +123,10 @@ class Main:
             essid = b""
 
         result = (
-            b'{"ip": "%s", "netId": "%s", "group": "%s", "motorReversed": "%s", "essid": "%s"}'
+            b'{"ip": "%s", "netId": "%s", "motorReversed": "%s", "essid": "%s"}'
             % (
                 self.wifi.ip,
                 self.settings.net_id,
-                self.settings.group,
                 self.settings.motor_reversed,
                 essid,
             )
@@ -144,7 +156,7 @@ class Main:
         self.motor.stop()
         self.send_state_mqtt()
 
-    def settings_net(self, params):
+    def settings_net_id(self, params):
         id = params.get(b"id", None)
 
         if id:
@@ -155,13 +167,6 @@ class Main:
             self.wifi.set_ap_essid(b"%s-%s" % (PUBLIC_NAME, id))
             self.mdns.set_net_id(id)
             self.mqtt.set_net_id(id)
-
-    def settings_group(self, params):
-        name = params.get(b"name", None)
-
-        if name:
-            self.settings.group = name
-            self.settings.write()
 
     def reverse_motor(self, params):
         motor_reversed = self.settings.motor_reversed
@@ -176,16 +181,32 @@ class Main:
 
         self.motor.reverse_direction()
 
+    def settings_net_id(self, params):
+        id = params.get(b"id", None)
+
+        if id:
+            self.settings.net_id = id
+            self.settings.write()
+            self.mdns.set_net_id(id)
+
     async def send_state(self):
         while True:
             self.send_state_mqtt()
-            await sleep_ms(30000)
+
+            await sleep_ms(MQTT_STATUS_INTERVAL)
 
     def send_state_mqtt(self):
         try:
-            state = b'{"group": "%s", "state": "%s"}' % (
-                self.settings.group,
+            tags = []
+
+            for tag in self.tags.tags:
+                tags.append("\"%s\"" % (tag.decode('utf-8')))
+
+            state = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
+                self.wifi.ip,
+                DEVICE_TYPE,
                 self.motor.get_state(),
+                ",".join(tags)
             )
             self.mqtt.publish_state(state)
         except Exception as e:

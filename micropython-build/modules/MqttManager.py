@@ -33,7 +33,6 @@ class MqttManager:
                 self.connect()
                 await sleep_ms(WAIT_FOR_CONNECT)
 
-
             print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
 
             while self.connected and self.mdns.connected:
@@ -47,11 +46,17 @@ class MqttManager:
         try:
             client_id = hexlify(unique_id())
 
-            broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
+            broker_name = self.broker_name.split(b".")
+
+            if len(broker_name) == 2 and broker_name[1] == b"local":
+                broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
+
+                if broker_ip != None:
+                    broker_ip = "{}.{}.{}.{}".format(*broker_ip)
+            else:
+                broker_ip = self.broker_name
 
             if broker_ip != None:
-                broker_ip = "{}.{}.{}.{}".format(*broker_ip)
-
                 self.mqtt = MQTTClient(client_id, broker_ip)
                 self.mqtt.set_callback(self.message_received)
                 self.mqtt.connect()
@@ -61,6 +66,8 @@ class MqttManager:
                 self.connected = True
 
                 self.log(b"IP assigned: %s" % (self.sta_if.ifconfig()[0]))
+            else:
+                print("> MQTT broker '{}' not reachable!".format(self.broker_name))
         except Exception as e:
             print("> MQTT broker connect error: {}".format(e))
 
