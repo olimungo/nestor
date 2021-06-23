@@ -76,17 +76,17 @@ class Main:
             b"/settings/ssids": self.get_ssids,
         }
 
-        self.http = HttpServer(routes)
-        print("> HTTP server up and running")
+        # self.http = HttpServer(routes)
+        # print("> HTTP server up and running")
 
-        self.clock = Clock(self.settings.color)
+        # self.clock = Clock(self.settings.color)
 
-        self.loop = get_event_loop()
-        self.loop.create_task(self.check_wifi())
-        self.loop.create_task(self.check_mqtt())
-        self.loop.create_task(self.send_state())
-        self.loop.run_forever()
-        self.loop.close()
+        # self.loop = get_event_loop()
+        # self.loop.create_task(self.check_wifi())
+        # self.loop.create_task(self.check_mqtt())
+        # self.loop.create_task(self.send_state())
+        # self.loop.run_forever()
+        # self.loop.close()
 
     async def check_wifi(self):
         while True:
@@ -163,7 +163,7 @@ class Main:
         self.credentials.password = params.get(b"password", None)
         self.credentials.write()
 
-        self.loop.create_task(self.wifi.connect())
+        self.wifi.connect()
 
     def display_clock(self, params=None):
         if self.settings.state != b"%s" % State.CLOCK:
