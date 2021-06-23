@@ -26,46 +26,62 @@ class WifiManager:
         # Make sure that AP is not active
         self.ap_if.active(False)
 
+        self.sta_if.active(False)
+        self.sta_if.active(True)
+
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_wifi())
+        self.loop.create_task(self.check_connected())
+        self.loop.create_task(self.check_connection())
 
-    async def check_wifi(self):
+    async def check_connected(self):
         while True:
-            if self.credentials.load().is_valid():
+            while not self.sta_if.isconnected():
+                await sleep_ms(CHECK_CONNECTED)
+
+            self.ip = self.sta_if.ifconfig()[0]
+
+            Blink().flash3TimesFast()
+
+            print(
+                "> Connected to {} with IP: {}".format(
+                    self.credentials.essid.decode("ascii"), self.ip
+                )
+            )
+
+            while self.sta_if.isconnected():
+                await sleep_ms(CHECK_CONNECTED)
+
+    async def check_connection(self):
+        while True:
+            if not self.sta_if.isconnected():
                 self.connect()
-                await sleep_ms(WAIT_FOR_CONNECT)
-
-                if self.sta_if.isconnected():
-                    self.loop.create_task(self.shutdown_access_point_deferred())
-
-                    self.ip = self.sta_if.ifconfig()[0]
-
-                    Blink().flash3TimesFast()
-
-                    print(
-                        "> Connected to {} with IP: {}".format(
-                            self.credentials.essid.decode("ascii"), self.ip
-                        )
-                    )
-
-                    while self.sta_if.isconnected():
-                        await sleep_ms(CHECK_CONNECTED)
-
-            self.loop.create_task(self.start_access_point())
 
             await sleep_ms(WAIT_BEFORE_RECONNECT)
 
     def connect(self):
-        print(
-            "> Connecting to {:s}/{:s}".format(
-                self.credentials.essid, self.credentials.password
+        self.loop.create_task(self.connect_async())
+
+    async def connect_async(self):
+        if self.credentials.load().is_valid():
+            print(
+                "> Connecting to {:s}/{:s}".format(
+                    self.credentials.essid, self.credentials.password
+                )
             )
-        )
 
-        self.sta_if.active(False)
-        self.sta_if.active(True)
+            self.sta_if.active(False)
+            self.sta_if.active(True)
 
-        self.sta_if.connect(self.credentials.essid, self.credentials.password)
+            self.sta_if.connect(self.credentials.essid, self.credentials.password)
+
+            await sleep_ms(WAIT_FOR_CONNECT)
+
+        if self.sta_if.isconnected():
+            # Leave a bit of time so the client can retrieve the Wifi IP address
+            await sleep_ms(WAIT_BEFORE_AP_SHUTDOWN)
+            self.shutdown_access_point()
+        else:
+            self.loop.create_task(self.start_access_point())
 
     async def start_access_point(self):
         if not self.ap_if.active():
@@ -84,12 +100,6 @@ class WifiManager:
                 "> AP mode configured: {} ".format(self.ap_essid.decode("utf-8")),
                 self.ap_if.ifconfig(),
             )
-
-    async def shutdown_access_point_deferred(self):
-        # Leave a bit of time so the client can retrieve the Wifi IP address
-        await sleep_ms(WAIT_BEFORE_AP_SHUTDOWN)
-
-        self.shutdown_access_point()
 
     def shutdown_access_point(self):
         if self.ap_if.active():

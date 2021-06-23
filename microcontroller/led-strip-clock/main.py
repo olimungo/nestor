@@ -2,7 +2,7 @@ from uasyncio import get_event_loop, sleep_ms
 from gc import collect, mem_free
 from machine import reset
 from time import sleep
-from network import WLAN, STA_IF
+from network import WLAN, STA_IF, AP_IF
 from re import match
 
 from WifiManager import WifiManager
@@ -45,6 +45,7 @@ class State:
 class Main:
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
+        self.ap_if = WLAN(AP_IF)
         self.settings = Settings(state=b"%s" % State.CLOCK).load()
         self.credentials = Credentials().load()
         self.tags = Tags().load()
@@ -76,17 +77,17 @@ class Main:
             b"/settings/ssids": self.get_ssids,
         }
 
-        # self.http = HttpServer(routes)
-        # print("> HTTP server up and running")
+        self.http = HttpServer(routes)
+        print("> HTTP server up and running")
 
-        # self.clock = Clock(self.settings.color)
+        self.clock = Clock(self.settings.color)
 
-        # self.loop = get_event_loop()
-        # self.loop.create_task(self.check_wifi())
-        # self.loop.create_task(self.check_mqtt())
-        # self.loop.create_task(self.send_state())
-        # self.loop.run_forever()
-        # self.loop.close()
+        self.loop = get_event_loop()
+        self.loop.create_task(self.check_wifi())
+        self.loop.create_task(self.check_mqtt())
+        self.loop.create_task(self.send_state())
+        self.loop.run_forever()
+        self.loop.close()
 
     async def check_wifi(self):
         while True:
@@ -95,7 +96,7 @@ class Main:
 
             await sleep_ms(2000)
 
-            while not self.sta_if.isconnected():
+            while not self.sta_if.isconnected() or self.ap_if.active():
                 await sleep_ms(1000)
 
             self.clock.stop_effect_init = True
