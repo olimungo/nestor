@@ -13,6 +13,5 @@ sleep_type(SLEEP_NONE)
 
 webrepl.start()
 
-
 def rst():
     reset()

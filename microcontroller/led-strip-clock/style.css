@@ -17,11 +17,12 @@ body {
 h1 {
     font-size: 5rem;
     font-weight: 100;
+    letter-spacing: .2rem;
 }
 
 h2 {
-    font-size: 2.5rem;
-    letter-spacing: 0.25rem;
+    font-size: 2.8rem;
+    letter-spacing: 0.4rem;
     color: #b7c4cc;
     font-weight: 100;
 }
@@ -97,8 +98,8 @@ button {
 }
 
 .button-send {
-    width: 13rem;
-    height: 8rem;
+    width: 14rem;
+    height: 7rem;
 }
 
 .button-back {
@@ -106,6 +107,7 @@ button {
     height: 4rem;
     align-self: center;
     border: none;
+    margin-right: 1rem;
 }
 
 .connect-button {
@@ -183,15 +185,16 @@ input[type='text'] {
 }
 
 .hex {
-    height: 6.8rem !important;
-    width: 15rem !important;
+    height: 6rem !important;
+    width: 14rem !important;
     font-size: 3.5rem !important;
     padding: 0 2rem !important;
 }
 
 .label {
-    font-size: 2.5rem;
-    color: #e9f7ff;
+    font-size: 2.8rem;
+    color: #b7c4cc;
+    letter-spacing: .3rem;
 }
 
 .tag {
@@ -209,7 +212,8 @@ input[type='text'] {
 }
 
 .ip {
-    font-size: 2rem;
+    font-size: 3rem;
+    letter-spacing: .5rem;
     margin: 1rem;
 }
 
@@ -335,16 +339,6 @@ input[type='text'] {
 
 .color-orange {
     background: #ff7118;
-}
-
-.scoreboard-red {
-    color: #ff1c1c;
-    border-color: #ff1c1c;
-}
-
-.scoreboard-green {
-    color: #61b400;
-    border-color: #61b400;
 }
 
 .colon {

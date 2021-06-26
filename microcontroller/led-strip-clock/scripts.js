@@ -52,7 +52,7 @@ function getValues() {
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
 
-            document.title = `Clock ${response.netId}`;
+            document.title = `CLOCK ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -66,7 +66,7 @@ function setNetId(value) {
     fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
-    document.title = `Clock ${value}`;
+    document.title = `CLOCK ${value}`;
 }
 
 const debouncedSetNetId = debounce(setNetId, 500);
@@ -184,6 +184,8 @@ function checkConnection() {
 
                 connection.classList.add('hidden');
                 connectionSuccess.classList.remove('hidden');
+
+                fetch(`/settings/shutdown-ap`).then();
             }
             else {
                 setTimeout(checkConnection, 3000);

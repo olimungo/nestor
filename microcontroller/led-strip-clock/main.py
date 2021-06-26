@@ -1,7 +1,6 @@
 from uasyncio import get_event_loop, sleep_ms
-from gc import collect, mem_free
 from machine import reset
-from time import sleep
+from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
 
@@ -10,6 +9,7 @@ from HttpServer import HttpServer
 from mDnsServer import mDnsServer
 from MqttManager import MqttManager
 from Clock import Clock
+from Spinner import Spinner
 from Settings import Settings
 from Credentials import Credentials
 from Tags import Tags
@@ -21,95 +21,85 @@ MQTT_TOPIC_NAME = b"clocks"
 DEVICE_TYPE = b"CLOCK"
 
 ORANGE = (255, 98, 0)
+GREEN = (19, 215, 19)
 SPINNER_RATE = const(120)
+SPINNER_MINIMUM_DISPLAY = const(2000)
 
-STARTUP_DELAY = const(1000 * 2)
-WIFI_CHECK_CONNECTED_INTERVAL = const(1000)
-MQTT_STATUS_INTERVAL = const(1000 * 5)
+CHECK_CONNECTED = const(250)
+WAIT_BEFORE_RESET = const(10000)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
-class Player:
-    GREEN = 0
-    RED = 1
-
-
 class State:
     CLOCK = 0
-    SCOREBOARD = 1
-    OFF = 2
+    OFF = 1
 
-    STATE_TEXT = ["CLOCK", "SCOREBOARD", "OFF"]
-
+    STATE_TEXT = ["CLOCK", "OFF"]
 
 class Main:
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
         self.ap_if = WLAN(AP_IF)
-        self.settings = Settings(state=b"%s" % State.CLOCK).load()
-        self.credentials = Credentials().load()
-        self.tags = Tags().load()
+        settings = Settings(state=b"%s" % State.CLOCK).load()
 
-        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, self.settings.net_id))
-        self.mdns = mDnsServer(PUBLIC_NAME.lower(), self.settings.net_id)
+        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
+        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
         self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, self.settings.net_id, MQTT_TOPIC_NAME
+            self.mdns, BROKER_NAME, settings.net_id, MQTT_TOPIC_NAME, DEVICE_TYPE
         )
 
         routes = {
-            b"/": b"./index.html",
-            b"/index.html": b"./index.html",
-            b"/scripts.js": b"./scripts.js",
-            b"/style.css": b"./style.css",
-            b"/favicon.ico": self.favicon,
-            b"/connect": self.connect,
             b"/action/color": self.set_color,
             b"/action/clock/display": self.display_clock,
             b"/action/brightness": self.set_brightness,
-            b"/action/scoreboard/display": self.display_scoreboard,
-            b"/action/scoreboard/green/more": self.scoreboard_green_more,
-            b"/action/scoreboard/green/less": self.scoreboard_green_less,
-            b"/action/scoreboard/red/more": self.scoreboard_red_more,
-            b"/action/scoreboard/red/less": self.scoreboard_red_less,
-            b"/action/scoreboard/reset": self.scoreboard_reset,
             b"/settings/values": self.settings_values,
-            b"/settings/net-id": self.settings_net_id,
-            b"/settings/ssids": self.get_ssids,
         }
 
-        self.http = HttpServer(routes)
-        print("> HTTP server up and running")
+        self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.clock = Clock(self.settings.color)
+        self.clock = Clock(settings.color)
+        self.spinner = Spinner()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_wifi())
+        self.loop.create_task(self.check_connected())
         self.loop.create_task(self.check_mqtt())
-        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
 
-    async def check_wifi(self):
+    async def check_connected(self):
         while True:
             self.clock.stop()
-            self.clock.play_spinner(SPINNER_RATE, ORANGE)
 
-            await sleep_ms(2000)
+            credentials = Credentials().load()
+
+            if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
+                color = GREEN
+            else:
+                color = ORANGE
+
+            self.spinner.start(SPINNER_RATE, color)
+
+            # Spin at least for 2 seconds
+            await sleep_ms(SPINNER_MINIMUM_DISPLAY)
 
             while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(1000)
+                await sleep_ms(CHECK_CONNECTED)
 
-            self.clock.stop_effect_init = True
+            self.spinner.stop()
 
-            if self.settings.state != b"%s" % State.OFF:
-                self.settings.state = b"%s" % State.CLOCK
-                self.settings.write()
-                self.clock.display()
+            settings = Settings().load()
+
+            if settings.state != b"%s" % State.OFF:
+                settings.state = b"%s" % State.CLOCK
+                settings.write()
+                self.clock.start()
             else:
                 self.clock.clear_all()
 
+            self.set_state()
+
             while self.sta_if.isconnected():
-                await sleep_ms(1000)
+                await sleep_ms(CHECK_CONNECTED)
 
     async def check_mqtt(self):
         while True:
@@ -121,65 +111,58 @@ class Main:
             while not self.mqtt.connected:
                 await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
 
-            self.send_state_mqtt()
+            self.set_state()
 
     def check_message_mqtt(self):
         try:
             message = self.mqtt.check_messages()
+            tags = Tags().load()
 
             if message:
                 if match("add-tag/", message):
                     tag = message.split(b"/")[1]
-                    self.tags.append(tag)
+                    tags.append(tag)
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
-                    self.tags.remove(tag)
+                    tags.remove(tag)
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
 
     def settings_values(self, params):
-        essid = self.credentials.essid
+        credentials = Credentials().load()
+        settings = Settings().load()
+
+        essid = credentials.essid
 
         if not essid:
             essid = b""
 
-        if self.settings.state == b"%s" % State.OFF:
+        if settings.state == b"%s" % State.OFF:
                 l = 0
         else:
             _, _, l = self.clock.hsl
 
         result = (
             b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, self.settings.net_id, essid, int(l))
+            % (self.wifi.ip, settings.net_id, essid, int(l))
         )
 
         return result
 
-    def favicon(self, params):
-        print("> NOT sending the favico :-)")
-
-    def connect(self, params):
-        self.credentials.essid = params.get(b"essid", None)
-        self.credentials.password = params.get(b"password", None)
-        self.credentials.write()
-
-        self.wifi.connect()
-
     def display_clock(self, params=None):
-        if self.settings.state != b"%s" % State.CLOCK:
-            self.settings.state = b"%s" % State.CLOCK
-            self.settings.write()
-            self.clock.display()
+        settings = Settings().load()
 
-    def display_scoreboard(self, params=None):
-        if self.settings.state != b"%s" % State.SCOREBOARD:
-            self.clock.stop()
-            self.settings.state = b"%s" % State.SCOREBOARD
-            self.settings.write()
-            self.clock.display_scoreboard()
+        if settings.state != b"%s" % State.CLOCK:
+            settings.state = b"%s" % State.CLOCK
+            settings.write()
+            self.clock.start()
+
+            self.set_state()
 
     def set_color(self, params):
+        settings = Settings().load()
+
         self.display_clock()
 
         color = params.get(b"hex", None)
@@ -187,86 +170,33 @@ class Main:
         if color:
             self.clock.set_color(color)
 
-            self.settings.color = color
-            self.settings.write()
+            settings.color = color
+            settings.write()
 
         _, _, l = self.clock.hsl
 
         return b'{"brightness": "%s"}' % int(l)
 
-    def scoreboard_green_more(self, params):
-        self.scoreboard_update(Player.GREEN, 1)
-
-    def scoreboard_green_less(self, params):
-        self.scoreboard_update(Player.GREEN, -1)
-
-    def scoreboard_red_more(self, params):
-        self.scoreboard_update(Player.RED, 1)
-
-    def scoreboard_red_less(self, params):
-        self.scoreboard_update(Player.RED, -1)
-
-    def scoreboard_update(self, player, increment):
-        if player == Player.GREEN:
-            self.clock.update_scoreboard_green(increment)
-        else:
-            self.clock.update_scoreboard_red(increment)
-
-        self.display_scoreboard()
-
     def set_brightness(self, params):
+        settings = Settings().load()
+
         l = int(params.get(b"l", 0))
 
         if l > 0:
             self.display_clock()
             self.clock.set_brightness(l)
 
-            self.settings.color = b"%s" % self.clock.hex
+            settings.color = b"%s" % self.clock.hex
         else:
             self.clock.off()
-            self.settings.state = b"%s" % State.OFF
+            settings.state = b"%s" % State.OFF
+            self.set_state()
 
-        self.settings.write()
+        settings.write()
 
-    def scoreboard_reset(self, params):
-        self.display_scoreboard()
-        self.clock.reset_scoreboard()
-
-    def settings_net_id(self, params):
-        id = params.get(b"id", None)
-
-        if id:
-            self.settings.net_id = id
-            self.settings.write()
-            self.mdns.set_net_id(id)
-
-    async def send_state(self):
-        while True:
-            self.send_state_mqtt()
-
-            await sleep_ms(MQTT_STATUS_INTERVAL)
-            
-    def send_state_mqtt(self):
-        try:
-            tags = []
-
-            # for tag in self.tags.tags:
-            #     tags.append("\"%s\"" % (tag.decode('utf-8')))
-
-            # state = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
-            #     self.wifi.ip,
-            #     DEVICE_TYPE,
-            #     State.STATE_TEXT[self.settings.state],
-            #     ",".join(tags)
-            # )
-
-            # self.mqtt.publish_state(state)
-        except Exception as e:
-            print("> Main.send_state_mqtt exception: {}".format(e))
-
-    def get_ssids(self, params):
-        return self.wifi.get_ssids()
-
+    def set_state(self):
+        settings = Settings().load()
+        self.mqtt.set_state(State.STATE_TEXT[int(settings.state)])
 
 try:
     collect()
@@ -276,5 +206,5 @@ try:
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
-    sleep(10)
+    sleep_ms(WAIT_BEFORE_RESET)
     reset()

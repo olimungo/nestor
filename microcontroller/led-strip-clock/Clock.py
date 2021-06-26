@@ -1,20 +1,14 @@
 from machine import Pin, Timer
-from math import floor
 from neopixel import NeoPixel
 import colors
-import gc
 
 from NtpTime import NtpTime
 
-LEDS = 59
-DIGIT = [1, 15, 31, 45]
-DOTS = 29
+GPIO_DATA = const(4) #D2
+LEDS = const(59)
+DOTS = const(29)
+DIGITS = [1, 15, 31, 45]
 EFFECT_INIT = [(0, 1), (2, 3), (4, 5), (12, 13), (10, 11), (8, 9)]
-
-
-class Gpio:
-    DATA = 4  # D2
-
 
 class Clock:
     hour1 = hour2 = minute1 = minute2 = second = -1
@@ -22,10 +16,9 @@ class Clock:
     tick_timer = Timer(-1)
     play_spinner_timer = Timer(-1)
     effect_to_play = effect_original = stop_effect_init = None
-    score_green = score_red = 0
 
     def __init__(self, color="0000ff"):
-        self.leds_strip = NeoPixel(Pin(Gpio.DATA), LEDS)
+        self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
         self.clear_all()
 
         self.time = NtpTime()
@@ -64,7 +57,7 @@ class Clock:
 
     def update(self, position, value, rgb):
         leds = []
-        start = DIGIT[position - 1]
+        start = DIGITS[position - 1]
 
         for i in range(start, start + 7 * 2):
             self.leds_strip[i] = (0, 0, 0)
@@ -110,7 +103,7 @@ class Clock:
         self.hour1 = self.hour2 = self.minute1 = self.minute2 = self.second = -1
         self.tick()
 
-    def display(self):
+    def start(self):
         print("> Clock started")
         self.hour1 = self.hour2 = self.minute1 = self.minute2 = self.second = -1
         self.clear_all()
@@ -119,30 +112,6 @@ class Clock:
 
     def stop(self):
         self.tick_timer.deinit()
-
-    def display_scoreboard(self):
-        self.update(1, floor(self.score_green / 10), (0, 255, 0))
-        self.update(2, self.score_green % 10, (0, 255, 0))
-        self.update(3, floor(self.score_red / 10), (255, 0, 0))
-        self.update(4, self.score_red % 10, (255, 0, 0))
-
-        self.leds_strip[DOTS] = self.leds_strip[DOTS + 1] = (255, 255, 255)
-
-        self.leds_strip.write()
-
-    def update_scoreboard_green(self, increment):
-        if self.score_green + increment >= 0 and self.score_green + increment <= 99:
-            self.score_green += increment
-            self.display_scoreboard()
-
-    def update_scoreboard_red(self, increment):
-        if self.score_red + increment >= 0 and self.score_red + increment <= 99:
-            self.score_red += increment
-            self.display_scoreboard()
-
-    def reset_scoreboard(self):
-        self.score_green = self.score_red = 0
-        self.display_scoreboard()
 
     def set_color(self, hex, no_refresh=True):
         if isinstance(hex, bytes):
@@ -165,35 +134,3 @@ class Clock:
     def off(self):
         self.tick_timer.deinit()
         self.clear_all()
-
-    def play_spinner(self, period, color):
-        gc.collect()
-
-        self.effect_original = EFFECT_INIT.copy()
-        self.effect_to_play = []
-        self.stop_effect_init = False
-        self.effect_color = color
-
-        self.clear_all()
-
-        self.play_spinner_timer.init(
-            period=period, mode=Timer.PERIODIC, callback=self.play_spinner_tick
-        )
-
-    def play_spinner_tick(self, timer):
-        if self.stop_effect_init:
-            timer.deinit()
-        else:
-            if len(self.effect_to_play) == 0:
-                self.effect_to_play = self.effect_original.copy()
-
-            currentStep = self.effect_to_play.pop(0)
-
-            for start in DIGIT:
-                for i in range(start, start + 7 * 2):
-                    self.leds_strip[i] = (0, 0, 0)
-
-                self.leds_strip[start + currentStep[0]] = self.effect_color
-                self.leds_strip[start + currentStep[1]] = self.effect_color
-
-            self.leds_strip.write()

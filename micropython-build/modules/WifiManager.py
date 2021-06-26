@@ -21,7 +21,6 @@ class WifiManager:
         self.sta_if = WLAN(STA_IF)
         self.ap_if = WLAN(AP_IF)
         self.ap_essid = ap_essid
-        self.credentials = Credentials()
 
         # Make sure that AP is not active
         self.ap_if.active(False)
@@ -42,9 +41,11 @@ class WifiManager:
 
             Blink().flash3TimesFast()
 
+            credentials = Credentials().load()
+
             print(
                 "> Connected to {} with IP: {}".format(
-                    self.credentials.essid.decode("ascii"), self.ip
+                    credentials.essid.decode("ascii"), self.ip
                 )
             )
 
@@ -62,17 +63,19 @@ class WifiManager:
         self.loop.create_task(self.connect_async())
 
     async def connect_async(self):
-        if self.credentials.load().is_valid():
+        credentials = Credentials().load()
+
+        if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
             print(
                 "> Connecting to {:s}/{:s}".format(
-                    self.credentials.essid, self.credentials.password
+                    credentials.essid, credentials.password
                 )
             )
 
             self.sta_if.active(False)
             self.sta_if.active(True)
 
-            self.sta_if.connect(self.credentials.essid, self.credentials.password)
+            self.sta_if.connect(credentials.essid, credentials.password)
 
             await sleep_ms(WAIT_FOR_CONNECT)
 
