@@ -113,7 +113,7 @@ button {
 .connect-button {
     width: 41rem;
     font-size: 3rem;
-    height: 6rem;
+    height: 8rem;
     color: #222;
     background-color: #e9f7ff;
 }
@@ -130,14 +130,15 @@ ul {
 }
 
 .li {
-    background: #ccc;
+    background: #f0d0c4;
     color: #222;
-    font-size: 2rem;
-    padding: 1.5rem;
-    margin: 0.5rem;
-    border-radius: 0.3rem;
-    font-weight: 500;
+    font-size: 2.3rem;
+    padding: 2.5rem;
+    margin: 1.5rem;
+    border-radius: 4rem;
     width: 35rem;
+    font-weight: 800;
+    text-align: center;
 }
 
 li:active {
@@ -168,11 +169,12 @@ input[type='text'] {
     outline: none;
     background: none;
     border-radius: 50px;
-    font-size: 2.3rem;
-    height: 3.5rem;
+    font-size: 3.5rem;
+    height: 6rem;
     font-weight: 300;
     color: #e9f7ff;
     padding-left: 1rem;
+    padding: 0 2rem;
 }
 
 input[type='number'] {
@@ -181,19 +183,16 @@ input[type='number'] {
 
 input[type='password'],
 input[type='text'] {
-    width: 40rem;
+    width: 36.5rem;
 }
 
 .hex {
-    height: 6rem !important;
     width: 14rem !important;
-    font-size: 3.5rem !important;
-    padding: 0 2rem !important;
 }
 
 .label {
     font-size: 2.8rem;
-    color: #b7c4cc;
+    color: whitesmoke;
     letter-spacing: .3rem;
 }
 
@@ -222,6 +221,7 @@ input[type='text'] {
     padding: 1em 1em;
     text-align: center;
     font-size: 3.2rem;
+    font-weight: 600;
 }
 
 .connection-details {
@@ -268,11 +268,13 @@ input[type='text'] {
 .new-ip {
     font-size: 3em;
     font-weight: 600;
-    padding: 0.1em 0.4em;
+    padding: 2rem 3rem;
+    letter-spacing: .8rem;
     background: #ddd;
     color: #222;
     border-radius: 5px;
     align-self: center;
+    text-decoration: none;
 }
 
 @-webkit-keyframes sk-bouncedelay {

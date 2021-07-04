@@ -57,7 +57,7 @@ class Main:
 
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.clock = Clock(settings.color)
+        self.clock = Clock(self.wifi, settings.color)
         self.spinner = Spinner()
 
         self.loop = get_event_loop()
@@ -175,6 +175,9 @@ class Main:
 
         _, _, l = self.clock.hsl
 
+        settings.state = b"%s" % State.CLOCK
+        settings.write()
+
         return b'{"brightness": "%s"}' % int(l)
 
     def set_brightness(self, params):
@@ -187,6 +190,7 @@ class Main:
             self.clock.set_brightness(l)
 
             settings.color = b"%s" % self.clock.hex
+            settings.state = b"%s" % State.CLOCK
         else:
             self.clock.off()
             settings.state = b"%s" % State.OFF

@@ -131,7 +131,7 @@ def scrollNumber():
 setLedsStrip(LEDS)
 clearAll()
 
-for i in range(0, 60):
+for i in range(0, LEDS):
     fill(i)
 
 # fillAll()

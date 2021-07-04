@@ -18,6 +18,7 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
+WAIT_A_BIT_MORE = const(2000)
 WAIT_FOR_REQUEST = const(250)
 CHECK_CONNECTED = const(250)
 
@@ -41,6 +42,8 @@ class mDnsServer:
 
             while not self.sta_if.isconnected() or self.ap_if.active():
                 await sleep_ms(CHECK_CONNECTED)
+
+            await sleep_ms(WAIT_A_BIT_MORE)
 
             while not self.connected:
                 self.connect()
