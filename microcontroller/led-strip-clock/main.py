@@ -8,8 +8,7 @@ from WifiManager import WifiManager
 from HttpServer import HttpServer
 from mDnsServer import mDnsServer
 from MqttManager import MqttManager
-from Clock import Clock
-from Spinner import Spinner
+from Display import Display
 from Settings import Settings
 from Credentials import Credentials
 from Tags import Tags
@@ -19,10 +18,6 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"192.168.0.215"
 MQTT_TOPIC_NAME = b"clocks"
 DEVICE_TYPE = b"CLOCK"
-
-ORANGE = (255, 98, 0)
-GREEN = (19, 215, 19)
-SPINNER_RATE = const(120)
 SPINNER_MINIMUM_DISPLAY = const(2000)
 
 CHECK_CONNECTED = const(250)
@@ -31,16 +26,16 @@ MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
 class State:
-    CLOCK = 0
-    OFF = 1
+    OFF = 0
+    CLOCK = 1
 
-    STATE_TEXT = ["CLOCK", "OFF"]
+    STATE_TEXT = ["OFF", "CLOCK"]
 
 class Main:
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
         self.ap_if = WLAN(AP_IF)
-        settings = Settings(state=b"%s" % State.CLOCK).load()
+        settings = Settings().load()
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
@@ -57,8 +52,7 @@ class Main:
 
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.clock = Clock(self.wifi, settings.color)
-        self.spinner = Spinner()
+        self.display = Display(self.wifi)
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -68,16 +62,7 @@ class Main:
 
     async def check_connected(self):
         while True:
-            self.clock.stop()
-
-            credentials = Credentials().load()
-
-            if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
-                color = GREEN
-            else:
-                color = ORANGE
-
-            self.spinner.start(SPINNER_RATE, color)
+            self.display.display_spinner()
 
             # Spin at least for 2 seconds
             await sleep_ms(SPINNER_MINIMUM_DISPLAY)
@@ -85,16 +70,12 @@ class Main:
             while not self.sta_if.isconnected() or self.ap_if.active():
                 await sleep_ms(CHECK_CONNECTED)
 
-            self.spinner.stop()
-
             settings = Settings().load()
 
-            if settings.state != b"%s" % State.OFF:
-                settings.state = b"%s" % State.CLOCK
-                settings.write()
-                self.clock.start()
+            if settings.state != b"%s" % State.CLOCK:
+                self.display.off()
             else:
-                self.clock.clear_all()
+                self.display.display_clock()
 
             self.set_state()
 
@@ -139,9 +120,9 @@ class Main:
             essid = b""
 
         if settings.state == b"%s" % State.OFF:
-                l = 0
+            l = 0
         else:
-            _, _, l = self.clock.hsl
+            _, _, l = self.display.clock.hsl
 
         result = (
             b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s"}'
@@ -156,8 +137,7 @@ class Main:
         if settings.state != b"%s" % State.CLOCK:
             settings.state = b"%s" % State.CLOCK
             settings.write()
-            self.clock.start()
-
+            self.display.display_clock()
             self.set_state()
 
     def set_color(self, params):
@@ -168,12 +148,12 @@ class Main:
         color = params.get(b"hex", None)
 
         if color:
-            self.clock.set_color(color)
+            self.display.clock.set_color(color)
 
             settings.color = color
             settings.write()
 
-        _, _, l = self.clock.hsl
+        _, _, l = self.display.clock.hsl
 
         settings.state = b"%s" % State.CLOCK
         settings.write()
@@ -187,12 +167,12 @@ class Main:
 
         if l > 0:
             self.display_clock()
-            self.clock.set_brightness(l)
+            self.display.clock.set_brightness(l)
 
-            settings.color = b"%s" % self.clock.hex
+            settings.color = b"%s" % self.display.clock.hex
             settings.state = b"%s" % State.CLOCK
         else:
-            self.clock.off()
+            self.display.off()
             settings.state = b"%s" % State.OFF
             self.set_state()
 

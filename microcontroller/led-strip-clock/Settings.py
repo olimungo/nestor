@@ -3,7 +3,7 @@ from uos import remove
 FILE = "./settings.csv"
 
 class Settings:
-    def __init__(self, net_id=b"0", state=b"", color=b"0000ff"):
+    def __init__(self, net_id=b"0", state=b"1", color=b"0000ff"):
         self.net_id = net_id
         self.state = state
         self.color = color

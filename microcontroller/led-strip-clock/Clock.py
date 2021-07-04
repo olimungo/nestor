@@ -1,12 +1,10 @@
 from machine import Pin, Timer
-from uasyncio import get_event_loop, sleep_ms
 from neopixel import NeoPixel
 import colors
 
 from NtpTime import NtpTime
 
 GPIO_DATA = const(4) #D2
-GPIO_BUTTON = const(16) #D0
 LEDS = const(59)
 DOTS = const(29)
 DIGITS = [1, 15, 31, 45]
@@ -16,9 +14,6 @@ class Clock:
     hour1 = hour2 = minute1 = minute2 = second = -1
     rgb = hex = hsl = None
     tick_timer = Timer(-1)
-    tick_button = Timer(-1)
-    play_spinner_timer = Timer(-1)
-    effect_to_play = effect_original = stop_effect_init = None
 
     def __init__(self, wifi, color="0000ff"):
         self.wifi = wifi
@@ -28,47 +23,6 @@ class Clock:
         self.time = NtpTime()
 
         self.set_color(color, False)
-
-        self.loop = get_event_loop()
-
-        self.button = Pin(GPIO_BUTTON, Pin.IN)
-        self.tick_button.init(period=250, mode=Timer.PERIODIC, callback=self.read_button)
-
-    def read_button(self, timer):
-        if self.button.value():
-            timer.deinit()
-            self.stop()
-            self.loop.create_task(self.display_ip())
-
-    async def display_ip(self):
-        ip = self.wifi.ip.split(".")
-
-        self.clear_all()
-
-        await self.dislay_ip_segment(ip[0])
-        await self.dislay_ip_segment(ip[1])
-        await self.dislay_ip_segment(ip[2])
-        await self.dislay_ip_segment(ip[3])
-
-        self.tick_button.init(period=250, mode=Timer.PERIODIC, callback=self.read_button)
-        self.start()
-
-    async def dislay_ip_segment(self, segment):
-        self.update(2, 0, (0, 0, 0))
-        self.update(3, 0, (0, 0, 0))
-        self.update(4, 0, (0, 0, 0))
-
-        position = 4
-
-        while segment != "":
-            number = int(segment[-1])
-            segment = segment[:-1]
-            self.update(position, number, (0, 255, 0))
-            position -= 1
-
-        self.leds_strip.write()
-
-        await sleep_ms(2000)
 
     def clear_all(self):
         self.leds_strip.fill((0, 0, 0))
