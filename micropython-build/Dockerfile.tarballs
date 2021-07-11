@@ -1,0 +1,24 @@
+FROM micropython-sources
+
+USER micropython
+
+RUN mkdir /esp-open-sdk/crosstool-NG/.build && \
+    mkdir /esp-open-sdk/crosstool-NG/.build/tarballs && \
+    cd /esp-open-sdk/crosstool-NG/.build/tarballs && \
+    wget https://github.com/libexpat/libexpat/releases/download/R_2_1_0/expat-2.1.0.tar.gz
+
+ENV PATH=/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
+
+RUN cd /esp-open-sdk && make STANDALONE=y
+
+USER root
+
+RUN cd /micropython/mpy-cross && make
+
+RUN cd /micropython/ports/unix && make axtls && make
+
+RUN cd /micropython && make -C mpy-cross/ V=1
+
+WORKDIR /micropython/ports/esp8266
+
+RUN make

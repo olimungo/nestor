@@ -52,7 +52,7 @@ function getValues() {
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
 
-            document.title = `Clock ${response.netId}`;
+            document.title = `CLOCK ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -66,7 +66,7 @@ function setNetId(value) {
     fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
-    document.title = `Clock ${value}`;
+    document.title = `CLOCK ${value}`;
 }
 
 const debouncedSetNetId = debounce(setNetId, 500);
@@ -121,6 +121,9 @@ function displayConnectionSuccess() {
 }
 
 function getSsids() {
+    const spinnerWifi = document.getElementById('spinner-wifi');
+    spinnerWifi.classList.remove('hidden');
+
     fetchWithTimeout('/settings/ssids', {
         timeout: 15000
     })
@@ -143,7 +146,10 @@ function getSsids() {
 
                 li.appendChild(text);
                 ssidsList.appendChild(li);
+
             });
+
+            spinnerWifi.classList.add('hidden')
         })
         .catch((err) => setTimeout(getSsids, 3000));
 }
@@ -180,10 +186,14 @@ function checkConnection() {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),
-                    connectionSuccess = document.getElementById('connection-success');
+                    connectionSuccess = document.getElementById('connection-success'),
+                    newIp = document.getElementById('new-ip');
 
                 connection.classList.add('hidden');
                 connectionSuccess.classList.remove('hidden');
+                newIp.href = `http://${response.ip}`;
+
+                fetch(`/settings/shutdown-ap`).then();
             }
             else {
                 setTimeout(checkConnection, 3000);

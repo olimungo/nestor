@@ -24,7 +24,7 @@
             }
         },
         {
-            "label": "Build custom micropython v1.14",
+            "label": "Build custom micropython",
             "type": "shell",
             "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin ..; docker rm -f micropython; docker rmi -f micropython; docker system prune -f",
             "group": "build",
@@ -54,9 +54,9 @@
             }
         },
         {
-            "label": "Erase and Flash ESP with micropython 1.14",
+            "label": "Erase and Flash ESP with micropython 1.16",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210202-v1.14.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210618-v1.16.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

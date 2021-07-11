@@ -1,4 +1,8 @@
-FROM micropython-base
+FROM micropython-tarballs
+
+USER root
+
+ENV PATH=/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
 
 COPY modules/ /micropython/ports/esp8266/modules/
 

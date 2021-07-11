@@ -4,12 +4,19 @@ from machine import unique_id
 from uasyncio import get_event_loop, sleep_ms
 from network import WLAN, STA_IF
 
+from Tags import Tags
+
 WAIT_FOR_MDNS = const(1000)
 WAIT_FOR_CONNECT = const(3000)
 WAIT_FOR_MESSAGE = const(250)
+MQTT_STATUS_INTERVAL = const(5000)
 
 class MqttManager:
-    def __init__(self, mdns, broker_name, net_id, topic_name):
+    message = ""
+    messages = []
+    state = "UNKNOWN"
+
+    def __init__(self, mdns, broker_name, net_id, topic_name, device_type):
         self.sta_if = WLAN(STA_IF)
         self.mdns = mdns
         self.broker_name = broker_name
@@ -17,12 +24,14 @@ class MqttManager:
         self.commands_topic = b"commands/%s" % topic_name
         self.states_topic = b"states/%s" % topic_name
         self.logs_topic = b"logs/%s" % topic_name
+        self.device_type = device_type
 
         self.loop = get_event_loop()
         self.connected = False
         self.messages = []
 
         self.loop.create_task(self.check_mdns())
+        self.loop.create_task(self.send_state())
 
     async def check_mdns(self):
         while True:
@@ -34,6 +43,8 @@ class MqttManager:
                 await sleep_ms(WAIT_FOR_CONNECT)
 
             print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
+
+            self.set_state(self.state)
 
             while self.connected and self.mdns.connected:
                 self.check_msg()
@@ -80,12 +91,34 @@ class MqttManager:
     def message_received(self, topic, message):
         self.messages.append(message)
 
-    def publish_state(self, message):
+    async def send_state(self):
+        while True:
+            self.publish_message()
+            await sleep_ms(MQTT_STATUS_INTERVAL)
+
+    def set_state(self, state):
+        tags = Tags().load()
+        self.state = state
+        tags_utf8 = []
+
+        for tag in tags.tags:
+            tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
+
+        self.message = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
+            self.sta_if.ifconfig()[0],
+            self.device_type,
+            self.state,
+            ",".join(tags_utf8)
+        )
+
+        self.publish_message()
+
+    def publish_message(self):
         if self.connected:
             try:
-                self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), message)
+                self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.message)
             except Exception as e:
-                print("> MQTT broker publish_state error: {}".format(e))
+                print("> MQTT broker publish_message error: {}".format(e))
 
     def log(self, message):
         if self.connected:

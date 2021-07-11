@@ -5,7 +5,6 @@ from ure import compile
 from gc import collect
 
 from Credentials import Credentials
-from Settings import Settings
 
 MAX_PACKET_SIZE = const(1024)
 HTTP_PORT = const(80)
@@ -20,10 +19,8 @@ HEADER_CONTENT_CSS = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n"
 HEADER_CONTENT_JS = b"HTTP/1.1 200 OK\r\nContent-Type: text/javascript\r\n\r\n"
 
 class HttpServer:
-    def __init__(self, routes, wifi, mdns):
+    def __init__(self, routes):
         self.routes = routes
-        self.wifi = wifi
-        self.mdns = mdns
 
         self.credentials = Credentials().load()
 
@@ -33,10 +30,6 @@ class HttpServer:
             b"/scripts.js": b"./scripts.js",
             b"/style.css": b"./style.css",
             b"/favicon.ico": self.favicon,
-            b"/settings/net-id": self.settings_net_id,
-            b"/settings/ssids": self.get_ssids,
-            b"/connect": self.connect,
-            b"/settings/shutdown-ap": self.shutdown_acess_point,
         }
 
         for route in basic_routes:
@@ -170,7 +163,8 @@ class HttpServer:
                         elif callable(route):
                             self.call_route(client, route, params)
                         else:
-                            self.redirect(client)
+                            # self.redirect(client)
+                            self.send_page(client, b"./index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
 
@@ -179,27 +173,3 @@ class HttpServer:
     def favicon(self, params):
         print("> NOT sending the favico :-)")
 
-    def connect(self, params):
-        credentials = Credentials().load()
-
-        credentials.essid = params.get(b"essid", None)
-        credentials.password = params.get(b"password", None)
-        credentials.write()
-
-        self.wifi.connect()
-
-    def shutdown_acess_point(self, params):
-        self.wifi.shutdown_access_point()
-
-    def settings_net_id(self, params):
-        settings = Settings().load()
-        
-        id = params.get(b"id", None)
-
-        if id:
-            settings.net_id = id
-            settings.write()
-            self.mdns.set_net_id(id)
-
-    def get_ssids(self, params):
-        return self.wifi.get_ssids()

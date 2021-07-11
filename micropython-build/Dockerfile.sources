@@ -1,0 +1,5 @@
+FROM micropython-base
+ARG VERSION=v1.14
+
+RUN cd micropython && git checkout $VERSION && git submodule update --init \
+    && chown -R micropython:micropython ../esp-open-sdk ../micropython

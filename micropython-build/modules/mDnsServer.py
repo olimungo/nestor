@@ -3,7 +3,7 @@ from uselect import select
 from ustruct import pack_into, unpack_from
 from usocket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
 from uasyncio import get_event_loop, sleep_ms
-from network import WLAN, STA_IF
+from network import WLAN, STA_IF, AP_IF
 from gc import collect
 
 from mDnsServerHelpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
@@ -18,14 +18,14 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
-WAIT_BEFORE_CONNECT = const(500)
-WAIT_MORE_BEFORE_CONNECT = const(8000)
-WAIT_FOR_CONNECT = const(500)
+WAIT_A_BIT_MORE = const(2000)
 WAIT_FOR_REQUEST = const(250)
+CHECK_CONNECTED = const(250)
 
 class mDnsServer:
     def __init__(self, hostname, net_id):
         self.sta_if = WLAN(STA_IF)
+        self.ap_if = WLAN(AP_IF)
         self.hostname = hostname
         self.connected = False
 
@@ -34,21 +34,20 @@ class mDnsServer:
         self.sock = self.make_socket()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_request())
+        self.loop.create_task(self.check_connected())
 
-    async def check_request(self):
+    async def check_connected(self):
         while True:
             self.connected = False
 
-            while not self.sta_if.isconnected():
-                await sleep_ms(WAIT_BEFORE_CONNECT)
-            
-            # Wait a bit more so other services have the time to start up
-            await sleep_ms(WAIT_MORE_BEFORE_CONNECT)
+            while not self.sta_if.isconnected() or self.ap_if.active():
+                await sleep_ms(CHECK_CONNECTED)
+
+            await sleep_ms(WAIT_A_BIT_MORE)
 
             while not self.connected:
                 self.connect()
-                await sleep_ms(WAIT_FOR_CONNECT)
+                await sleep_ms(CHECK_CONNECTED)
 
             print("> mDNS server up and running")
 

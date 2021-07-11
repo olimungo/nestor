@@ -13,7 +13,7 @@
 <body>
     <div id="main">
         <div class="inline">
-            <h1>Clock</h1>
+            <h1>CLOCK</h1>
             <div id="tag-net-id" class="tag"></div>
         </div>
 
@@ -39,47 +39,10 @@
                 </div>
             </div>
 
-            <div class="inline margin-bottom">
+            <div class="inline margin-bottom-large">
                 <h2 class="margin-right">HEX#</h2>
                 <input id="hex" class="hex margin-right" type="text">
                 <button class="button-send" onclick="setManualColor()">SEND</button>
-            </div>
-
-            <h2 class="margin-bottom-small">SCOREBOARD</h2>
-
-            <div class="margin-bottom-small">
-                <div class="inline center-horizontal margin-bottom">
-                    <div class="block">
-                        <button class="button-small action margin-bottom-small scoreboard-green"
-                            onclick="fetch('/action/scoreboard/green/more').then()">+</button>
-                        <button class="button-small action scoreboard-green"
-                            onclick="fetch('/action/scoreboard/green/less').then()">-</button>
-                    </div>
-
-                    <div class="colon">:</div>
-
-                    <div class="block">
-                        <button class="button-small action margin-bottom-small scoreboard-red"
-                            onclick="fetch('/action/scoreboard/red/more').then()">+</button>
-                        <button class="button-small action scoreboard-red"
-                            onclick="fetch('/action/scoreboard/red/less').then()">-</button>
-                    </div>
-                </div>
-
-                <div class="center-horizontal">
-                    <button class="button bold action" onclick="fetch('/action/scoreboard/reset').then()">RESET</button>
-                </div>
-            </div>
-
-            <h2 class="margin-bottom-small">DISPLAY</h2>
-
-            <div class="margin-bottom-large">
-                <div class="center-horizontal margin-bottom-small">
-                    <button class="button bold action margin-right"
-                        onclick="fetch('/action/clock/display').then()">CLOCK</button>
-                    <button class="button bold action"
-                        onclick="fetch('/action/scoreboard/display').then()">SCOREBOARD</button>
-                </div>
             </div>
 
             <div class="center-horizontal">
@@ -112,7 +75,7 @@
             <h1>Settings</h1>
         </div>
 
-        <div class="inline space-between margin-bottom-small">
+        <div class="inline space-between margin-bottom">
             <div class="label">Clock number</div>
 
             <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
@@ -120,6 +83,14 @@
         </div>
 
         <div class="label margin-bottom">Wifi networks</div>
+
+        <div class="block">
+            <div id="spinner-wifi" class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+            </div>
+        </div>
 
         <ul id="ssids-list" class="margin-bottom">
         </ul>
@@ -140,8 +111,10 @@
         </div>
 
         <form onsubmit="return false">
-            <span class="label margin-bottom">for</span>&nbsp;
-            <span id="ssid" class="label margin-bottom"></span>
+            <div class="margin-bottom-small">
+                <span class="label">for</span>&nbsp;
+                <span id="ssid" class="label"></span>
+            </div>
 
             <input id="pwd" type="text" class="margin-bottom" />
 
@@ -175,11 +148,11 @@
             Connected to your Wifi<br>
         </div>
 
-        <div class="connection-details">
+        <div class="connection-details margin-bottom">
             The IP adress of your device is
         </div>
 
-        <div id="new-ip" class="new-ip">0.0.0.0</div>
+        <a id="new-ip" class="new-ip" href="http://192.168.0.205">192.168.0.205</a>
     </div>
 
     <div class="margin-bottom"></div>

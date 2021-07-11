@@ -1,35 +1,34 @@
 from urequests import get
 from machine import RTC
 from ntptime import settime
-from uasyncio import get_event_loop, sleep
-from network import WLAN, STA_IF
+from uasyncio import get_event_loop, sleep_ms
+from network import WLAN, STA_IF, AP_IF
 
-
+WAIT_AFTER_ERROR = const(15000)
+WAIT_FOR_UPDATING_TIME = const(300000)
+WAIT_FOR_UPDATING_OFFSET = const(3600000)
+CHECK_CONNECTED = const(250)
+WAIT_A_BIT_MORE = const(3000)
 class NtpTime:
     offset_hour = 0
     offset_minute = 0
 
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
+        self.ap_if = WLAN(AP_IF)
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.wait_for_station())
-
-    async def wait_for_station(self):
-        await sleep(5)
-
-        while not self.sta_if.isconnected():
-            await sleep(2)
-
         self.loop.create_task(self.get_offset())
         self.loop.create_task(self.update_time())
 
     async def get_offset(self):
         while True:
-            while not self.sta_if.isconnected():
-                await sleep(1)
+            while not self.sta_if.isconnected() or self.ap_if.active():
+                await sleep_ms(CHECK_CONNECTED)
 
-            while self.sta_if.isconnected():
+            await sleep_ms(WAIT_A_BIT_MORE)
+
+            while self.sta_if.isconnected() and not self.ap_if.active():
                 try:
                     worldtime = get("http://worldtimeapi.org/api/ip")
                     worldtime_json = worldtime.json()
@@ -42,22 +41,28 @@ class NtpTime:
                         self.offset_hour = -self.offset_hour
 
                     # Wait an hour before updating again
-                    await sleep(3600)
+                    await sleep_ms(WAIT_FOR_UPDATING_OFFSET)
                 except Exception as e:
                     print("> NtpTime.get_offset error: {}".format(e))
-                    await sleep(15)
+                    await sleep_ms(WAIT_AFTER_ERROR)
 
     async def update_time(self):
         while True:
-            try:
-                settime()
-                print("> NTP time updated at {}".format(RTC().datetime()))
+            while not self.sta_if.isconnected() or self.ap_if.active():
+                await sleep_ms(CHECK_CONNECTED)
 
-                # Wait 5 minutes before updating again
-                await sleep(300)
-            except Exception as e:
-                print("> NtpTime.update_time error: {}".format(e))
-                await sleep(15)
+            await sleep_ms(WAIT_A_BIT_MORE)
+
+            while self.sta_if.isconnected() and not self.ap_if.active():
+                try:
+                    settime()
+                    print("> NTP time updated at {}".format(RTC().datetime()))
+
+                    # Wait 5 minutes before updating again
+                    await sleep_ms(WAIT_FOR_UPDATING_TIME)
+                except Exception as e:
+                    print("> NtpTime.update_time error: {}".format(e))
+                    await sleep_ms(WAIT_AFTER_ERROR)
 
     def get_time(self):
         _, _, _, _, hour, minute, second, _ = RTC().datetime()
