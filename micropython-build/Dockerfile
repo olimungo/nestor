@@ -1,4 +1,4 @@
-FROM micropython-tarballs
+FROM micropython-build
 
 USER root
 
