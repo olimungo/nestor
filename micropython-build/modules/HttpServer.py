@@ -9,7 +9,7 @@ from Settings import Settings
 
 MAX_PACKET_SIZE = const(1024)
 HTTP_PORT = const(80)
-IDLE_TIME_BETWEEN_CHECKS = const(250)
+IDLE_TIME_BETWEEN_CHECKS = const(100)
 
 HEADER_OK = b"HTTP/1.1 200 OK\r\n\r\n"
 HEADER_REDIRECT = b"HTTP/1.1 302 Found\r\nLocation: index.html\r\n\r\n"
@@ -66,10 +66,9 @@ class HttpServer:
 
         try:
             regex = compile("[\r\n]")
-            request_per_line = regex.split(request)
-            firstLine = str(request_per_line[0])
+            lines = regex.split(request)
+            firstLine = str(lines[0])
             method, url, _ = firstLine.split(" ")
-
 
             path = url
 
@@ -92,12 +91,6 @@ class HttpServer:
         client.send(HEADER_REDIRECT)
         client.close()
 
-    def no_content(self, client):
-        print("> Send 204 No Content")
-
-        client.send(HEADER_NO_CONTENT)
-        client.close()
-
     def send_page(self, client, page):
         print("> Send page {}".format(page.decode('ascii')))
 
@@ -113,14 +106,17 @@ class HttpServer:
 
         file = open(page, "rb")
 
-        while True:
-            data = file.readline()
+        try:
+            while True:
+                data = file.readline()
 
-            if data == b"":
-                break
+                if data == b"":
+                    break
 
-            if data != b"\n":
-                client.write(data)
+                if data != b"\n":
+                    client.write(data)
+        except Exception as e:
+            print("> HttpServer.send_page exception: {}".format(e))
 
         file.close()
         client.close()
@@ -147,6 +143,8 @@ class HttpServer:
         client.close()
     
     async def check_request(self):
+        start = True
+
         while True:
             try:
                 collect()
@@ -160,7 +158,7 @@ class HttpServer:
                     if request:
                         method, path, params = self.split_request(request)
 
-                        print("REQUEST => Method: {} | path: {} | params: {}".format(method, path, params))
+                        print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
 
                         route = self.routes.get(path.encode('ascii'), None)
 
@@ -170,7 +168,7 @@ class HttpServer:
                         elif callable(route):
                             self.call_route(client, route, params)
                         else:
-                            self.redirect(client)
+                            self.send_page(client, "/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
 
@@ -199,7 +197,9 @@ class HttpServer:
         if id:
             settings.net_id = id
             settings.write()
-            self.mdns.set_net_id(id)
+
+            if self.mdns != None:
+                self.mdns.set_net_id(id)
 
     def get_ssids(self, params):
         return self.wifi.get_ssids()

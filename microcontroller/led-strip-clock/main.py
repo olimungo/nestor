@@ -37,8 +37,7 @@ class Main:
         self.ap_if = WLAN(AP_IF)
         settings = Settings().load()
 
-        # self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
-        self.wifi = WifiManager(PUBLIC_NAME)
+        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
         self.mqtt = MqttManager(
             self.mdns, BROKER_NAME, settings.net_id, MQTT_TOPIC_NAME, DEVICE_TYPE

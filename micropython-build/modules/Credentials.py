@@ -29,12 +29,7 @@ class Credentials:
 
         return self
 
-    def remove(self):
-        """
-        1. Delete credentials file from disk.
-        2. Set essid and password to None
-        """
-        
+    def remove(self):        
         try:
             remove(FILE)
         except OSError:
