@@ -48,6 +48,7 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             setTagValue('tag-net-id', response.netId);
+            setTagValue('hex', response.color);
 
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
@@ -158,20 +159,19 @@ function setColor(hex) {
     fetch(`/action/color?hex=${hex}`)
         .then(response => response.json())
         .then(response => {
-            const slider = document.getElementById('slider');
-            slider.value = response.brightness;
+            setTagValue('slider', response.brightness);
+            setTagValue('hex', hex);
         });
 }
-
+    
 function setManualColor() {
     const hex = document.getElementById('hex');
-
+        
     if (hex.value.match(/\b[0-9A-F]{6}\b/gi)) {
         fetch(`/action/color?hex=${hex.value}`)
             .then(response => response.json())
             .then(response => {
-                const slider = document.getElementById('slider');
-                slider.value = response.brightness;
+                setTagValue('slider', response.brightness);
             });
     }
 }
