@@ -125,8 +125,8 @@ class Main:
             _, _, l = self.display.clock.hsl
 
         result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, int(l))
+            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s", "color": "%s"}'
+            % (self.wifi.ip, settings.net_id, essid, int(l), settings.color.decode('ascii'))
         )
 
         return result
