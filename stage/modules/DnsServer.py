@@ -1,32 +1,25 @@
-#https://github.com/p-doyle/Micropython-DNSServer-Captive-Portal
-
 import socket
 import uasyncio as asyncio
-import network
 import gc
-
-# from HttpServer2 import HttpServer
-from HttpServer import HttpServer
-from WifiManager import WifiManager
-
 
 class DNSQuery:
 	def __init__(self, data):
 		self.data = data
 		self.domain = ''
 		tipo = (data[2] >> 3) & 15  # Opcode bits
+
 		if tipo == 0:  # Standard query
 			ini = 12
 			lon = data[ini]
+
 			while lon != 0:
 				self.domain += data[ini + 1:ini + lon + 1].decode('utf-8') + '.'
 				ini += lon + 1
 				lon = data[ini]
-		print("searched domain:" + self.domain)
 
 	def response(self, ip):
+		# print("> DNS - Response {} == {}".format(self.domain, ip))
 
-		print("Response {} == {}".format(self.domain, ip))
 		if self.domain:
 			packet = self.data[:2] + b'\x81\x80'
 			packet += self.data[4:6] + self.data[4:6] + b'\x00\x00\x00\x00'  # Questions and Answers Counts
@@ -34,7 +27,9 @@ class DNSQuery:
 			packet += b'\xC0\x0C'  # Pointer to domain name
 			packet += b'\x00\x01\x00\x01\x00\x00\x00\x3C\x00\x04'  # Response type, ttl and resource data length -> 4 bytes
 			packet += bytes(map(int, ip.split('.')))  # 4bytes of IP
-		print(packet)
+
+		# print(packet)
+
 		return packet
 
 # function to handle incoming dns requests
@@ -52,42 +47,23 @@ async def run_dns_server():
         try:
             gc.collect()
 
-            data, addr = udps.recvfrom(4096)
-            print("Incoming data...")
+            data, addr = udps.recvfrom(1024)
 
             DNS = DNSQuery(data)
             udps.sendto(DNS.response(SERVER_IP), addr)
 
-            print("Replying: {:s} -> {:s}".format(DNS.domain, SERVER_IP))
+            print("> DNS - Replying: {:s} -> {:s}".format(DNS.domain, SERVER_IP))
 
-            await asyncio.sleep_ms(100)
+            await asyncio.sleep_ms(50)
 
         except Exception as e:
-            print("Timeout: {}".format(e))
-            await asyncio.sleep_ms(3000)
+            await asyncio.sleep_ms(100)
 
-    udps.close()
-
-print('starting up!')
+print('> DNS - starting up!')
 
 SERVER_IP = '10.0.0.1'
 SERVER_SUBNET = '255.255.255.0'
 
-# ssid max length is 32 chars
-SERVER_SSID = 'myssid'
-
-# setup the network
-# ap_if = network.WLAN(network.AP_IF)
-# ap_if.active(True)
-# ap_if.ifconfig((SERVER_IP, SERVER_SUBNET, SERVER_IP, SERVER_IP))
-# ap_if.config(essid=SERVER_SSID, authmode=network.AUTH_OPEN)
-wifi = WifiManager(b"TOTO")
-
 # create tasks for the web server and the DNS server and then start them
 loop = asyncio.get_event_loop()
-# loop.create_task(asyncio.start_server(handle_client, "0.0.0.0", 80))
-# http = HttpServer({})
-http = HttpServer({}, wifi, None)
 loop.create_task(run_dns_server())
-loop.run_forever()
-loop.close()

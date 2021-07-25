@@ -1,11 +1,11 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-    const slider = document.getElementById("slider");
+    getValues();
+
+    const slider = document.getElementById('slider');
 
     slider.oninput = (event) => {
         debouncedSlider(event.target.value);
     }
-
-    getValues();
 });
 
 async function fetchWithTimeout(resource, options) {

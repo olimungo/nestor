@@ -32,7 +32,7 @@ class Display:
 
         settings = Settings().load()
 
-        self.clock = Clock(self.wifi, settings.color)
+        self.clock = Clock(settings.color)
         self.spinner = Spinner()
 
         self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)

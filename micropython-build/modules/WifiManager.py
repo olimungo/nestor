@@ -6,6 +6,7 @@ from time import ticks_ms, ticks_diff
 from Credentials import Credentials
 
 AP_IP = "1.2.3.4"
+SERVER_SUBNET = "255.255.255.0"
 WAIT_FOR_CONNECT = const(6000)
 WAIT_BEFORE_RECONNECT = const(60000)
 WAIT_BEFORE_AP_SHUTDOWN = const(30000)
@@ -96,7 +97,7 @@ class WifiManager:
             self.ip = AP_IP
 
             # IP address, netmask, gateway, DNS
-            self.ap_if.ifconfig((self.ip, "255.255.255.0", self.ip, self.ip))
+            self.ap_if.ifconfig((AP_IP, SERVER_SUBNET, AP_IP, AP_IP))
 
             self.ap_if.config(essid=self.ap_essid, authmode=AUTH_OPEN)
             print(

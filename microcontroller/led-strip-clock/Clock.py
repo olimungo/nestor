@@ -15,8 +15,7 @@ class Clock:
     rgb = hex = hsl = None
     tick_timer = Timer(-1)
 
-    def __init__(self, wifi, color="0000ff"):
-        self.wifi = wifi
+    def __init__(self, color="0000ff"):
         self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
         self.clear_all()
 
