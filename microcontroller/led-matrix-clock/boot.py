@@ -1,16 +1,17 @@
-# from machine import reset
-# from esp import sleep_type, osdebug, SLEEP_NONE
-# from webrepl import start
+from machine import reset
 
-# print("")
-# print("> Booting...")
-# print("")
+# from machine import freq
+from esp import sleep_type, SLEEP_NONE
+import webrepl
 
-# sleep_type(SLEEP_NONE)
-# osdebug(None)
+print(
+    "\n\nJust Do It Yourself World Company Incorporated (c) from 2020 to eternity and beyond...\n"
+)
 
-# # webrepl.start()
+# freq(160000000)
+sleep_type(SLEEP_NONE)
 
+webrepl.start()
 
-# def rst():
-#     reset()
+def rst():
+    reset()
