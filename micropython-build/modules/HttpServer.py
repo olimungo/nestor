@@ -1,3 +1,4 @@
+from machine import reset
 from uasyncio import get_event_loop, sleep_ms
 from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
@@ -187,7 +188,10 @@ class HttpServer:
         self.wifi.connect()
 
     def shutdown_acess_point(self, params):
-        self.wifi.shutdown_access_point()
+        # Instead of shutdown the access point, just reset the microcontroller
+        # to make sure that resources are freed as much as possible
+        # self.wifi.shutdown_access_point()
+        reset()
 
     def settings_net_id(self, params):
         settings = Settings().load()

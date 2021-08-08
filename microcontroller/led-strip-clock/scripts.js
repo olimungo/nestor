@@ -123,7 +123,7 @@ function displayConnectionSuccess() {
 
 function getSsids() {
     const spinnerWifi = document.getElementById('spinner-wifi');
-    spinnerWifi.classList.remove('hidden');
+    spinnerWifi.classList.remove('display-none');
 
     fetchWithTimeout('/settings/ssids', {
         timeout: 15000
@@ -150,7 +150,7 @@ function getSsids() {
 
             });
 
-            spinnerWifi.classList.add('hidden')
+            spinnerWifi.classList.add('display-none');
         })
         .catch((err) => setTimeout(getSsids, 3000));
 }

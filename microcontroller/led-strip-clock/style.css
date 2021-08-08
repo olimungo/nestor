@@ -42,6 +42,10 @@ h2 {
     position: fixed;
 }
 
+.display-none {
+    display: none;
+}
+
 .margin-right {
     margin-right: 1rem;
 }
@@ -56,6 +60,10 @@ h2 {
 
 .margin-bottom {
     margin-bottom: 4rem;
+}
+
+.margin-top-large {
+    margin-top: 15rem;
 }
 
 .center-horizontal {
