@@ -17,6 +17,14 @@ body {
 h1 {
     font-size: 5rem;
     font-weight: 100;
+    letter-spacing: .2rem;
+}
+
+h2 {
+    font-size: 2.8rem;
+    letter-spacing: 0.4rem;
+    color: #b7c4cc;
+    font-weight: 100;
 }
 
 .inline {
@@ -27,6 +35,19 @@ h1 {
 .block {
     display: flex;
     flex-direction: column;
+}
+
+.hidden {
+    visibility: hidden;
+    position: fixed;
+}
+
+.display-none {
+    display: none;
+}
+
+.margin-right {
+    margin-right: 1rem;
 }
 
 .margin-bottom-small {
@@ -41,8 +62,21 @@ h1 {
     margin-bottom: 4rem;
 }
 
+
+.margin-top-large {
+    margin-top: 15rem;
+}
+
 .center-horizontal {
+    display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.space-between {
+    width: 100%;
+    justify-content: space-between;
+    width: 41rem;
 }
 
 button {
@@ -51,26 +85,30 @@ button {
     outline: none;
     border: solid 0.3rem #e9f7ff;
     color: #e9f7ff;
-    width: 18rem;
+    width: 22rem;
     height: 9rem;
+    letter-spacing: 0.25rem;
 }
 
-button:active {
-    background-color: #fac372;
-}
-
-.li {
-    background: #ccc;
-    color: #222;
+.button-circle {
+    width: 8rem;
+    height: 8rem;
     font-size: 2rem;
-    padding: 1rem;
-    margin: 0.5rem;
-    border-radius: 1rem;
-    font-weight: 500;
+    border-radius: 50%;
+    border-color: #ffeaea;
+    border-width: 0.4rem;
+    margin: 0.4rem;
 }
 
-li:active {
-    background-color: #fac372;
+.button-small,
+.button-send {
+    width: 12rem;
+    font-size: 3rem;
+}
+
+.button-send {
+    width: 14rem;
+    height: 7rem;
 }
 
 .button-back {
@@ -78,6 +116,46 @@ li:active {
     height: 4rem;
     align-self: center;
     border: none;
+    margin-right: 1rem;
+}
+
+.connect-button {
+    width: 41rem;
+    font-size: 3rem;
+    height: 8rem;
+    color: #222;
+    background-color: #e9f7ff;
+}
+
+button:active {
+    background-color: #fac372;
+}
+
+ul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+}
+
+.li {
+    background: #f0d0c4;
+    color: #222;
+    font-size: 2.3rem;
+    padding: 2.5rem;
+    margin: 1.5rem;
+    border-radius: 4rem;
+    width: 35rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+li:active {
+    background-color: #fac372;
+}
+
+.bold {
+    font-size: 2rem;
 }
 
 .svg {
@@ -85,18 +163,12 @@ li:active {
 }
 
 .svg-clog {
-    width: 6rem;
+    width: 5rem;
 }
 
 .svg-back {
     width: 4rem;
     margin-right: 1rem;
-}
-
-.space-between {
-    width: 100%;
-    justify-content: space-between;
-    width: 41rem;
 }
 
 input[type='number'],
@@ -106,11 +178,12 @@ input[type='text'] {
     outline: none;
     background: none;
     border-radius: 50px;
-    font-size: 2.3rem;
-    height: 3.5rem;
+    font-size: 3.5rem;
+    height: 6rem;
     font-weight: 300;
     color: #e9f7ff;
     padding-left: 1rem;
+    padding: 0 2rem;
 }
 
 input[type='number'] {
@@ -119,35 +192,17 @@ input[type='number'] {
 
 input[type='password'],
 input[type='text'] {
-    width: 40rem;
+    width: 36.5rem;
+}
+
+.hex {
+    width: 14rem !important;
 }
 
 .label {
-    font-size: 2.5rem;
-    color: #e9f7ff;
-}
-
-.connect-button {
-    width: 41rem;
-    font-size: 3rem;
-    height: 6rem;
-    color: #222;
-    background-color: #e9f7ff;
-}
-
-.ip {
-    font-size: 2rem;
-    margin: 1rem;
-}
-
-.align-left {
-    align-self: flex-start;
-    margin-left: 2rem;
-}
-
-.hidden {
-    visibility: hidden;
-    position: fixed;
+    font-size: 2.8rem;
+    color: whitesmoke;
+    letter-spacing: .3rem;
 }
 
 .tag {
@@ -164,11 +219,18 @@ input[type='text'] {
     align-items: center;
 }
 
+.ip {
+    font-size: 3rem;
+    letter-spacing: .3rem;
+    margin: 1rem;
+}
+
 .connection,
 .connection-details {
     padding: 1em 1em;
     text-align: center;
     font-size: 3.2rem;
+    font-weight: 600;
 }
 
 .connection-details {
@@ -215,11 +277,13 @@ input[type='text'] {
 .new-ip {
     font-size: 3em;
     font-weight: 600;
-    padding: 0.1em 0.4em;
+    padding: 2rem 3rem;
+    letter-spacing: .8rem;
     background: #ddd;
     color: #222;
     border-radius: 5px;
     align-self: center;
+    text-decoration: none;
 }
 
 @-webkit-keyframes sk-bouncedelay {
@@ -312,15 +376,14 @@ input[type='text'] {
     }
 }
 
-@media screen and (min-width: 640px) {
+@media screen and (min-width: 400px) {
     html {
-        font-size: 13px;
+        font-size: 8px;
         margin: 30px;
         padding: 12px;
     }
 
     .space-between {
-        width: 533px;
-        margin-left: 5px;
+        width: 400px;
     }
 }

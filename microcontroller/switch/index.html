@@ -12,24 +12,16 @@
 
 <body>
     <div id="main">
-        <div class="inline margin-bottom-large">
-            <h1>Switch</h1>
+        <div class="inline">
+            <h1>SWITCH</h1>
             <div id="tag-net-id" class="tag"></div>
         </div>
 
         <div class="block center-horizontal">
             <div class="toggle-container margin-bottom-large">
-                <input id="switch1" name="switch1" type="checkbox" class="toggle" onclick="toggle(1)" />
+                <input id="switch" name="switch" type="checkbox" class="toggle" onclick="toggle()" />
 
-                <label for="switch1" class="toggle-background">
-                    <div class="ball"></div>
-                </label>
-            </div>
-
-            <div class="toggle-container margin-bottom-large">
-                <input id="switch2" name="switch2" type="checkbox" class="toggle" onclick="toggle(2)" />
-
-                <label for="switch2" class="toggle-background">
+                <label for="switch" class="toggle-background">
                     <div class="ball"></div>
                 </label>
             </div>
@@ -64,16 +56,22 @@
             <h1>Settings</h1>
         </div>
 
-        <div class="inline space-between margin-bottom-small">
-            <div class="label">
-                Switch number
-            </div>
+        <div class="inline space-between margin-bottom">
+            <div class="label">Clock number</div>
 
             <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
                 oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
         </div>
 
         <div class="label margin-bottom">Wifi networks</div>
+
+        <div class="block">
+            <div id="spinner-wifi" class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+            </div>
+        </div>
 
         <ul id="ssids-list" class="margin-bottom">
         </ul>
@@ -94,8 +92,10 @@
         </div>
 
         <form onsubmit="return false">
-            <span class="label margin-bottom">for</span>&nbsp;
-            <span id="ssid" class="label margin-bottom"></span>
+            <div class="margin-bottom-small">
+                <span class="label">for</span>&nbsp;
+                <span id="ssid" class="label"></span>
+            </div>
 
             <input id="pwd" type="text" class="margin-bottom" />
 
@@ -129,11 +129,11 @@
             Connected to your Wifi<br>
         </div>
 
-        <div class="connection-details">
+        <div class="connection-details margin-bottom">
             The IP adress of your device is
         </div>
 
-        <div id="new-ip" class="new-ip">0.0.0.0</div>
+        <a id="new-ip" class="new-ip" href="http://192.168.0.205">192.168.0.205</a>
     </div>
 
     <div class="margin-bottom"></div>

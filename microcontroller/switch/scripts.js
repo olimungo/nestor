@@ -37,21 +37,20 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             setTagValue('tag-net-id', response.netId);
-            setTagValue('switch1', response.state1);
-            setTagValue('switch2', response.state2);
+            setTagValue('switch', response.state);
 
             document.title = `Switch ${response.netId}`;
         })
-        .catch(() => getValues());
+        .catch(() => setTimeout(getValues, 3000));
 }
 
-function toggle(switchId) {
-    const action = document.getElementById(`switch${switchId}`).checked ? 'on' : 'off';
+function toggle() {
+    const action = document.getElementById('switch').checked ? 'on' : 'off';
 
-    fetchWithTimeout(`/action/toggle?action=${action}&id=${switchId}`, {
+    fetchWithTimeout(`/action/toggle?action=${action}`, {
         timeout: 3000
     })
-        .catch(() => toggle(switchId));
+    .catch(() => setTimeout(toggle, 3000));
 }
 
 function setTagValue(tagId, value) {
@@ -60,10 +59,10 @@ function setTagValue(tagId, value) {
 }
 
 function setNetId(value) {
-    fetch(`/settings/net?id=${value}`).then();
+    fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
     tag.textContent = value;
-    document.title = `Shade ${value}`;
+    document.title = `SWITCH ${value}`;
 }
 
 const debouncedSetNetId = debounce(setNetId, 500);
@@ -118,8 +117,11 @@ function displayConnectionSuccess() {
 }
 
 function getSsids() {
+    const spinnerWifi = document.getElementById('spinner-wifi');
+    spinnerWifi.classList.remove('hidden');
+
     fetchWithTimeout('/settings/ssids', {
-        timeout: 3000
+        timeout: 15000
     })
         .then(response => response.json())
         .then(response => response.ssids)
@@ -140,9 +142,12 @@ function getSsids() {
 
                 li.appendChild(text);
                 ssidsList.appendChild(li);
+
             });
+
+            spinnerWifi.classList.add('hidden')
         })
-        .catch((err) => getSsids());
+        .catch((err) => setTimeout(getSsids, 3000));
 }
 
 function checkConnection() {
@@ -151,14 +156,18 @@ function checkConnection() {
     })
         .then(response => response.json())
         .then(response => {
-            if (response.ip != '192.168.4.1') {
+            if (response.ip != '1.2.3.4') {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),
-                    connectionSuccess = document.getElementById('connection-success');
+                    connectionSuccess = document.getElementById('connection-success'),
+                    newIp = document.getElementById('new-ip');
 
                 connection.classList.add('hidden');
                 connectionSuccess.classList.remove('hidden');
+                newIp.href = `http://${response.ip}`;
+
+                fetch(`/settings/shutdown-ap`).then();
             }
             else {
                 setTimeout(checkConnection, 3000);
@@ -173,10 +182,8 @@ function connect() {
         password = document.getElementById('password'),
         connection = document.getElementById('connection');
 
-    password.classList.add('hidden');
-    connection.classList.remove('hidden');
-
     fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
+    displayConnection();
     setTimeout(checkConnection, 3000);
 }

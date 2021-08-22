@@ -311,18 +311,6 @@ input[type='text'] {
     }
 }
 
-@media screen and (min-width: 400px) {
-    html {
-        font-size: 8px;
-        margin: 30px;
-        padding: 12px;
-    }
-
-    .space-between {
-        width: 400px;
-    }
-}
-
 .color-red {
     background: #ff1c1c;
 }
@@ -383,4 +371,16 @@ input[type='text'] {
     border-radius: 50%;
     background: #e9f7ff;
     cursor: pointer;
+}
+
+@media screen and (min-width: 400px) {
+    html {
+        font-size: 8px;
+        margin: 30px;
+        padding: 12px;
+    }
+
+    .space-between {
+        width: 400px;
+    }
 }

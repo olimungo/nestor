@@ -4,24 +4,23 @@ FILE = "./settings.csv"
 
 
 class Settings:
-    def __init__(self, net_id=b"0", group=b"", state1=b"0", state2=b"0"):
+    def __init__(self, net_id=b"0", group=b"", state=b"0"):
         self.net_id = net_id
         self.group = group
-        self.state1 = state1
-        self.state2 = state2
+        self.state = state
 
     def write(self):
         if self.is_valid():
             with open(FILE, "wb") as f:
-                f.write(b",".join([self.net_id, self.group, self.state1, self.state2]))
+                f.write(b",".join([self.net_id, self.group, self.state]))
 
     def load(self):
         try:
             with open(FILE, "rb") as f:
                 contents = f.read().split(b",")
 
-            if len(contents) == 4:
-                self.net_id, self.group, self.state1, self.state2 = contents
+            if len(contents) == 3:
+                self.net_id, self.group, self.state = contents
 
             if not self.is_valid():
                 self.remove()
@@ -46,9 +45,7 @@ class Settings:
             return False
         if not isinstance(self.group, bytes):
             return False
-        if not isinstance(self.state1, bytes):
-            return False
-        if not isinstance(self.state2, bytes):
+        if not isinstance(self.state, bytes):
             return False
 
         return True
