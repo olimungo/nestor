@@ -10,10 +10,20 @@ docker-compose build
 
 ### Run container on development host and inject the host IP address (MacOS)
 
+#### MacOS
 ```bash
 sed -e "s/__HOST_IP__/$(ipconfig getifaddr en1)/g" docker-compose.yml \
     | docker-compose --file - up -d
 ```
+
+#### Linux
+```bash
+sed -e "s/__HOST_IP__/$(hostname -I | awk '{print $1}')/g" docker-compose.yml \
+    | docker-compose --file - up -d
+```
+
+
+
 
 ### Open a shell in the container
 

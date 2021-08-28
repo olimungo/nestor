@@ -5,8 +5,6 @@ import { AppHeader, AppFooter } from '@components';
 import { AppContext, DevicesByTagsType, DeviceType } from '@declarations';
 import { Commands, Controls, Devices, EditDevice, Search, Tags } from '@pages';
 
-const GET_STATES_INTERVAL = 5 * 1000;
-
 function App() {
     const history = useHistory();
     const init = useRef(true);
@@ -18,19 +16,35 @@ function App() {
     );
 
     useEffect(() => {
-        if (init.current && socket) {
-            init.current = false;
+        function statesReceived(devices: []) {
+            console.log('states', devices);
+            setDevices(devices);
+        };
 
-            // Request states immediately
-            socket.emit('get-states');
+        // function updateDevice(updatedDevice: {}) {
+        //     console.log('update', updatedDevice);
+        //     setDevices((devices) => { return devices.map(device => updatedDevice.)});
+        // };
 
-            // Request states at regular interval
-            setInterval(() => {}, GET_STATES_INTERVAL);
+        function removeDevice(device: {}) {
+            console.log('remove', device);
+        };
+        
+        if (socket) {
+            if (init.current) {
+                init.current = false;
+                socket.emit('get-states');
+                socket.on('states', statesReceived);
+            }
 
-            socket.on('states', (states) => setDevices(states));
+            // socket.on('update-device', updateDevice);
+            socket.on('remove-device', removeDevice);
 
             return () => {
-                socket.off('states');
+                console.log('off2')
+                socket.off('states', statesReceived);
+                // socket.off('update-device', updateDevice);
+                socket.off('remove-device', removeDevice);
             };
         }
     }, [socket]);

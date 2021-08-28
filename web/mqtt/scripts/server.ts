@@ -13,7 +13,8 @@ mqtt.on('message', async (topic, message) => {
 
     if (split.length) {
         if (split[0] === 'states') {
-            persistState(topic, message);
+            // Remove "states/" from the topic and persist state
+            persistState(topic.replace('states/', ''), message);
         } else if (split[0] === 'logs') {
             console.log('TBD: log to file');
         }
@@ -25,7 +26,7 @@ async function persistState(key, value) {
 
     // Check if key exists and if value has changed
     if (!persistedValue || persistedValue !== value.toString()) {
-        await redis.saddAsync('states/updated', key);
+        await redis.saddAsync('updated', key);
         await redis.setAsync(key, value.toString());
     }
 
@@ -52,11 +53,10 @@ setInterval(async () => {
 
 //         if (value + 1000 * 10 < now) {
 //             await redis.delAsync(timestamp);
-//             let deviceArray = timestamp.split('/');
-//             deviceArray.shift();
-//             const device = deviceArray.join('/');
+
+//             const device = timestamp.replace('timestamp/', '');
 //             await redis.delAsync(device);
-//             await redis.saddAsync('states/removed', device);
+//             await redis.saddAsync('removed', device);
 //         }
 //     });
 // }, 1000);
@@ -71,32 +71,32 @@ persistState(
     '{"ip": "192.168.0.122", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance","city2", "door"] }'
 );
 
-persistState(
-    'states/switch/1',
-    '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
-);
+// persistState(
+//     'states/switch/1',
+//     '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
+// );
 
-persistState(
-    'states/shades/10',
-    '{"ip": "192.168.0.201", "type": "MOTOR-H", "state": "TOP", "tags": ["garden","city3"] }'
-);
+// persistState(
+//     'states/shades/10',
+//     '{"ip": "192.168.0.201", "type": "MOTOR-H", "state": "TOP", "tags": ["garden","city3"] }'
+// );
 
-persistState(
-    'states/shades/11',
-    '{"ip": "192.168.0.202", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance","city3", "disco"] }'
-);
+// persistState(
+//     'states/shades/11',
+//     '{"ip": "192.168.0.202", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance","city3", "disco"] }'
+// );
 
-persistState(
-    'states/shades/12',
-    '{"ip": "192.168.0.203", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance"] }'
-);
+// persistState(
+//     'states/shades/12',
+//     '{"ip": "192.168.0.203", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance"] }'
+// );
 
-persistState(
-    'states/shades/13',
-    '{"ip": "192.168.0.204", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance"] }'
-);
+// persistState(
+//     'states/shades/13',
+//     '{"ip": "192.168.0.204", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance"] }'
+// );
 
-persistState(
-    'states/switch/12',
-    '{"ip": "192.168.0.203", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "window", "door"] }'
-);
+// persistState(
+//     'states/switch/12',
+//     '{"ip": "192.168.0.203", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "window", "door"] }'
+// );
