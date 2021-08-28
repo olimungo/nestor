@@ -13,8 +13,8 @@ from Credentials import Credentials
 from Tags import Tags
 
 PUBLIC_NAME = b"Switch"
-BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"192.168.0.215"
+# BROKER_NAME = b"nestor.local"
+BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
 DEVICE_TYPE = b"SWITCH"
 
