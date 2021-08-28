@@ -1,6 +1,5 @@
 FILE = "./tags.csv"
 
-
 class Tags:
     def __init__(self):
         self.tags = []

@@ -8,7 +8,7 @@ m0.speed(5000)
 """
 
 import ustruct
-from Blink import Blink
+from blink import Blink
 
 _STATE_BRAKE = const(0)
 _STATE_RIGHT = const(1) # clockwise

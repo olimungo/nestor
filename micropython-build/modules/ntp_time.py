@@ -9,6 +9,7 @@ WAIT_FOR_UPDATING_TIME = const(300000)
 WAIT_FOR_UPDATING_OFFSET = const(3600000)
 CHECK_CONNECTED = const(250)
 WAIT_A_BIT_MORE = const(3000)
+
 class NtpTime:
     offset_hour = 0
     offset_minute = 0

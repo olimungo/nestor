@@ -3,14 +3,13 @@ from machine import reset, Pin
 from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
-
-from WifiManager import WifiManager
-from HttpServer import HttpServer
-from mDnsServer import mDnsServer
-from MqttManager import MqttManager
-from Settings import Settings
-from Credentials import Credentials
-from Tags import Tags
+from wifi_manager import WifiManager
+from http_server import HttpServer
+from mdns_server import mDnsServer
+from mqtt_manager import MqttManager
+from settings import Settings
+from credentials import Credentials
+from tags import Tags
 
 PUBLIC_NAME = b"Switch"
 # BROKER_NAME = b"nestor.local"

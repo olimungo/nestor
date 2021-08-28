@@ -4,19 +4,18 @@ from machine import reset
 from time import sleep
 from network import WLAN, STA_IF
 from re import match
-
-from WifiManager import WifiManager
-from HttpServer import HttpServer
-from mDnsServer import mDnsServer
-from MqttManager import MqttManager
-from Motor import Motor
-from Settings import Settings
-from Credentials import Credentials
-from Tags import Tags
+from wifi_manager import WifiManager
+from http_server import HttpServer
+from mdns_server import mDnsServer
+from mqtt_manager import MqttManager
+from motor import Motor
+from settings import Settings
+from credentials import Credentials
+from tags import Tags
 
 PUBLIC_NAME = b"Shade"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"192.168.0.215"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"shades"
 DEVICE_TYPE = b"MOTOR-V"
 

@@ -1,9 +1,8 @@
 from network import WLAN, STA_IF, AP_IF, AUTH_OPEN
 from uasyncio import get_event_loop, sleep_ms
-from Blink import Blink
+from blink import Blink
 from time import ticks_ms, ticks_diff
-
-from Credentials import Credentials
+from credentials import Credentials
 
 AP_IP = "1.2.3.4"
 SERVER_SUBNET = "255.255.255.0"

@@ -4,9 +4,8 @@ from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
 from ure import compile
 from gc import collect
-
-from Credentials import Credentials
-from Settings import Settings
+from credentials import Credentials
+from settings import Settings
 
 MAX_PACKET_SIZE = const(1024)
 HTTP_PORT = const(80)

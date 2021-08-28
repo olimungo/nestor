@@ -1,6 +1,6 @@
 from machine import Pin, ADC, Timer, I2C
 import d1motor
-from Settings import Settings
+from settings import Settings
 
 class Gpio:
     I2C_SCL = 5 # D1

@@ -5,8 +5,7 @@ from usocket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPRO
 from uasyncio import get_event_loop, sleep_ms
 from network import WLAN, STA_IF, AP_IF
 from gc import collect
-
-from mDnsServerHelpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
+from mdns_server_helpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
 
 MAX_PACKET_SIZE = const(512)
 MAX_NAME_SEARCH = const(20)
@@ -20,7 +19,7 @@ TYPE_A = const(1)
 
 WAIT_A_BIT_MORE = const(2000)
 WAIT_FOR_REQUEST = const(250)
-CHECK_CONNECTED = const(250)
+CHECK_CONNECTED = const(3000)
 
 class mDnsServer:
     def __init__(self, hostname, net_id):
@@ -46,8 +45,7 @@ class mDnsServer:
             await sleep_ms(WAIT_A_BIT_MORE)
 
             while not self.connected:
-                self.connect()
-                await sleep_ms(CHECK_CONNECTED)
+                await self.connect()
 
             print("> mDNS server up and running")
 
@@ -57,7 +55,7 @@ class mDnsServer:
 
             print("> mDNS server down")
 
-    def connect(self):
+    async def connect(self):
         try:
             print("> mDNS start or restart")
             self.make_socket()
@@ -65,6 +63,7 @@ class mDnsServer:
             self.connected = True
         except Exception as e:
             print("> mDnsServer.connect error: {}".format(e))
+            await sleep_ms(CHECK_CONNECTED)
 
     def make_socket(self):
         collect()
