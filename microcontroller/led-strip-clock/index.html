@@ -7,7 +7,8 @@
     <title>Clock</title>
 
     <link rel="stylesheet" href="style.css">
-    <script defer src="scripts.js"></script>
+    <script defer src="common-scripts.js"></script>
+    <script defer src="index-scripts.js"></script>
 </head>
 
 <body>
@@ -20,7 +21,8 @@
         <div class="block">
             <h2 class="margin-bottom">BRIGHTNESS</h2>
 
-            <input type="range" min="0" max="63" value="0" class="slider margin-bottom" id="slider">
+            <input type="range" min="0" max="63" value="0" class="slider margin-bottom hidden" id="slider"
+                oninput="debouncedSlider(event.target.value)">
 
             <h2 class="margin-bottom-small">COLOR</h2>
 
@@ -46,7 +48,7 @@
             </div>
 
             <div class="center-horizontal">
-                <button onclick="displaySettings()" class="margin-bottom">
+                <button onclick="window.location.href = 'settings.html'" class="margin-bottom">
                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -3 32 37" xml:space="preserve"
                         class="svg-clog">
                         <path d="M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25 
@@ -59,100 +61,6 @@
                 </button>
             </div>
         </div>
-    </div>
-
-    <div id="settings" class="hidden">
-        <div class="inline">
-            <button class="button-back" onclick="displayMain()">
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
-                    class="svg-back">
-                    <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958 
-                        C2.334,14.866,2,15.271,2,16s0.279,1.08,0.646,1.447l7.974,7.973C11.006,25.807,11.469,26,12,26c1.188,0,2-1.016,2-2 
-                        c0-0.516-0.186-0.986-0.58-1.38L8.8,18H28c1.104,0,2-0.896,2-2S29.104,14,28,14z"
-                        fill="#e9f7ff" />
-                </svg>
-            </button>
-            <h1>Settings</h1>
-        </div>
-
-        <div class="inline space-between margin-bottom">
-            <div class="label">Clock number</div>
-
-            <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
-                oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
-        </div>
-
-        <div class="label margin-bottom">Wifi networks</div>
-
-        <div id="spinner-wifi" class="block margin-top-large">
-            <div class="spinner">
-                <div class="bounce1"></div>
-                <div class="bounce2"></div>
-                <div class="bounce3"></div>
-            </div>
-        </div>
-
-        <ul id="ssids-list" class="margin-bottom">
-        </ul>
-    </div>
-
-    <div id="password" class="block hidden">
-        <div class="inline">
-            <button class="button-back" onclick="displaySettings()">
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
-                    class="svg-back">
-                    <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958 
-                        C2.334,14.866,2,15.271,2,16s0.279,1.08,0.646,1.447l7.974,7.973C11.006,25.807,11.469,26,12,26c1.188,0,2-1.016,2-2 
-                        c0-0.516-0.186-0.986-0.58-1.38L8.8,18H28c1.104,0,2-0.896,2-2S29.104,14,28,14z"
-                        fill="#e9f7ff" />
-                </svg>
-            </button>
-            <h1>Password</h1>
-        </div>
-
-        <form onsubmit="return false">
-            <div class="margin-bottom-small">
-                <span class="label">for</span>&nbsp;
-                <span id="ssid" class="label"></span>
-            </div>
-
-            <input id="pwd" type="text" class="margin-bottom" />
-
-            <button type="submit" class="connect-button" onclick="connect()">CONNECT</button>
-        </form>
-    </div>
-
-    <div id="connection" class="block hidden">
-        <div class="connection">
-            Connection in progress
-        </div>
-
-        <div id="spinner" class="spinner">
-            <div class="bounce1"></div>
-            <div class="bounce2"></div>
-            <div class="bounce3"></div>
-        </div>
-
-        <div class="connection-details">
-            Please, wait 20 seconds.<br><br>
-
-            If the device didn't successfully connect to your Wifi network, refresh this page and retry to
-            connect.<br><br>
-
-            Double-check the name of the Wifi network and the password.<br>
-        </div>
-    </div>
-
-    <div id="connection-success" class="block hidden">
-        <div class="connection">
-            Connected to your Wifi<br>
-        </div>
-
-        <div class="connection-details margin-bottom">
-            The IP adress of your device is
-        </div>
-
-        <a id="new-ip" class="new-ip" href="http://192.168.0.205">192.168.0.205</a>
     </div>
 
     <div class="margin-bottom"></div>

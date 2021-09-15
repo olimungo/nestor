@@ -30,11 +30,11 @@ class HttpServer:
         basic_routes = {
             b"/": b"./index.html",
             b"/index.html": b"./index.html",
-            b"/scripts.js": b"./scripts.js",
-            b"/style.css": b"./style.css",
             b"/settings.html": b"./settings.html",
+            b"/style.css": b"./style.css",
+            b"/common-scripts.js": b"./common-scripts.js",
+            b"/index-scripts.js": b"./index-scripts.js",
             b"/settings-scripts.js": b"./settings-scripts.js",
-            b"/settings-style.css": b"./settings-style.css",
             b"/favicon.ico": self.favicon,
             b"/settings/net-id": self.settings_net_id,
             b"/settings/ssids": self.get_ssids,
@@ -174,6 +174,7 @@ class HttpServer:
                             self.send_page(client, "/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
+                reset()
 
             await sleep_ms(IDLE_TIME_BETWEEN_CHECKS)
 
@@ -190,7 +191,7 @@ class HttpServer:
         self.wifi.connect()
 
     def shutdown_acess_point(self, params):
-        # Instead of shutdown the access point, just reset the microcontroller
+        # Instead of shutting down the access point, just reset the microcontroller
         # to make sure that resources are freed as much as possible
         # self.wifi.shutdown_access_point()
         reset()

@@ -39,6 +39,10 @@ h2 {
 
 .hidden {
     visibility: hidden;
+}
+
+.hidden-position-fixed {
+    visibility: hidden;
     position: fixed;
 }
 
@@ -61,7 +65,6 @@ h2 {
 .margin-bottom {
     margin-bottom: 4rem;
 }
-
 
 .margin-top-large {
     margin-top: 15rem;
@@ -139,12 +142,12 @@ ul {
 }
 
 .li {
-    background: #f0d0c4;
+    background: whitesmoke;
     color: #222;
     font-size: 2.3rem;
     padding: 2.5rem;
     margin: 1.5rem;
-    border-radius: 4rem;
+    border-radius: .5rem;
     width: 35rem;
     font-weight: 800;
     text-align: center;
@@ -312,6 +315,68 @@ input[type='text'] {
     }
 }
 
+.color-red {
+    background: #ff1c1c;
+}
+
+.color-blue {
+    background: #344ee1;
+}
+
+.color-blue-violet {
+    background: #a443ff;
+}
+
+.color-yellow {
+    background: #fdeb44;
+}
+
+.color-green {
+    background: #61b400;
+}
+
+.color-pink {
+    background: #fd798f;
+}
+
+.color-orange {
+    background: #ff7118;
+}
+
+.colon {
+    font-size: 10rem;
+    margin: 0 4rem;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3rem;
+    background: #999;
+    border-radius: 12px;
+    outline: none;
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    background: #e9f7ff;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #e9f7ff;
+    cursor: pointer;
+}
+
 .toggle-container {
     display: flex;
 }
@@ -325,8 +390,8 @@ input[type='text'] {
     border-radius: 50px;
     cursor: pointer;
     display: inline-block;
-    width: 16rem;
-    height: 6rem;
+    width: 10.3rem;
+    height: 3.9rem;
     position: relative;
     border: 0.3rem solid #eee;
 }
@@ -337,8 +402,8 @@ input[type='text'] {
 
 .ball {
     background: #e9f7ff;
-    height: 5.5rem;
-    width: 5.5rem;
+    height: 3.4rem;
+    width: 3.4rem;
     border-radius: 50%;
     position: absolute;
     top: 0.25rem;
@@ -357,19 +422,19 @@ input[type='text'] {
         transform: translateX(0) scale(1);
     }
     50% {
-        transform: translateX(5rem) scale(1.2);
+        transform: translateX(3.2rem) scale(1.2);
     }
     100% {
-        transform: translateX(10rem) scale(1);
+        transform: translateX(6.4rem) scale(1);
     }
 }
 
 @keyframes slideOff {
     0% {
-        transform: translateX(10rem) scale(1);
+        transform: translateX(6.4rem) scale(1);
     }
     50% {
-        transform: translateX(5rem) scale(1.2);
+        transform: translateX(3.2rem) scale(1.2);
     }
     100% {
         transform: translateX(0) scale(1);

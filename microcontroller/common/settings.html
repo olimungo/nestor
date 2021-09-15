@@ -6,14 +6,15 @@
 
     <title>Switch</title>
 
-    <link rel="stylesheet" href="settings-style.css">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="common-scripts.js"></script>
     <script defer src="settings-scripts.js"></script>
 </head>
 
 <body>
     <div id="settings">
         <div class="inline">
-            <button class="button-back" onclick="displayMain()">
+            <button class="button-back" onclick="window.location.href = 'index.html'">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
                     class="svg-back">
                     <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958 
@@ -32,7 +33,7 @@
                 oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
         </div>
 
-        <div class="inline space-between margin-bottom-small">
+        <div id="motor" class="inline space-between margin-bottom-small hidden-position-fixed">
             <div class="label">Motor reversed</div>
 
             <div class="toggle-container">
@@ -59,7 +60,7 @@
         </ul>
     </div>
 
-    <div id="password" class="block hidden">
+    <div id="password" class="block hidden-position-fixed">
         <div class="inline">
             <button class="button-back" onclick="displaySettings()">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
@@ -85,7 +86,7 @@
         </form>
     </div>
 
-    <div id="connection" class="block hidden">
+    <div id="connection" class="block hidden-position-fixed">
         <div class="connection">
             Connection in progress
         </div>
@@ -106,7 +107,7 @@
         </div>
     </div>
 
-    <div id="connection-success" class="block hidden">
+    <div id="connection-success" class="block hidden-position-fixed">
         <div class="connection">
             Connected to your Wifi<br>
         </div>

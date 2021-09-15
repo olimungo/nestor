@@ -1,32 +1,22 @@
+// common-scripts.js must be loaded before this file
+
+const documentTitle = 'CLOCK';
+
 window.addEventListener('DOMContentLoaded', (event) => {
+    const queryString = window.location.search;
+
+    if (queryString !== '') {
+        const urlParams = new URLSearchParams(queryString);
+
+        if (urlParams.has('motor')) {
+            const motor = document.getElementById('motor');
+            motor.classList.remove('hidden-position-fixed');
+        }
+    }
+
     getValues();
+    getSsids();
 });
-
-async function fetchWithTimeout(resource, options) {
-    const { timeout = 8000 } = options,
-        controller = new AbortController(),
-        id = setTimeout(() => controller.abort(), timeout),
-        response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
-
-    clearTimeout(id);
-
-    return response;
-}
-
-function debounce(fn, wait = 100) {
-    let timeout;
-
-    return function (...args) {
-        clearTimeout(timeout);
-
-        timeout = setTimeout(() => {
-            fn.apply(this, args);
-        }, wait);
-    };
-}
 
 function getValues() {
     fetchWithTimeout('/settings/values', {
@@ -36,10 +26,9 @@ function getValues() {
         .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
-            setTagValue('tag-net-id', response.netId);
-            setTagValue('switch', response.state);
+            // setTagValue('motor-reversed', response.motorReversed);
 
-            document.title = `Switch ${response.netId}`;
+            document.title = `${documentTitle} ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -53,11 +42,6 @@ function toggle() {
     .catch(() => setTimeout(toggle, 3000));
 }
 
-function setTagValue(tagId, value) {
-    const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
-}
-
 function setNetId(value) {
     fetch(`/settings/net-id?id=${value}`).then();
     const tag = document.getElementById('tag-net-id');
@@ -68,31 +52,24 @@ function setNetId(value) {
 const debouncedSetNetId = debounce(setNetId, 500);
 
 function hideAll() {
-    const main = document.getElementById('main'),
-        settings = document.getElementById('settings'),
+    const settings = document.getElementById('settings'),
         password = document.getElementById('password'),
         connection = document.getElementById('connection'),
         connectionSuccess = document.getElementById('connection-success');
 
-    main.classList.add('hidden');
-    settings.classList.add('hidden');
-    password.classList.add('hidden');
-    connection.classList.add('hidden');
-    connectionSuccess.classList.add('hidden');
-}
-
-function displayMain() {
-    hideAll();
-    const main = document.getElementById('main');
-    main.classList.remove('hidden');
+    settings.classList.add('hidden-position-fixed');
+    password.classList.add('hidden-position-fixed');
+    connection.classList.add('hidden-position-fixed');
+    connectionSuccess.classList.add('hidden-position-fixed');
 }
 
 function displaySettings() {
     hideAll();
+
     const settings = document.getElementById('settings'),
         ssidsList = document.getElementById('ssids-list');
 
-    settings.classList.remove('hidden');
+    settings.classList.remove('hidden-position-fixed');
     ssidsList.innerHTML = '';
 
     getSsids();
@@ -100,25 +77,28 @@ function displaySettings() {
 
 function displayPassword() {
     hideAll();
+
     const password = document.getElementById('password');
-    password.classList.remove('hidden');
+    password.classList.remove('hidden-position-fixed');
 }
 
 function displayConnection() {
     hideAll();
+
     const connection = document.getElementById('connection');
-    connection.classList.remove('hidden');
+    connection.classList.remove('hidden-position-fixed');
 }
 
 function displayConnectionSuccess() {
     hideAll();
+
     const connectionSucces = document.getElementById('connection-succes');
-    connectionSucces.classList.remove('hidden');
+    connectionSucces.classList.remove('hidden-position-fixed');
 }
 
 function getSsids() {
     const spinnerWifi = document.getElementById('spinner-wifi');
-    spinnerWifi.classList.remove('hidden');
+    spinnerWifi.classList.remove('hidden-position-fixed');
 
     fetchWithTimeout('/settings/ssids', {
         timeout: 15000
@@ -145,7 +125,7 @@ function getSsids() {
 
             });
 
-            spinnerWifi.classList.add('hidden')
+            spinnerWifi.classList.add('hidden-position-fixed')
         })
         .catch((err) => setTimeout(getSsids, 3000));
 }
@@ -163,8 +143,8 @@ function checkConnection() {
                     connectionSuccess = document.getElementById('connection-success'),
                     newIp = document.getElementById('new-ip');
 
-                connection.classList.add('hidden');
-                connectionSuccess.classList.remove('hidden');
+                connection.classList.add('hidden-position-fixed');
+                connectionSuccess.classList.remove('hidden-position-fixed');
                 newIp.href = `http://${response.ip}`;
 
                 fetch(`/settings/shutdown-ap`).then();
