@@ -4,10 +4,9 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Shade</title>
-
     <link rel="stylesheet" href="style.css">
-    <script defer src="scripts.js"></script>
+    <script defer src="common-scripts.js"></script>
+    <script defer src="index-scripts.js"></script>
 </head>
 
 <body>
@@ -45,115 +44,20 @@
                 </svg>
             </button>
 
-            <button onclick="displaySettings()">
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -3 32 37" xml:space="preserve"
-                    class="svg-clog">
-                    <path d="M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25 
+            <div class="center-horizontal">
+                <button onclick="window.location.href = 'settings.html?motor'" class="margin-bottom">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 -3 32 37" xml:space="preserve"
+                        class="svg-clog">
+                        <path d="M32,17.969v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25 
                         l-4.762,1.961c-0.363-0.176-0.734-0.324-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.16,0.469l-4.754-1.91 
                         L3.25,6.121l1.938,4.711C5,11.219,4.848,11.613,4.703,12.02L0,14.031v4l4.707,1.961c0.145,0.406,0.301,0.801,0.488,1.188 
                         l-1.902,4.742l2.828,2.828l4.723-1.945c0.379,0.18,0.766,0.324,1.164,0.461L14.031,32h4l1.98-4.758 
                         c0.379-0.141,0.754-0.289,1.113-0.461l4.797,1.922l2.828-2.828l-1.969-4.773c0.168-0.359,0.305-0.723,0.438-1.094L32,17.969z 
                         M15.969,22c-3.312,0-6-2.688-6-6s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z" fill="#e9f7ff" />
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <div id="settings" class="hidden">
-        <div class="inline">
-            <button class="button-back" onclick="displayMain()">
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
-                    class="svg-back">
-                    <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958 
-                        C2.334,14.866,2,15.271,2,16s0.279,1.08,0.646,1.447l7.974,7.973C11.006,25.807,11.469,26,12,26c1.188,0,2-1.016,2-2 
-                        c0-0.516-0.186-0.986-0.58-1.38L8.8,18H28c1.104,0,2-0.896,2-2S29.104,14,28,14z"
-                        fill="#e9f7ff" />
-                </svg>
-            </button>
-            <h1>Settings</h1>
-        </div>
-
-        <div class="inline space-between margin-bottom-small">
-            <div class="label">Shade number</div>
-
-            <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
-                oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
-        </div>
-
-        <div class="inline space-between margin-bottom-small">
-            <div class="label">Motor reversed</div>
-
-            <div class="toggle-container">
-                <input id="motor-reversed" name="motor-reversed" type="checkbox" class="toggle"
-                    onclick="fetch('/settings/reverse-motor').then()" />
-
-                <label for="motor-reversed" class="toggle-background">
-                    <div class="ball"></div>
-                </label>
+                    </svg>
+                </button>
             </div>
         </div>
-
-        <div class="label margin-bottom">Wifi networks</div>
-
-        <ul id="ssids-list" class="margin-bottom">
-        </ul>
-    </div>
-
-    <div id="password" class="block hidden">
-        <div class="inline">
-            <button class="button-back" onclick="displaySettings()">
-                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
-                    class="svg-back">
-                    <path d="M28,14H8.8l4.62-4.62C13.814,8.986,14,8.516,14,8c0-0.984-0.813-2-2-2c-0.531,0-0.994,0.193-1.38,0.58l-7.958,7.958 
-                        C2.334,14.866,2,15.271,2,16s0.279,1.08,0.646,1.447l7.974,7.973C11.006,25.807,11.469,26,12,26c1.188,0,2-1.016,2-2 
-                        c0-0.516-0.186-0.986-0.58-1.38L8.8,18H28c1.104,0,2-0.896,2-2S29.104,14,28,14z"
-                        fill="#e9f7ff" />
-                </svg>
-            </button>
-            <h1>Password</h1>
-        </div>
-
-        <form onsubmit="return false">
-            <span class="label margin-bottom">for</span>&nbsp;
-            <span id="ssid" class="label margin-bottom"></span>
-
-            <input id="pwd" type="text" class="margin-bottom" />
-
-            <button type="submit" class="connect-button" onclick="connect()">CONNECT</button>
-        </form>
-    </div>
-
-    <div id="connection" class="block hidden">
-        <div class="connection">
-            Connection in progress
-        </div>
-
-        <div id="spinner" class="spinner">
-            <div class="bounce1"></div>
-            <div class="bounce2"></div>
-            <div class="bounce3"></div>
-        </div>
-
-        <div class="connection-details">
-            Please, wait 20 seconds.<br><br>
-
-            If the device didn't successfully connect to your Wifi network, refresh this page and retry to
-            connect.<br><br>
-
-            Double-check the name of the Wifi network and the password.<br>
-        </div>
-    </div>
-
-    <div id="connection-success" class="block hidden">
-        <div class="connection">
-            Connected to your Wifi<br>
-        </div>
-
-        <div class="connection-details">
-            The IP adress of your device is
-        </div>
-
-        <div id="new-ip" class="new-ip">0.0.0.0</div>
     </div>
 
     <div class="margin-bottom"></div>
