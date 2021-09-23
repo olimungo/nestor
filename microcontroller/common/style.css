@@ -18,6 +18,7 @@ h1 {
     font-size: 5rem;
     font-weight: 100;
     letter-spacing: .2rem;
+    margin: 2rem 0;
 }
 
 h2 {
@@ -25,6 +26,7 @@ h2 {
     letter-spacing: 0.4rem;
     color: #b7c4cc;
     font-weight: 100;
+    margin: 1rem 0;
 }
 
 .inline {
@@ -59,7 +61,7 @@ h2 {
 }
 
 .margin-bottom-large {
-    margin-bottom: 10rem;
+    margin-bottom: 8rem;
 }
 
 .margin-bottom {
@@ -111,7 +113,7 @@ button {
 
 .button-send {
     width: 14rem;
-    height: 7rem;
+    height: 6.6rem;
 }
 
 .button-back {
@@ -390,8 +392,8 @@ input[type='text'] {
     border-radius: 50px;
     cursor: pointer;
     display: inline-block;
-    width: 10.3rem;
-    height: 3.9rem;
+    width: 13.3rem;
+    height: 6rem;
     position: relative;
     border: 0.3rem solid #eee;
 }
@@ -402,12 +404,12 @@ input[type='text'] {
 
 .ball {
     background: #e9f7ff;
-    height: 3.4rem;
-    width: 3.4rem;
+    height: 5.6rem;
+    width: 5.6rem;
     border-radius: 50%;
     position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
+    top: 0.2rem;
+    left: 0.2rem;
     align-items: center;
     justify-content: center;
     animation: slideOff 0.2s linear forwards;
@@ -425,13 +427,13 @@ input[type='text'] {
         transform: translateX(3.2rem) scale(1.2);
     }
     100% {
-        transform: translateX(6.4rem) scale(1);
+        transform: translateX(7.2rem) scale(1);
     }
 }
 
 @keyframes slideOff {
     0% {
-        transform: translateX(6.4rem) scale(1);
+        transform: translateX(7.2rem) scale(1);
     }
     50% {
         transform: translateX(3.2rem) scale(1.2);

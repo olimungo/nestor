@@ -17,7 +17,7 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
-WAIT_A_BIT_MORE = const(2000)
+WAIT_A_BIT_MORE = const(3000)
 WAIT_FOR_REQUEST = const(250)
 CHECK_CONNECTED = const(3000)
 

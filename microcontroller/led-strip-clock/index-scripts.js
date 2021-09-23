@@ -1,6 +1,6 @@
 // common-scripts.js must be loaded before this file
 
-const documentTitle = 'CLOCK';
+const documentTitle = 'Clock';
 
 window.addEventListener('DOMContentLoaded', (event) => {
     getValues();

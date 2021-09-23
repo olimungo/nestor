@@ -8,7 +8,7 @@ WAIT_AFTER_ERROR = const(15000)
 WAIT_FOR_UPDATING_TIME = const(300000)
 WAIT_FOR_UPDATING_OFFSET = const(3600000)
 CHECK_CONNECTED = const(250)
-WAIT_A_BIT_MORE = const(3000)
+WAIT_A_BIT_MORE = const(1000)
 
 class NtpTime:
     offset_hour = 0
@@ -41,6 +41,8 @@ class NtpTime:
                     if offset[:1] == "-":
                         self.offset_hour = -self.offset_hour
 
+                    print("> Time offset retrieved: {}h{}m".format(self.offset_hour, self.offset_minute))
+
                     # Wait an hour before updating again
                     await sleep_ms(WAIT_FOR_UPDATING_OFFSET)
                 except Exception as e:
@@ -54,7 +56,7 @@ class NtpTime:
 
             await sleep_ms(WAIT_A_BIT_MORE)
 
-            while self.sta_if.isconnected() and not self.ap_if.active():
+            while self.sta_if.isconnected():
                 try:
                     settime()
                     print("> NTP time updated at {}".format(RTC().datetime()))

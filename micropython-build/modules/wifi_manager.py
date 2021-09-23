@@ -7,8 +7,7 @@ from credentials import Credentials
 AP_IP = "1.2.3.4"
 SERVER_SUBNET = "255.255.255.0"
 WAIT_FOR_CONNECT = const(6000)
-WAIT_BEFORE_RECONNECT = const(60000)
-WAIT_BEFORE_AP_SHUTDOWN = const(30000)
+WAIT_BEFORE_SHUTTING_DOWN_AP = const(25000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
 
@@ -29,8 +28,9 @@ class WifiManager:
         self.sta_if.active(True)
 
         self.loop = get_event_loop()
+
         self.loop.create_task(self.check_connected())
-        self.loop.create_task(self.check_connection())
+        self.connect()
 
     async def check_connected(self):
         while True:
@@ -49,15 +49,14 @@ class WifiManager:
                 )
             )
 
+            self.loop.create_task(self.wait_before_shutting_down_access_point())
+
             while self.sta_if.isconnected():
                 await sleep_ms(CHECK_CONNECTED)
 
-    async def check_connection(self):
-        while True:
-            if not self.sta_if.isconnected():
-                self.connect()
+            print("> Disconnected from routeur")
 
-            await sleep_ms(WAIT_BEFORE_RECONNECT)
+            self.loop.create_task(self.start_access_point())
 
     def connect(self):
         self.loop.create_task(self.connect_async())
@@ -79,11 +78,7 @@ class WifiManager:
 
             await sleep_ms(WAIT_FOR_CONNECT)
 
-        if self.sta_if.isconnected():
-            # Leave a bit of time so the client can retrieve the Wifi IP address
-            await sleep_ms(WAIT_BEFORE_AP_SHUTDOWN)
-            self.shutdown_access_point()
-        else:
+        if not self.sta_if.isconnected():
             self.loop.create_task(self.start_access_point())
 
     async def start_access_point(self):
@@ -103,6 +98,15 @@ class WifiManager:
                 "> AP mode configured: {} ".format(self.ap_essid.decode("utf-8")),
                 self.ap_if.ifconfig(),
             )
+
+    async def wait_before_shutting_down_access_point(self):
+        # Wait a bit before shutting down in case a web client is waiting to get
+        # the IP address from the router
+        await sleep_ms(WAIT_BEFORE_SHUTTING_DOWN_AP)
+
+        # Make sure that after having waited, the connection is still active
+        if self.sta_if.isconnected():
+            self.shutdown_access_point()
 
     def shutdown_access_point(self):
         if self.ap_if.active():

@@ -1,7 +1,5 @@
 // common-scripts.js must be loaded before this file
 
-const documentTitle = 'CLOCK';
-
 window.addEventListener('DOMContentLoaded', (event) => {
     const queryString = window.location.search;
 
@@ -27,8 +25,6 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
             // setTagValue('motor-reversed', response.motorReversed);
-
-            document.title = `${documentTitle} ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -147,7 +143,7 @@ function checkConnection() {
                 connectionSuccess.classList.remove('hidden-position-fixed');
                 newIp.href = `http://${response.ip}`;
 
-                fetch(`/settings/shutdown-ap`).then();
+                fetch(`/settings/router-ip-received`).then();
             }
             else {
                 setTimeout(checkConnection, 3000);
