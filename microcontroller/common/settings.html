@@ -29,8 +29,7 @@
         <div class="inline space-between margin-bottom">
             <div class="label">Unique ID</div>
 
-            <input id="net-id" type="number" onkeypress="if(this.value.length > 0) return false;"
-                oninput="if(this.value.length > 1) return false; else debouncedSetNetId(this.value)" />
+            <input id="net-id" type="number" oninput="if (this.value.length > 2) this.value = this.value.slice(0, 2); else debouncedSetNetId()" />
         </div>
 
         <div id="motor" class="inline space-between margin-bottom-small hidden-position-fixed">

@@ -39,7 +39,7 @@ class WifiManager:
 
             self.ip = self.sta_if.ifconfig()[0]
 
-            Blink().flash3TimesFast()
+            Blink().flash_3_times_fast()
 
             credentials = Credentials().load()
 
@@ -65,9 +65,11 @@ class WifiManager:
         credentials = Credentials().load()
 
         if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
+            hidden_pass = "*" * len(credentials.password)
+
             print(
                 "> Connecting to {:s}/{:s}".format(
-                    credentials.essid, credentials.password
+                    credentials.essid, hidden_pass
                 )
             )
 

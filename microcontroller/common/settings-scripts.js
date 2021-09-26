@@ -24,7 +24,10 @@ function getValues() {
         .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
-            // setTagValue('motor-reversed', response.motorReversed);
+
+            if (response.motorReversed) {
+                setTagValue('motor-reversed', response.motorReversed);
+            }
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -38,11 +41,9 @@ function toggle() {
     .catch(() => setTimeout(toggle, 3000));
 }
 
-function setNetId(value) {
+function setNetId() {
+    const value = document.getElementById('net-id').value;
     fetch(`/settings/net-id?id=${value}`).then();
-    const tag = document.getElementById('tag-net-id');
-    tag.textContent = value;
-    document.title = `SWITCH ${value}`;
 }
 
 const debouncedSetNetId = debounce(setNetId, 500);

@@ -61,18 +61,6 @@ class Main:
 
             while self.sta_if.isconnected():
                 await sleep_ms(CHECK_CONNECTED)
-                
-    async def check_mqtt(self):
-        while True:
-            while self.mqtt.connected:
-                self.check_message_mqtt()
-
-                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
-
-            while not self.mqtt.connected:
-                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
-
-            self.set_state()
 
     async def check_mqtt(self):
         while True:
@@ -138,15 +126,16 @@ class Main:
         self.set_state()
 
     def reverse_motor(self, params):
-        motor_reversed = self.settings.motor_reversed
+        settings = Settings().load()
+        motor_reversed = settings.motor_reversed
 
         if motor_reversed == b"0":
             motor_reversed = b"1"
         else:
             motor_reversed = b"0"
 
-        self.settings.motor_reversed = motor_reversed
-        self.settings.write()
+        settings.motor_reversed = motor_reversed
+        settings.write()
 
         self.motor.reverse_direction()
 
