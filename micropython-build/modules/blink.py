@@ -4,7 +4,7 @@ ESP_LED = const(2) # D4
 
 class Blink:
     led = Pin(ESP_LED, Pin.OUT)
-    # To make sure that the LED is in the state that we want.
+    # To make sure that the LED is in the state that we want when booting.
     # BTW, for the LED on D4, the methods are inversed:
     #    on() => turns the LED off
     #    off() => turns the LED on
