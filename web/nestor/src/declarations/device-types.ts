@@ -1,11 +1,8 @@
 export enum DeviceTypes {
-    STEPPER_H,
-    STEPPER_V,
-    MOTOR_H,
-    MOTOR_V,
+    SHADE,
+    SIGN,
     SWITCH,
-    DOUBLE_SWITCH,
-    SLIDER,
+    CLOCK,
 }
 
 export type DeviceType = {
@@ -26,20 +23,14 @@ export type DevicesByTagsType = {
 
 export function getDeviceTypeLabel(type: number) {
     switch (type) {
-        case DeviceTypes.STEPPER_H:
-            return 'STEPPER HORIZONTAL';
-        case DeviceTypes.STEPPER_V:
-            return 'STEPPER VERTICAL';
-        case DeviceTypes.MOTOR_H:
-            return 'MOTOR HORIZONTAL';
-        case DeviceTypes.MOTOR_V:
-            return 'MOTOR VERTICAL';
+        case DeviceTypes.SHADE:
+            return 'SHADE';
+        case DeviceTypes.SIGN:
+            return 'SIGN';
         case DeviceTypes.SWITCH:
             return 'SWITCH';
-        case DeviceTypes.DOUBLE_SWITCH:
-            return 'SWITCH (DOUBLE)';
-        case DeviceTypes.SLIDER:
-            return 'SLIDER';
+        case DeviceTypes.CLOCK:
+            return 'CLOCK';
         default:
             return '';
     }
@@ -47,20 +38,14 @@ export function getDeviceTypeLabel(type: number) {
 
 export function getDeviceTypeCode(type: number) {
     switch (type) {
-        case DeviceTypes.STEPPER_H:
-            return 'STEPPER-H';
-        case DeviceTypes.STEPPER_V:
-            return 'STEPPER-V';
-        case DeviceTypes.MOTOR_H:
-            return 'MOTOR-H';
-        case DeviceTypes.MOTOR_V:
-            return 'MOTOR-V';
+        case DeviceTypes.SHADE:
+            return 'SHADE';
+        case DeviceTypes.SIGN:
+            return 'SIGN';
         case DeviceTypes.SWITCH:
             return 'SWITCH';
-        case DeviceTypes.DOUBLE_SWITCH:
-            return 'DOUBLE-SWITCH';
-        case DeviceTypes.SLIDER:
-            return 'SLIDER';
+        case DeviceTypes.CLOCK:
+            return 'CLOCK';
         default:
             return '';
     }

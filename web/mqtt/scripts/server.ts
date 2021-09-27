@@ -44,42 +44,42 @@ setInterval(async () => {
     });
 }, 100);
 
-// setInterval(async () => {
-//     const now = new Date().getTime();
-//     const timestamps: string[] = await redis.keysAsync('timestamp/*');
+setInterval(async () => {
+    const now = new Date().getTime();
+    const timestamps: string[] = await redis.keysAsync('timestamp/*');
 
-//     timestamps.map(async (timestamp: string) => {
-//         const value = parseInt(await redis.getAsync(timestamp));
+    timestamps.map(async (timestamp: string) => {
+        const value = parseInt(await redis.getAsync(timestamp));
 
-//         if (value + 1000 * 10 < now) {
-//             await redis.delAsync(timestamp);
+        if (value + 1000 * 10 < now) {
+            await redis.delAsync(timestamp);
 
-//             const device = timestamp.replace('timestamp/', '');
-//             await redis.delAsync(device);
-//             await redis.saddAsync('removed', device);
-//         }
-//     });
-// }, 1000);
+            const device = timestamp.replace('timestamp/', '');
+            await redis.delAsync(device);
+            await redis.saddAsync('removed', device);
+        }
+    });
+}, 1000);
 
 persistState(
-    'states/shades/1',
-    '{"ip": "192.168.0.177", "type": "MOTOR-H", "state": "TOP", "tags": ["garden","city2"] }'
+    'shades/1',
+    '{"ip": "192.168.0.177", "type": "SHADE", "state": "TOP", "tags": ["garden","city2"] }'
 );
 
 persistState(
-    'states/shades/2',
-    '{"ip": "192.168.0.122", "type": "MOTOR-V", "state": "BOTTOM", "tags": ["entrance","city2", "door"] }'
+    'shades/2',
+    '{"ip": "192.168.0.122", "type": "SHADE", "state": "BOTTOM", "tags": ["entrance","city2", "door"] }'
 );
 
-// persistState(
-//     'states/switch/1',
-//     '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
-// );
+persistState(
+    'switches/11',
+    '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
+);
 
-// persistState(
-//     'states/shades/10',
-//     '{"ip": "192.168.0.201", "type": "MOTOR-H", "state": "TOP", "tags": ["garden","city3"] }'
-// );
+persistState(
+    'clocks/10',
+    '{"ip": "192.168.0.201", "type": "CLOCK", "state": "ON", "tags": ["garden","city3"] }'
+);
 
 // persistState(
 //     'states/shades/11',

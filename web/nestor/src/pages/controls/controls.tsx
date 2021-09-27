@@ -29,16 +29,13 @@ export function Controls(props: Props) {
 
     return (
         <div className={`${styles.component} text-white`}>
-            {id === DeviceTypes.DOUBLE_SWITCH ? <DoubleSwitch /> : ''}
-            {id === DeviceTypes.MOTOR_V ? (
+            {id === DeviceTypes.SHADE ? (
                 <MotorV devices={selectedDevices} onCommand={onCommand} />
             ) : (
                 ''
             )}
-            {id === DeviceTypes.MOTOR_H ? <MotorH /> : ''}
-            {id === DeviceTypes.SLIDER ? <Slider /> : ''}
-            {id === DeviceTypes.STEPPER_H ? <StepperH /> : ''}
-            {id === DeviceTypes.STEPPER_V ? <StepperV /> : ''}
+            {id === DeviceTypes.SIGN ? <MotorH /> : ''}
+            {id === DeviceTypes.CLOCK ? <Slider /> : ''}
             {id === DeviceTypes.SWITCH ? <Switch /> : ''}
         </div>
     );
