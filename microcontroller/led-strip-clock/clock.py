@@ -1,8 +1,7 @@
 from machine import Pin, Timer
 from neopixel import NeoPixel
 import colors
-
-from NtpTime import NtpTime
+from ntp_time import NtpTime
 
 GPIO_DATA = const(4) #D2
 LEDS = const(59)

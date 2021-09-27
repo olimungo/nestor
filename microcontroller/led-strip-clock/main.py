@@ -1,29 +1,27 @@
 from uasyncio import get_event_loop, sleep_ms
 from machine import reset
+from time import sleep
 from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
+from wifi_manager import WifiManager
+from http_server import HttpServer
+from mdns_server import mDnsServer
+from mqtt_manager import MqttManager
+from settings import Settings
+from tags import Tags
+from display import Display
 
-from WifiManager import WifiManager
-from HttpServer import HttpServer
-from mDnsServer import mDnsServer
-from MqttManager import MqttManager
-from Display import Display
-from Settings import Settings
-from Credentials import Credentials
-from Tags import Tags
-
+DEVICE_TYPE = b"CLOCK"
 PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"192.168.0.215"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"clocks"
-DEVICE_TYPE = b"CLOCK"
-SPINNER_MINIMUM_DISPLAY = const(2000)
-
 CHECK_CONNECTED = const(250)
-WAIT_BEFORE_RESET = const(10000)
+WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
+SPINNER_MINIMUM_DISPLAY = const(2000)
 
 class State:
     OFF = 0
@@ -111,13 +109,7 @@ class Main:
             print("> Main.check_message_mqtt exception: {}".format(e))
 
     def settings_values(self, params):
-        credentials = Credentials().load()
         settings = Settings().load()
-
-        essid = credentials.essid
-
-        if not essid:
-            essid = b""
 
         if settings.state == b"%s" % State.OFF:
             l = 0
@@ -125,8 +117,8 @@ class Main:
             _, _, l = self.display.clock.hsl
 
         result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s", "color": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, int(l), settings.color.decode('ascii'))
+            b'{"ip": "%s", "netId": "%s",  "brightness": "%s", "color": "%s"}'
+            % (self.wifi.ip, settings.net_id, int(l), settings.color.decode('ascii'))
         )
 
         return result
@@ -190,5 +182,5 @@ try:
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
-    sleep_ms(WAIT_BEFORE_RESET)
+    sleep(WAIT_BEFORE_RESET)
     reset()

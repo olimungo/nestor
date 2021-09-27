@@ -8,7 +8,7 @@ m0.speed(5000)
 """
 
 import ustruct
-from Blink import Blink
+from blink import Blink
 
 _STATE_BRAKE = const(0)
 _STATE_RIGHT = const(1) # clockwise
@@ -43,7 +43,7 @@ class Motor:
             self.i2c.writeto_mem(self.address, 0x00 | self.index,
                 ustruct.pack(">BH", 0x00, frequency))
         except Exception as e:
-            Blink().flashOnceSlow()
+            Blink().flash_once_slow()
             print("> Motor.frequency exception: {}".format(e))
 
     def update(self):

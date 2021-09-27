@@ -4,19 +4,18 @@ from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
 from max7219 import Matrix8x8
-
-from WifiManager import WifiManager
-from HttpServer import HttpServer
-from mDnsServer import mDnsServer
-from MqttManager import MqttManager
-from Settings import Settings
-from Credentials import Credentials
-from Tags import Tags
-from Clock import Clock
+from wifi_manager import WifiManager
+from http_server import HttpServer
+from mdns_server import mDnsServer
+from mqtt_manager import MqttManager
+from settings import Settings
+from credentials import Credentials
+from tags import Tags
+from clock import Clock
 
 PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"192.168.0.215"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"clocks"
 DEVICE_TYPE = b"CLOCK"
 SPINNER_MINIMUM_DISPLAY = const(2000)

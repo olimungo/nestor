@@ -4,11 +4,10 @@ from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
 from ure import compile
 from gc import collect
+from credentials import Credentials
+from settings import Settings
 
-from Credentials import Credentials
-from Settings import Settings
-
-MAX_PACKET_SIZE = const(1024)
+MAX_PACKET_SIZE = const(768)
 HTTP_PORT = const(80)
 IDLE_TIME_BETWEEN_CHECKS = const(100)
 
@@ -31,13 +30,16 @@ class HttpServer:
         basic_routes = {
             b"/": b"./index.html",
             b"/index.html": b"./index.html",
-            b"/scripts.js": b"./scripts.js",
+            b"/settings.html": b"./settings.html",
             b"/style.css": b"./style.css",
+            b"/common-scripts.js": b"./common-scripts.js",
+            b"/index-scripts.js": b"./index-scripts.js",
+            b"/settings-scripts.js": b"./settings-scripts.js",
             b"/favicon.ico": self.favicon,
             b"/settings/net-id": self.settings_net_id,
             b"/settings/ssids": self.get_ssids,
             b"/connect": self.connect,
-            b"/settings/shutdown-ap": self.shutdown_acess_point,
+            b"/settings/router-ip-received": self.router_ip_received,
         }
 
         for route in basic_routes:
@@ -172,6 +174,7 @@ class HttpServer:
                             self.send_page(client, "/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
+                # reset()
 
             await sleep_ms(IDLE_TIME_BETWEEN_CHECKS)
 
@@ -187,10 +190,8 @@ class HttpServer:
 
         self.wifi.connect()
 
-    def shutdown_acess_point(self, params):
-        # Instead of shutdown the access point, just reset the microcontroller
-        # to make sure that resources are freed as much as possible
-        # self.wifi.shutdown_access_point()
+    def router_ip_received(self, params):
+        # Reset the microcontroller to make sure that resources are freed as much as possible
         reset()
 
     def settings_net_id(self, params):

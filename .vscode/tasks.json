@@ -16,7 +16,7 @@
         {
             "label": "Upload All",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput .*\\.py; mput index.html; mput style.css; mput scripts.js'",
+            "command": "${env:PKILL_CMD} mpfshell; cd ${fileDirname}; mpfshell -n -c 'open ${env:MICROCONTROLLER_USB_PORT}; mput (?!^.DS_Store$)(^.*$); lcd ../common; mput (?!^.DS_Store$)(^.*$)'",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

@@ -1,6 +1,6 @@
 from machine import Pin, ADC, Timer, I2C
-import d1motor
-from Settings import Settings
+import d1_motor
+from settings import Settings
 
 class Gpio:
     I2C_SCL = 5 # D1
@@ -37,7 +37,7 @@ class Motor:
         self.shade_state = ShadeState.UNKNOWN
         self.ir_sensor = ADC(Gpio.IR_SENSOR)
         self.ir_power = Pin(Gpio.IR_POWER, Pin.OUT)
-        self.motor = d1motor.Motor(0, self.i2c)
+        self.motor = d1_motor.Motor(0, self.i2c)
         self.ir_check_timer = Timer(-1)
         self.motor_check_timer = Timer(-1)
         self.force_moving = 0

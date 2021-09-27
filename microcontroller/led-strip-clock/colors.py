@@ -1,6 +1,5 @@
 from math import fabs
 
-
 def rgb_to_hsl(rgb):
     # Make r, g, and b fractions of 1
     r = rgb[0] / 255

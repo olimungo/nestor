@@ -1,6 +1,5 @@
 from machine import Timer
-
-from NtpTime import NtpTime
+from ntp_time import NtpTime
 from display import fonts, Char, Column
 
 class Clock:

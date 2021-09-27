@@ -3,11 +3,10 @@ from umqtt.simple import MQTTClient
 from machine import unique_id
 from uasyncio import get_event_loop, sleep_ms
 from network import WLAN, STA_IF
-
-from Tags import Tags
+from tags import Tags
 
 WAIT_FOR_MDNS = const(1000)
-WAIT_FOR_CONNECT = const(3000)
+WAIT_BETWEEN_CONNECT = const(5000)
 WAIT_FOR_MESSAGE = const(250)
 MQTT_STATUS_INTERVAL = const(5000)
 
@@ -39,8 +38,7 @@ class MqttManager:
                 await sleep_ms(WAIT_FOR_MDNS)
 
             while not self.connected:
-                self.connect()
-                await sleep_ms(WAIT_FOR_CONNECT)
+                await self.connect()
 
             print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
 
@@ -53,7 +51,7 @@ class MqttManager:
             print("> MQTT server down")
             self.connected = False
 
-    def connect(self):
+    async def connect(self):
         try:
             client_id = hexlify(unique_id())
 
@@ -78,9 +76,11 @@ class MqttManager:
 
                 self.log(b"IP assigned: %s" % (self.sta_if.ifconfig()[0]))
             else:
-                print("> MQTT broker '{}' not reachable!".format(self.broker_name))
+                print("> MQTT broker '{}' not reachable!".format(self.broker_name.decode('ascii')))
+                await sleep_ms(WAIT_BETWEEN_CONNECT)
         except Exception as e:
             print("> MQTT broker connect error: {}".format(e))
+            await sleep_ms(WAIT_BETWEEN_CONNECT)
 
     def check_msg(self):
         try:

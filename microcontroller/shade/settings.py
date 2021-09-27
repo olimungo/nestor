@@ -2,7 +2,6 @@ from uos import remove
 
 FILE = "./settings.csv"
 
-
 class Settings:
     def __init__(self, net_id=b"0", motor_reversed=b"0"):
         self.net_id = net_id

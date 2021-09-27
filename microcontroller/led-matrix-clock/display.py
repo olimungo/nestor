@@ -13,7 +13,6 @@ fonts = [
     [0x00],  # blank
 ]
 
-
 class Column:
     def __init__(self, board, position, column):
         self._board = board

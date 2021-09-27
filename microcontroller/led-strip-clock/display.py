@@ -1,11 +1,10 @@
 from machine import Pin
 from uasyncio import get_event_loop, sleep_ms
 from neopixel import NeoPixel
-
-from Clock import Clock
-from Spinner import Spinner
-from Settings import Settings
-from Credentials import Credentials
+from clock import Clock
+from spinner import Spinner
+from settings import Settings
+from credentials import Credentials
 
 GPIO_BUTTON = const(16) #D0
 GPIO_DATA = const(4) #D2
