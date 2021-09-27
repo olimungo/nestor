@@ -27,7 +27,7 @@ class Blink:
                 self.led.on()
                 self.timer.init(period=delay, mode=Timer.ONE_SHOT, callback=lambda l:self.flash())
             else:
-                onDelay= self.current_action.pop()
+                onDelay = self.current_action.pop()
                 self.led.off()
                 self.timer.init(period=onDelay, mode=Timer.ONE_SHOT, callback=lambda l:self.flash())
         else:
