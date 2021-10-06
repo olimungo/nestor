@@ -1,5 +1,5 @@
 import styles from './device-by-tags.module.css';
-import { DevicesByTagsType } from '@declarations';
+import { DevicesByTagsType } from '@models';
 import { Card, Button } from '@components';
 
 type Props = {
@@ -27,7 +27,7 @@ export function DeviceByTags(props: Props) {
                                     className="m-2 bg-blue-500 rounded-lg p-2"
                                     key={device.id}
                                 >
-                                    {device.name}
+                                    {device.id}
                                 </div>
                             ))}
                         </div>

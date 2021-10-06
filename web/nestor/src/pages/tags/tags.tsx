@@ -2,11 +2,9 @@ import styles from './tags.module.css';
 import { useContext, useEffect, useState } from 'react';
 import {
     AppContext,
-    DeviceTypes,
-    getDeviceTypeLabel,
-    getDeviceTypeCode,
+    IotDeviceTypes,
     DevicesByTagsType,
-} from '@declarations';
+} from '@models';
 import { Tag, DeviceByTags } from '@components';
 
 type Props = { onControl?: (selectedDevices: DevicesByTagsType) => void };
@@ -22,19 +20,14 @@ export function Tags(props: Props) {
     useEffect(() => {
         const devicesByTags: DevicesByTagsType[] = [];
 
-        for (const value in DeviceTypes) {
-            if (!isNaN(Number(value))) {
-                const id = Number(value);
-                const code = getDeviceTypeCode(id);
-                const label = getDeviceTypeLabel(id);
-                devicesByTags.push({
-                    id,
-                    code,
-                    label,
-                    devices: [],
-                });
-            }
-        }
+        IotDeviceTypes.forEach(iotDeviceType => {
+            devicesByTags.push({
+                id: iotDeviceType,
+                code: iotDeviceType,
+                label: iotDeviceType,
+                devices: [],
+            });       
+        });
 
         setDevicesByTags(
             devicesByTags.sort((a, b) => (a.code > b.code ? 1 : -1))

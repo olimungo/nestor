@@ -1,7 +1,7 @@
 import { FormEvent, useContext, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Button, ButtonPrevious, Card, Input, Tag } from '@components';
-import { AppContext, DeviceType } from '@declarations';
+import { AppContext, IotDevice } from '@models';
 
 type Props = {
     onAddTag: (id: string, tag: string) => void;
@@ -14,7 +14,7 @@ export function EditDevice(props: Props) {
     const appContext = useContext(AppContext);
     const history = useHistory();
     const { id } = useParams<{ id: string }>();
-    const [device, setDevice] = useState<DeviceType>();
+    const [device, setDevice] = useState<IotDevice>();
     const [tags, setTags] = useState<string[]>([]);
     const [newTag, setNewTag] = useState('');
 
@@ -54,7 +54,7 @@ export function EditDevice(props: Props) {
         <div className="m-5">
             <Card>
                 <>
-                    <div>Name: {device?.name}</div>
+                    <div>Name: {device?.id}</div>
                     <div>IP: {device?.ip}</div>
                     <div>Type: {device?.type}</div>
                     <div>State: {device?.state}</div>

@@ -5,8 +5,8 @@
             "@components": [
                 "src/components"
             ],
-            "@declarations": [
-                "src/declarations"
+            "@models": [
+                "src/models"
             ],
             "@services": [
                 "src/services"

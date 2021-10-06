@@ -2,11 +2,11 @@ import styles from './device.module.css';
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import { DeviceType } from '@declarations';
+import { IotDevice } from '@models';
 import { Card, Tag, ButtonEdit } from '@components';
 import { useEffect, useState } from 'react';
 
-type Props = { device: DeviceType };
+type Props = { device: IotDevice };
 
 export function Device(props: Props) {
     const { device } = props;
@@ -27,7 +27,7 @@ export function Device(props: Props) {
         <div className={`${styles.component} m-5`}>
             <Card>
                 <>
-                    <div>Name: {device.name}</div>
+                    <div>Name: {device.id}</div>
                     <div className="flex items-center">
                         <div className="mr-3">IP: {device.ip}</div>
                         <FontAwesomeIcon

@@ -1,30 +1,38 @@
 import redis from './redis';
 import { Server } from 'socket.io';
 
-const CORS_ORIGIN =
-    process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000';
+const CORS_ORIGIN = process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000';
 
-const states = {};
+const roomdId = 'nestor';
+let devices = [];
 
-const cleanDatabase = async () => {
-    const updated = await redis.smembersAsync('updated');
+(async() => {
+    // When starting, load devices identified in "list"
+    const listDevicesId: string[] = await redis.smembersAsync('list');
 
-    await Promise.all(updated.map(async(device)=>{
-        await redis.sremAsync('updated', device);
-    }));
+    await Promise.all(
+        listDevicesId.map(async (listDeviceId) => {
+            await addDevice(listDeviceId);
+        })
+    );
 
-    const removed = await redis.smembersAsync('removed');
+    // And remove everything in "updated" and "removed"
+    const updatedDevicesId: string[] = await redis.smembersAsync('updated');
 
-    await Promise.all(removed.map(async(device)=>{
-        await redis.sremAsync('removed', device);
-    }));
+    await Promise.all(
+        updatedDevicesId.map(async (updatedDeviceId) => {
+            await redis.sremAsync('updated', updatedDeviceId);
+        })
+    );
 
-    const keys = await redis.keysAsync('*');
+    const removedDevicesId: string[] = await redis.smembersAsync('removed');
 
-    await Promise.all(keys.map(async(device)=>{
-        await redis.delAsync(device);
-    }));
-}
+    await Promise.all(
+        removedDevicesId.map(async (removedDeviceId) => {
+            await redis.sremAsync('updated', removedDeviceId);
+        })
+    );
+})();
 
 const io = new Server(parseInt(process.env.PORT) || 9000, {
     cors: {
@@ -37,55 +45,47 @@ console.log(`> Websockets server started on port ${process.env.PORT}`);
 console.log(`> With CORS opened to ${CORS_ORIGIN}`);
 
 io.on('connection', async (socket) => {
-    await cleanDatabase();
+    socket.join(roomdId);
 
     socket.on(
         'mqtt-command',
         async (message) => {
-            console.log(message);
             await redis.setAsync(`commands/${message.device}`, message.command)
         }
     );
 
-    socket.on('get-states', () => {
-        const statesRemapped = Object.entries(states).map((state) => {
-            console.log(state);
-            const value = Object.assign({}, state[1]);
-            const key = state[0].split('/');
-            key.shift();
-            // const key = state[0];
-
-            return { id: key.join(''), name: key.join('/'), ...value };
-            // return { id: key, name: key, ...value };
-        });
-
-        socket.emit('states', statesRemapped);
-    });
+    socket.on('get-devices', () => socket.emit('devices', devices));
 });
 
 setInterval(async () => {
-    const updated: string[] = await redis.smembersAsync('updated');
+    const updatedDevicesId: string[] = await redis.smembersAsync('updated');
 
     await Promise.all(
-        updated.map(async (device) => {
-            const state = await redis.getAsync(device);
-            states[device] = JSON.parse(state);
-            await redis.sremAsync('updated', device);
-            io.emit('update-device', { device, state: JSON.parse(state) });
+        updatedDevicesId.map(async (updatedDeviceId) => {
+            const device = await addDevice(updatedDeviceId);
+            await redis.sremAsync('updated', updatedDeviceId);
+            io.to(roomdId).emit('update-device', device);
         })
     );
 
-    const removed: string[] = await redis.smembersAsync('removed');
+    const removedDevicesId: string[] = await redis.smembersAsync('removed');
 
     await Promise.all(
-        removed.map(async (device) => {
-            delete states[device];
-            await redis.sremAsync('removed', device);
-            io.emit('remove-device', { device });
+        removedDevicesId.map(async (removedDeviceId) => {
+            devices = devices.filter(device => device.id !== removedDeviceId);
+            await redis.sremAsync('removed', removedDeviceId);
+            io.to(roomdId).emit('remove-device', removedDeviceId);
         })
     );
-}, 100);
+}, 1000);
 
-// setInterval(() => {
-//     console.log(states)
-// }, 3000);
+async function addDevice(id: string) {
+    const value = await redis.getAsync(id);
+    const parsedValue = JSON.parse(value);
+    const netId = id.split('/')[1];
+    const device = { id, netId, ...parsedValue };
+
+    devices = [ ...devices, device];
+
+    return device;
+}
