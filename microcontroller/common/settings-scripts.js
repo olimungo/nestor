@@ -46,7 +46,7 @@ function setNetId() {
     fetch(`/settings/net-id?id=${value}`).then();
 }
 
-const debouncedSetNetId = debounce(setNetId, 500);
+const debouncedSetNetId = debounce(setNetId, 1000);
 
 function hideAll() {
     const settings = document.getElementById('settings'),

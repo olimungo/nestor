@@ -14,8 +14,8 @@ from motor import Motor
 
 DEVICE_TYPE = b"SHADE"
 PUBLIC_NAME = b"Shade"
-BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"deathstar.local"
+# BROKER_NAME = b"nestor.local"
+BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"shades"
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)
@@ -31,7 +31,7 @@ class Main:
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
         self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, settings.net_id, MQTT_TOPIC_NAME, DEVICE_TYPE
+            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
         )
 
         routes = {
@@ -86,15 +86,18 @@ class Main:
                 if match("add-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
+                    self.set_state()
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
+                    self.set_state()
                 elif message == b"up":
                     self.go_up()
                 elif message == b"down":
                     self.go_down()
                 elif message == b"stop":
                     self.stop()
+
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
