@@ -56,9 +56,7 @@ export function Input(props: Props) {
     }, [size]);
 
     const id =
-        'input' +
-        new Date().getTime().toString() +
-        Math.floor(Math.random() * 100).toString();
+        'input' + new Date().getTime().toString() + Math.floor(Math.random() * 100).toString();
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         onChange(event.currentTarget.value);

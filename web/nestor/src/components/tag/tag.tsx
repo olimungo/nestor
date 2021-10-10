@@ -1,11 +1,12 @@
 import styles from './tag.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { useEffect, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 type Props = {
     label: string;
     displayClose?: boolean;
+    enableClick?: boolean;
     active?: boolean;
     onRemove?: (value: string) => void;
     onClick?: (value: string) => void;
@@ -19,6 +20,7 @@ export function Tag(props: Props) {
     const {
         label,
         displayClose = false,
+        enableClick = false,
         active = false,
         onRemove = dummyCallback,
         onClick = dummyCallback,
@@ -35,10 +37,15 @@ export function Tag(props: Props) {
     }, [active]);
 
     const handleClick = () => {
-        setActiveStyle(
-            activeStyle === ACTIVE_STYLE ? INACTIVE_STYLE : ACTIVE_STYLE
-        );
-        onClick(label);
+        if (enableClick) {
+            setActiveStyle(activeStyle === ACTIVE_STYLE ? INACTIVE_STYLE : ACTIVE_STYLE);
+            onClick(label);
+        }
+    };
+
+    const handleRemove = (event: MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        onRemove(label);
     };
 
     return (
@@ -46,14 +53,10 @@ export function Tag(props: Props) {
             className={`${styles.component} flex rounded-lg m-2 px-2 cursor-pointer ${activeStyle}`}
             onClick={handleClick}
         >
-            <div>{label}</div>
+            <div className="text-white">{label}</div>
             {displayClose ? (
-                <div className="pl-3" onClick={() => onRemove(label)}>
-                    <FontAwesomeIcon
-                        className="self-center"
-                        icon={faTimes}
-                        size="1x"
-                    />
+                <div className="pl-3" onClick={handleRemove}>
+                    <FontAwesomeIcon className="self-center" icon={faTimes} size="1x" />
                 </div>
             ) : (
                 ''

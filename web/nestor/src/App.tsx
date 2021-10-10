@@ -1,68 +1,50 @@
-import { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
-import { AppContext, DevicesByTagsType, IotDevice } from '@models';
+import { useEffect, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { AppContext, IotDevice } from '@models';
 import { AppFooter, AppHeader } from '@components';
-import { Redirect, Route, Switch, useHistory } from 'react-router';
-import { Commands, Devices, Tags } from '@pages';
+import { Redirect, Route, Switch } from 'react-router';
+import { Commands, Controls, Devices, EditDevice, Tags } from '@pages';
+import { DefaultEventsMap } from 'socket.io-client/build/typed-events';
 
 function App() {
-    const history = useHistory();
-    const init = useRef(true);
     const [devices, setDevices] = useState<IotDevice[]>([]);
-    const [selectedDevices, setSelectedDevices] = useState<DevicesByTagsType>();
-    
+    const [socket, setSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>();
+
     useEffect(() => {
-        console.log('SOCKET init');
+        console.log('SOCKET INIT');
 
-        const socket = io(
-            process.env.REACT_APP_WEBSOCKETS || 'ws://localhost:3001'
-        );
-        
-        function devicesReceived(devices: IotDevice[]) {
-            setDevices(devices);
-        };
+        const socket = io(process.env.REACT_APP_WEBSOCKETS || 'ws://localhost:3001');
 
-        function updateDevice(device:IotDevice) {
-            console.log('update', device);
-            setDevices((devices) => [...devices, device]);
-        };
+        setSocket(socket);
 
-        function removeDevice(deviceToRemoveId: string) {
-            console.log('remove', deviceToRemoveId);
-            setDevices((devices) => devices.filter(device => device.id !== deviceToRemoveId));
-        };
+        const gotDevices = (devices: IotDevice[]) => setDevices(devices);
+        const updateDevice = (updatedDevice: IotDevice) =>
+            setDevices((devices) => {
+                const filtered = devices.filter((device) => device.id !== updatedDevice.id);
+                return [...filtered, updatedDevice];
+            });
+        const removeDevice = (deviceToRemoveId: string) =>
+            setDevices((devices) => devices.filter((device) => device.id !== deviceToRemoveId));
 
-        socket.on('devices', devicesReceived);
-        
+        socket.on('devices', gotDevices);
         socket.on('update-device', updateDevice);
-        
         socket.on('remove-device', removeDevice);
-        
+
         socket.emit('get-devices');
 
         return () => {
-            console.log('SOCKET off');
-            socket.off('devices', devicesReceived);
+            console.log('SOCKET OFF');
+
+            socket.off('devices', gotDevices);
             socket.off('update-device', updateDevice);
             socket.off('remove-device', removeDevice);
         };
     }, []);
 
-    const handleControl = (selectedDevices: DevicesByTagsType) => {
-        setSelectedDevices(selectedDevices);
-        history.push('/control');
-    };
-
-    const handleCommand = (device: string, command: string) => {
-        console.log('handleCommand', device, command);
-        
-        // socket.emit('mqtt-command', { device, command });
-    };
-
     return (
         <>
-            <AppContext.Provider value={{ devices }}>
-                <div className="h-100 w-100" style={{ maxWidth: '70rem' }}>
+            <AppContext.Provider value={{ devices, socket }}>
+                <div className="h-100 w-100 text-white" style={{ maxWidth: '70rem' }}>
                     <div className="flex flex-col items-center h-full md:w-12/12">
                         <div className="w-full">
                             <AppHeader />
@@ -77,29 +59,21 @@ function App() {
                                     <Commands />
                                 </Route>
 
+                                <Route path="/tags">
+                                    <Tags />
+                                </Route>
+
+                                <Route path="/devices/:urlId">
+                                    <EditDevice />
+                                </Route>
+
                                 <Route path="/devices">
                                     <Devices />
                                 </Route>
 
-                                <Route path="/tags">
-                                    <Tags onControl={handleControl} />
+                                <Route path="/controls">
+                                    <Controls />
                                 </Route>
-
-                                {/* <Route path="/devices/:id">
-                                    <EditDevice
-                                        onAddTag={handleAddTag}
-                                        onRemoveTag={handleRemoveTag}
-                                    />
-                                </Route> */}
-
-
-                                {/* <Route path="/search">
-                                    <Search />
-                                </Route> */}
-
-                                {/* <Route path="/controls">
-                                    <Controls onCommand={handleCommand} />
-                                </Route> */}
 
                                 <Route path="/">
                                     <Redirect to="/commands" />

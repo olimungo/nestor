@@ -1,10 +1,9 @@
-// export type IotDeviceTypes = 'SHADE' | 'SIGN' | 'SWITCH' | 'CLOCK';
-
 export const IotDeviceTypes = ['SHADE', 'SIGN', 'SWITCH', 'CLOCK'] as const;
 export type IotDeviceType = typeof IotDeviceTypes[number];
 
 export type IotDevice = {
     id: string;
+    urlId: string;
     netId: string;
     type: IotDeviceType;
     ip: string;
@@ -12,8 +11,13 @@ export type IotDevice = {
     tags: string[];
 };
 
+export type IotDeviceGroup = {
+    type: IotDeviceType;
+    devices: IotDevice[];
+};
+
 export type DevicesByTagsType = {
-    id: string;
+    id: number;
     code: string;
     label: string;
     devices: IotDevice[];

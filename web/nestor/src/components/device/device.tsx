@@ -1,16 +1,15 @@
 import styles from './device.module.css';
-import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { IotDevice } from '@models';
 import { Card, Tag, ButtonEdit } from '@components';
 import { useEffect, useState } from 'react';
 
-type Props = { device: IotDevice };
+type Props = { device: IotDevice; onEditDevice?: (urlId: string) => void };
 
 export function Device(props: Props) {
-    const { device } = props;
-    const history = useHistory();
+    const dummyCallback = () => true;
+    const { device, onEditDevice = dummyCallback } = props;
     const [tags, setTags] = useState<string[]>([]);
 
     useEffect(() => {
@@ -44,9 +43,7 @@ export function Device(props: Props) {
                         ))}
                     </div>
 
-                    <ButtonEdit
-                        onClick={() => history.push(`/devices/${device.id}`)}
-                    />
+                    <ButtonEdit onClick={() => onEditDevice(device.urlId)} />
                 </>
             </Card>
         </div>

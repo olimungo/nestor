@@ -1,8 +1,8 @@
 import redis from './redis';
 
-const DEBUG_MOCK_DATA = true;
-const DEBUG_KEEP_DEVICE = true;
-const LIMIT_TO_BE_REMOVED = 10000; // milliseconds
+const DEBUG_MOCK_DATA = false;
+const DEBUG_KEEP_DEVICE = false;
+const LIMIT_TO_BE_REMOVED = 4000; // milliseconds
 const CHECK_LAST_STATUS_FREQUENCY = 200; // milliseconds
 const CHECK_COMMANDS_FREQUENCY = 200; // milliseconds
 const MOSQUITTO_URL = process.env.MOSQUITTO_URL || 'mqtt://nestor.local';
@@ -10,13 +10,13 @@ const mqtt = require('mqtt').connect(MOSQUITTO_URL);
 
 mqtt.on('connect', async () => {
     console.log(`> MQTT server connected to ${MOSQUITTO_URL}`);
-    
+
     await cleanDatabase();
 
     if (DEBUG_MOCK_DATA) {
         mockData();
     }
-    
+
     mqtt.subscribe('#');
 });
 
@@ -54,9 +54,9 @@ if (!DEBUG_KEEP_DEVICE) {
         timestamps.map(async (timestamp: string) => {
             const value = parseInt(await redis.getAsync(timestamp));
 
-        if (value + LIMIT_TO_BE_REMOVED < now) {
+            if (value + LIMIT_TO_BE_REMOVED < now) {
                 await redis.delAsync(timestamp);
-                
+
                 const device = timestamp.replace('timestamp/', '');
                 await redis.delAsync(device);
                 await redis.sremAsync('list', device);
@@ -69,28 +69,36 @@ if (!DEBUG_KEEP_DEVICE) {
 const cleanDatabase = async () => {
     const updated = await redis.smembersAsync('updated');
 
-    await Promise.all(updated.map(async(device)=>{
-        await redis.sremAsync('updated', device);
-    }));
+    await Promise.all(
+        updated.map(async (device) => {
+            await redis.sremAsync('updated', device);
+        })
+    );
 
     const removed = await redis.smembersAsync('removed');
 
-    await Promise.all(removed.map(async(device)=>{
-        await redis.sremAsync('removed', device);
-    }));
+    await Promise.all(
+        removed.map(async (device) => {
+            await redis.sremAsync('removed', device);
+        })
+    );
 
     const list = await redis.smembersAsync('list');
 
-    await Promise.all(list.map(async(device)=>{
-        await redis.sremAsync('list', device);
-    }));
+    await Promise.all(
+        list.map(async (device) => {
+            await redis.sremAsync('list', device);
+        })
+    );
 
     const keys = await redis.keysAsync('*');
 
-    await Promise.all(keys.map(async(device)=>{
-        await redis.delAsync(device);
-    }));
-}
+    await Promise.all(
+        keys.map(async (device) => {
+            await redis.delAsync(device);
+        })
+    );
+};
 
 async function persistState(key, value) {
     const persistedValue = await redis.getAsync(key);
@@ -104,7 +112,6 @@ async function persistState(key, value) {
 
     await redis.setAsync(`timestamp/${key}`, new Date().getTime());
 }
-
 
 function mockData() {
     persistState(

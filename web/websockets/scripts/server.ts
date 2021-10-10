@@ -6,7 +6,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000
 const roomdId = 'nestor';
 let devices = [];
 
-(async() => {
+(async () => {
     // When starting, load devices identified in "list"
     const listDevicesId: string[] = await redis.smembersAsync('list');
 
@@ -47,12 +47,9 @@ console.log(`> With CORS opened to ${CORS_ORIGIN}`);
 io.on('connection', async (socket) => {
     socket.join(roomdId);
 
-    socket.on(
-        'mqtt-command',
-        async (message) => {
-            await redis.setAsync(`commands/${message.device}`, message.command)
-        }
-    );
+    socket.on('mqtt-command', async (message) => {
+        await redis.setAsync(`commands/${message.device}`, message.command);
+    });
 
     socket.on('get-devices', () => socket.emit('devices', devices));
 });
@@ -72,7 +69,7 @@ setInterval(async () => {
 
     await Promise.all(
         removedDevicesId.map(async (removedDeviceId) => {
-            devices = devices.filter(device => device.id !== removedDeviceId);
+            devices = devices.filter((device) => device.id !== removedDeviceId);
             await redis.sremAsync('removed', removedDeviceId);
             io.to(roomdId).emit('remove-device', removedDeviceId);
         })
@@ -83,9 +80,14 @@ async function addDevice(id: string) {
     const value = await redis.getAsync(id);
     const parsedValue = JSON.parse(value);
     const netId = id.split('/')[1];
-    const device = { id, netId, ...parsedValue };
+    const urlId = id.replace('/', '-');
+    const device = { id, urlId, netId, ...parsedValue };
 
-    devices = [ ...devices, device];
+    // Remove device if it's already in the list
+    devices = devices.filter((device) => device.id !== id);
+
+    // Add new or updated device
+    devices = [...devices, device];
 
     return device;
 }
