@@ -2,8 +2,8 @@ import redis from './redis';
 import { Server } from 'socket.io';
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000';
-
-const roomdId = 'nestor';
+const CHECK_DEVICE_UPDATES = 250; // milliseconds
+const ROOM_ID = 'nestor';
 let devices = [];
 
 (async () => {
@@ -45,7 +45,7 @@ console.log(`> Websockets server started on port ${process.env.PORT}`);
 console.log(`> With CORS opened to ${CORS_ORIGIN}`);
 
 io.on('connection', async (socket) => {
-    socket.join(roomdId);
+    socket.join(ROOM_ID);
 
     socket.on('mqtt-command', async (message) => {
         await redis.setAsync(`commands/${message.device}`, message.command);
@@ -61,7 +61,7 @@ setInterval(async () => {
         updatedDevicesId.map(async (updatedDeviceId) => {
             const device = await addDevice(updatedDeviceId);
             await redis.sremAsync('updated', updatedDeviceId);
-            io.to(roomdId).emit('update-device', device);
+            io.to(ROOM_ID).emit('update-device', device);
         })
     );
 
@@ -71,10 +71,10 @@ setInterval(async () => {
         removedDevicesId.map(async (removedDeviceId) => {
             devices = devices.filter((device) => device.id !== removedDeviceId);
             await redis.sremAsync('removed', removedDeviceId);
-            io.to(roomdId).emit('remove-device', removedDeviceId);
+            io.to(ROOM_ID).emit('remove-device', removedDeviceId);
         })
     );
-}, 1000);
+}, CHECK_DEVICE_UPDATES);
 
 async function addDevice(id: string) {
     const value = await redis.getAsync(id);
