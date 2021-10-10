@@ -4,7 +4,6 @@ import {
     faProjectDiagram,
     faTag,
     faNetworkWired,
-    faSearch,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { useHistory } from 'react-router-dom';
@@ -21,7 +20,6 @@ const sections: Section[] = [
     { label: 'COMMANDS', icon: faProjectDiagram, uri: '/commands' },
     { label: 'TAGS', icon: faTag, uri: '/tags' },
     { label: 'DEVICES', icon: faNetworkWired, uri: '/devices' },
-    { label: 'SEARCH', icon: faSearch, uri: 'search' },
 ];
 
 export function AppFooter(props: Props) {

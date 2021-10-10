@@ -1,8 +1,8 @@
-import styles from './slider.module.css';
+import styles from './clock.module.css';
 
 type Props = {};
 
-export function Slider(props: Props) {
+export function Clock(props: Props) {
     // const {} = props;
 
     return (

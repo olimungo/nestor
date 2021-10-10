@@ -3,22 +3,15 @@ import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
-type Props = { name: string; selected?: boolean; onClick?: () => void };
+type Props = { netId: string; selected?: boolean; onClick?: () => void };
 
 export function DeviceById(props: Props) {
     const dummyCallback = () => true;
-    const { name, selected = true, onClick = dummyCallback } = props;
-    const [id, setId] = useState<number | undefined>();
+    const { netId, selected = true, onClick = dummyCallback } = props;
     const [isSelected, setIsSelected] = useState(false);
     const [classSelected, setClassSelected] = useState('');
     const [isChevronUpVisible, setIsChevronUpVisible] = useState(false);
     const [isChevronDownVisible, setIsChevronDownVisible] = useState(false);
-
-    useEffect(() => {
-        if (name) {
-            setId(parseInt(name.split('/')[1]));
-        }
-    }, [name]);
 
     useEffect(() => {
         setIsSelected(selected);
@@ -41,11 +34,11 @@ export function DeviceById(props: Props) {
                 />
 
                 <button
-                    key={id}
+                    key={netId}
                     className={`${classSelected} rounded m-3 px-4 py-2 border border-transparent focus:outline-none h-20 w-20`}
                     onClick={onClick}
                 >
-                    {id}
+                    {netId}
                 </button>
 
                 <FontAwesomeIcon

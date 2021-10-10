@@ -1,13 +1,13 @@
-import styles from './motor-h.module.css';
+import styles from './sign.module.css';
 
 type Props = {};
 
-export function MotorH(props: Props) {
+export function Sign(props: Props) {
     // const {} = props;
 
     return (
         <div className={`${styles.component}`}>
-            <div>MOTOR-H</div>
+            <div>SIGN</div>
         </div>
     );
 }
