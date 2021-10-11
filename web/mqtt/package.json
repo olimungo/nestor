@@ -10,7 +10,7 @@
     "author": "olivier@mungo.eu",
     "license": "ISC",
     "dependencies": {
-        "mqtt": "^4.2.6",
+        "mqtt": "^4.2.8",
         "nodemon": "^2.0.13",
         "redis": "^3.1.2",
         "ts-node": "^9.1.1",
