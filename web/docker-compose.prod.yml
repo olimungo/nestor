@@ -15,7 +15,7 @@ services:
         expose:
             - 1883
     websockets:
-        image: olimungo/nestor-websockets:0.3
+        image: olimungo/nestor-websockets:0.4
         container_name: websockets
         ports:
             - 9000:9000
@@ -25,7 +25,7 @@ services:
             - REDIS_URL=redis://redis
             - CORS_ORIGIN=http://nestor.local,http://192.168.0.235
     mqtt:
-        image: olimungo/nestor-mqtt:0.2
+        image: olimungo/nestor-mqtt:0.3
         container_name: mqtt
         ports:
             - 9001:9001
@@ -35,7 +35,7 @@ services:
             - REDIS_URL=redis://redis
             - MOSQUITTO_URL=mqtt://mosquitto
     nestor:
-        image: olimungo/nestor:0.104
+        image: olimungo/nestor:0.105
         container_name: nestor
         ports:
             - 80:80
