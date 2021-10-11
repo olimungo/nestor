@@ -33,7 +33,7 @@ class Main:
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
         self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, settings.net_id, MQTT_TOPIC_NAME, DEVICE_TYPE
+            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
         )
 
         routes = {
