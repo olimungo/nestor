@@ -14,13 +14,14 @@ from motor import Motor
 
 DEVICE_TYPE = b"SHADE"
 PUBLIC_NAME = b"Shade"
-# BROKER_NAME = b"nestor.local"
-BROKER_NAME = b"deathstar.local"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"shades"
-CHECK_CONNECTED = const(250)
-WAIT_BEFORE_RESET = const(10)
-MQTT_CHECK_MESSAGE_INTERVAL = const(250)
-MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
+
+CHECK_CONNECTED = const(250) # milliseconds
+WAIT_BEFORE_RESET = const(10) # seconds
+MQTT_CHECK_MESSAGE_INTERVAL = const(250) # milliseconds
+MQTT_CHECK_CONNECTED_INTERVAL = const(1000) # milliseconds
 
 class Main:
     def __init__(self):

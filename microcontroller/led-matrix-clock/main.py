@@ -1,5 +1,6 @@
 from uasyncio import get_event_loop, sleep_ms
 from machine import reset, Pin, SPI
+from time import sleep
 from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
@@ -13,18 +14,19 @@ from credentials import Credentials
 from tags import Tags
 from clock import Clock
 
+DEVICE_TYPE = b"CLOCK"
 PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"clocks"
-DEVICE_TYPE = b"CLOCK"
+
 SPINNER_MINIMUM_DISPLAY = const(2000)
 CS = const(15)
 
-CHECK_CONNECTED = const(250)
-WAIT_BEFORE_RESET = const(10000)
-MQTT_CHECK_MESSAGE_INTERVAL = const(250)
-MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
+CHECK_CONNECTED = const(250) # milliseconds
+WAIT_BEFORE_RESET = const(10) # seconds
+MQTT_CHECK_MESSAGE_INTERVAL = const(250) # milliseconds
+MQTT_CHECK_CONNECTED_INTERVAL = const(1000) # milliseconds
 
 class Main:
     def __init__(self):
@@ -35,7 +37,7 @@ class Main:
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
         self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, settings.net_id, MQTT_TOPIC_NAME, DEVICE_TYPE
+            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
         )
 
         routes = {
@@ -95,25 +97,21 @@ class Main:
                 if match("add-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
+                    self.set_state()
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
+                    self.set_state()
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
 
     def settings_values(self, params):
-        credentials = Credentials().load()
         settings = Settings().load()
 
-        essid = credentials.essid
-
-        if not essid:
-            essid = b""
-
         result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, int(settings.brightness))
+            b'{"ip": "%s", "netId": "%s", "brightness": "%s"}'
+            % (self.wifi.ip, settings.net_id, int(settings.brightness))
         )
 
         return result
@@ -152,5 +150,5 @@ try:
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
-    sleep_ms(WAIT_BEFORE_RESET)
+    sleep(WAIT_BEFORE_RESET)
     reset()
