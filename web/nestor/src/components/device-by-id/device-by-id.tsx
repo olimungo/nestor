@@ -35,7 +35,7 @@ export function DeviceById(props: Props) {
 
                 <button
                     key={netId}
-                    className={`${classSelected} rounded m-3 px-4 py-2 border border-transparent focus:outline-none h-20 w-20`}
+                    className={`${classSelected} rounded-lg m-3 px-4 py-2 border border-transparent focus:outline-none h-20 w-20`}
                     onClick={onClick}
                 >
                     {netId}

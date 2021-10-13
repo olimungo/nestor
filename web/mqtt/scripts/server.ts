@@ -1,7 +1,7 @@
 import redis from './redis';
 
-const DEBUG_MOCK_DATA = false;
-const DEBUG_KEEP_DEVICE = false;
+const DEBUG_MOCK_DATA = true;
+const DEBUG_KEEP_DEVICE = true;
 const LIMIT_TO_BE_REMOVED = 4000; // milliseconds
 const CHECK_LAST_STATUS_FREQUENCY = 250; // milliseconds
 const CHECK_COMMANDS_FREQUENCY = 250; // milliseconds
@@ -124,13 +124,23 @@ function mockData() {
         '{"ip": "192.168.0.122", "type": "SHADE", "state": "BOTTOM", "tags": ["entrance","city2", "door"] }'
     );
 
-    // persistState(
-    //     'switches/11',
-    //     '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
-    // );
+    persistState(
+        'switches/11',
+        '{"ip": "192.168.0.199", "type": "SWITCH", "state": "OFF", "tags": ["living-room","disco", "light"] }'
+    );
 
-    // persistState(
-    //     'clocks/10',
-    //     '{"ip": "192.168.0.201", "type": "CLOCK", "state": "ON", "tags": ["garden","city3"] }'
-    // );
+    persistState(
+        'clocks/10',
+        '{"ip": "192.168.0.201", "type": "CLOCK", "state": "ON", "tags": ["garden","city3"] }'
+    );
+
+    persistState(
+        'signs/1',
+        '{"ip": "192.168.0.054", "type": "SIGN", "state": "ON", "tags": ["garden","city3"] }'
+    );
+
+    persistState(
+        'signs/2',
+        '{"ip": "192.168.0.055", "type": "SIGN", "state": "ON", "tags": ["garden","city4"] }'
+    );
 }

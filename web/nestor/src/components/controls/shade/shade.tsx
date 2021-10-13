@@ -58,25 +58,26 @@ export function Shade(props: Props) {
 
     return (
         <div className={`${styles.component}`}>
-            <div>SHADES</div>
+            <div className="text-3xl mt-6 ml-6">SHADES</div>
 
             <div className="flex flex-col items-center w-full">
-                <div className="m-8">
+                <div className="m-5">
                     <ButtonBigUp onClick={() => handleCommand('up')} />
                 </div>
-                <div className="m-8">
+                <div className="m-5">
                     <ButtonBigStop onClick={() => handleCommand('stop')} />
                 </div>
-                <div className="m-8">
+                <div className="m-5">
                     <ButtonBigDown onClick={() => handleCommand('down')} />
                 </div>
 
                 <div className="flex">
                     <ButtonLabel label="All" onClick={() => handleAllOrNone(true)} />
+                    <div className="w-4"></div>
                     <ButtonLabel label="None" onClick={() => handleAllOrNone(false)} />
                 </div>
 
-                <div className="flex mt-5 text-4xl">
+                <div className="flex text-4xl">
                     {devicesById.map((device) => (
                         <DeviceById
                             key={device.netId}

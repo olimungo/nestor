@@ -20,8 +20,11 @@ export function DeviceGroup(props: Props) {
 
                         <div className="flex flex-wrap">
                             {iotDeviceGroup.devices.map((device) => (
-                                <div className="m-2 bg-blue-500 rounded-lg p-2" key={device.id}>
-                                    {device.id}
+                                <div
+                                    className="m-2 bg-blue-500 rounded-lg p-2 w-12 text-center"
+                                    key={device.id}
+                                >
+                                    {device.netId}
                                 </div>
                             ))}
                         </div>

@@ -9,6 +9,7 @@ import { DefaultEventsMap } from 'socket.io-client/build/typed-events';
 function App() {
     const [devices, setDevices] = useState<IotDevice[]>([]);
     const [socket, setSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>();
+    const sortIotDevice = (a: IotDevice, b: IotDevice) => (a.id > b.id ? 1 : -1);
 
     useEffect(() => {
         console.log('SOCKET INIT');
@@ -17,14 +18,16 @@ function App() {
 
         setSocket(socket);
 
-        const gotDevices = (devices: IotDevice[]) => setDevices(devices);
+        const gotDevices = (devices: IotDevice[]) => setDevices(devices.sort(sortIotDevice));
         const updateDevice = (updatedDevice: IotDevice) =>
             setDevices((devices) => {
                 const filtered = devices.filter((device) => device.id !== updatedDevice.id);
-                return [...filtered, updatedDevice];
+                return [...filtered, updatedDevice].sort(sortIotDevice);
             });
         const removeDevice = (deviceToRemoveId: string) =>
-            setDevices((devices) => devices.filter((device) => device.id !== deviceToRemoveId));
+            setDevices((devices) =>
+                devices.filter((device) => device.id !== deviceToRemoveId).sort(sortIotDevice)
+            );
 
         socket.on('devices', gotDevices);
         socket.on('update-device', updateDevice);
