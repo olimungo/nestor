@@ -79,7 +79,7 @@ function App() {
                                 </Route>
 
                                 <Route path="/">
-                                    <Redirect to="/commands" />
+                                    <Redirect to="/tags" />
                                 </Route>
                             </Switch>
                         </div>
