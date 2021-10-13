@@ -25,9 +25,9 @@ SPINNER_MINIMUM_DISPLAY = const(2000)
 
 class State:
     OFF = 0
-    CLOCK = 1
+    ON = 1
 
-    STATE_TEXT = ["OFF", "CLOCK"]
+    STATE_TEXT = ["OFF", "ON"]
 
 class Main:
     def __init__(self):
@@ -70,7 +70,7 @@ class Main:
 
             settings = Settings().load()
 
-            if settings.state != b"%s" % State.CLOCK:
+            if settings.state != b"%s" % State.ON:
                 self.display.off()
             else:
                 self.display.display_clock()
@@ -126,8 +126,8 @@ class Main:
     def display_clock(self, params=None):
         settings = Settings().load()
 
-        if settings.state != b"%s" % State.CLOCK:
-            settings.state = b"%s" % State.CLOCK
+        if settings.state != b"%s" % State.ON:
+            settings.state = b"%s" % State.ON
             settings.write()
             self.display.display_clock()
             self.set_state()
@@ -147,7 +147,7 @@ class Main:
 
         _, _, l = self.display.clock.hsl
 
-        settings.state = b"%s" % State.CLOCK
+        settings.state = b"%s" % State.ON
         settings.write()
 
         return b'{"brightness": "%s"}' % int(l)
@@ -162,13 +162,14 @@ class Main:
             self.display.clock.set_brightness(l)
 
             settings.color = b"%s" % self.display.clock.hex
-            settings.state = b"%s" % State.CLOCK
+            settings.state = b"%s" % State.ON
         else:
             self.display.off()
             settings.state = b"%s" % State.OFF
             self.set_state()
 
         settings.write()
+        self.set_state()
 
     def set_state(self):
         settings = Settings().load()
