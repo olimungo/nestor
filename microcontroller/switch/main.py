@@ -1,5 +1,6 @@
 from uasyncio import get_event_loop, sleep_ms
 from machine import reset, Pin
+from time import sleep
 from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
@@ -12,13 +13,13 @@ from credentials import Credentials
 from tags import Tags
 
 PUBLIC_NAME = b"Switch"
-# BROKER_NAME = b"nestor.local"
-BROKER_NAME = b"deathstar.local"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
 DEVICE_TYPE = b"SWITCH"
 
 CHECK_CONNECTED = const(250)
-WAIT_BEFORE_RESET = const(10000)
+WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
@@ -44,6 +45,11 @@ class Main:
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
         self.switch = Pin(PIN_SWITCH, Pin.OUT)
+
+        if settings.state == b"1":
+            self.switch.on()
+        else:
+            self.switch.off()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -82,9 +88,11 @@ class Main:
                 if match("add-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
+                    self.set_state()
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
+                    self.set_state()
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
@@ -136,5 +144,5 @@ try:
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
-    sleep_ms(WAIT_BEFORE_RESET)
+    sleep(WAIT_BEFORE_RESET)
     reset()
