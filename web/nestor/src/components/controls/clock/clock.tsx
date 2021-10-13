@@ -7,7 +7,7 @@ export function Clock(props: Props) {
 
     return (
         <div className={`${styles.component}`}>
-            <div>SLIDER</div>
+            <div className="text-3xl mt-6 ml-6">CLOCK</div>
         </div>
     );
 }
