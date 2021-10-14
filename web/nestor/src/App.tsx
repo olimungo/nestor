@@ -12,8 +12,6 @@ function App() {
     const sortIotDevice = (a: IotDevice, b: IotDevice) => (a.id > b.id ? 1 : -1);
 
     useEffect(() => {
-        console.log('SOCKET INIT');
-
         const socket = io(process.env.REACT_APP_WEBSOCKETS || 'ws://localhost:3001');
 
         setSocket(socket);
@@ -36,8 +34,6 @@ function App() {
         socket.emit('get-devices');
 
         return () => {
-            console.log('SOCKET OFF');
-
             socket.off('devices', gotDevices);
             socket.off('update-device', updateDevice);
             socket.off('remove-device', removeDevice);
