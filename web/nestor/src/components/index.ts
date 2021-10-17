@@ -5,7 +5,6 @@ export * from './card';
 export * from './controls';
 export * from './device';
 export * from './device-by-id';
-export * from './device-by-tags';
 export * from './device-group';
 export * from './device-selector';
 export * from './input';

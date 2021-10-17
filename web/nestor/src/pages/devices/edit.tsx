@@ -12,15 +12,15 @@ export function EditDevice() {
     const [newTag, setNewTag] = useState('');
 
     useEffect(() => {
-        if (urlId && appContext.devices && !device) {
-            const device = appContext.devices.find((device) => device.urlId === urlId);
+        if (urlId && appContext.store.devices && !device) {
+            const device = appContext.store.devices.find((device) => device.urlId === urlId);
 
             if (device) {
                 setDevice(device);
                 setTags(device.tags);
             }
         }
-    }, [urlId, appContext.devices]);
+    }, [urlId, appContext.store.devices]);
 
     const handleRemoveTag = (tagToRemove: string) => {
         if (device) {
