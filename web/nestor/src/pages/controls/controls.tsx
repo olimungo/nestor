@@ -5,29 +5,28 @@ import { Sign, Shade, Clock, Switch } from '@components';
 
 export function Controls() {
     const appContext = useContext(AppContext);
-    const [selectedDevices, setSelectedDevices] = useState<IotDevice[]>([]);
-    const [id, setId] = useState<IotDeviceType>();
+    const [devices, setDevices] = useState<IotDevice[]>([]);
+    const [deviceType, setDeviceType] = useState<IotDeviceType>();
 
     useEffect(() => {
-        if (appContext.selectedGroup) {
-            setId(appContext.selectedGroup.type);
-            setSelectedDevices(appContext.selectedGroup.devices);
+        if (appContext.store.selectedGroup) {
+            setDeviceType(appContext.store.selectedGroup.type);
+            setDevices(appContext.store.selectedGroup.devices);
         }
-    }, [appContext.selectedGroup]);
+    }, [appContext.store.selectedGroup]);
 
-    const handleCommand = (id: string, command: string) => {
+    const handleCommand = (id: string, command: string) =>
         appContext.socket?.emit('mqtt-command', {
             device: id,
             command,
         });
-    };
 
     return (
         <div className={`${styles.component} text-white`}>
-            {id === 'SHADE' ? <Shade devices={selectedDevices} onCommand={handleCommand} /> : ''}
-            {id === 'SIGN' ? <Sign /> : ''}
-            {id === 'CLOCK' ? <Clock /> : ''}
-            {id === 'SWITCH' ? <Switch /> : ''}
+            {deviceType === 'SHADE' ? <Shade devices={devices} onCommand={handleCommand} /> : ''}
+            {deviceType === 'SIGN' ? <Sign /> : ''}
+            {deviceType === 'CLOCK' ? <Clock devices={devices} onCommand={handleCommand} /> : ''}
+            {deviceType === 'SWITCH' ? <Switch /> : ''}
         </div>
     );
 }

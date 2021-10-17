@@ -16,9 +16,11 @@ export type IotDeviceGroup = {
     devices: IotDevice[];
 };
 
-export type DevicesByTagsType = {
+export type IotDevicesByTags = {
     id: number;
     code: string;
     label: string;
     devices: IotDevice[];
 };
+
+export type IotDeviceById = { id: string; netId: string; selected: boolean };

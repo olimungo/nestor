@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { AppContext, IotDevice } from '@models';
+import { io } from 'socket.io-client';
+import { AppContext, IotDevice, SocketType, Store, StoreInit } from '@models';
 import { AppFooter, AppHeader } from '@components';
 import { Redirect, Route, Switch } from 'react-router';
 import { Commands, Controls, Devices, EditDevice, Tags } from '@pages';
-import { DefaultEventsMap } from 'socket.io-client/build/typed-events';
 
 function App() {
     const [devices, setDevices] = useState<IotDevice[]>([]);
-    const [socket, setSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>();
+    const [socket, setSocket] = useState<SocketType>();
+    const [store, setStore] = useState<Store>(StoreInit);
     const sortIotDevice = (a: IotDevice, b: IotDevice) => (a.id > b.id ? 1 : -1);
 
     useEffect(() => {
@@ -16,7 +16,17 @@ function App() {
 
         setSocket(socket);
 
-        const gotDevices = (devices: IotDevice[]) => setDevices(devices.sort(sortIotDevice));
+        const gotDevices = (devices: IotDevice[]) => {
+            const sortedDevices = devices.sort(sortIotDevice);
+
+            setStore((previous) => {
+                previous.devices = sortedDevices;
+                return previous;
+            });
+
+            setDevices(sortedDevices);
+        };
+
         const updateDevice = (updatedDevice: IotDevice) =>
             setDevices((devices) => {
                 const filtered = devices.filter((device) => device.id !== updatedDevice.id);
@@ -42,7 +52,7 @@ function App() {
 
     return (
         <>
-            <AppContext.Provider value={{ devices, socket }}>
+            <AppContext.Provider value={{ socket, store }}>
                 <div className="h-100 w-100 text-white" style={{ maxWidth: '70rem' }}>
                     <div className="flex flex-col items-center h-full md:w-12/12">
                         <div className="w-full">

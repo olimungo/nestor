@@ -10,10 +10,8 @@ export function Devices() {
     const [devices, setDevices] = useState<IotDevice[]>([]);
 
     useEffect(() => {
-        if (appContext.devices) {
-            setDevices(appContext.devices.sort((a, b) => (a.id > b.id ? 1 : -1)));
-        }
-    }, [appContext.devices]);
+        setDevices(appContext.store.devices.sort((a, b) => (a.id > b.id ? 1 : -1)));
+    }, [appContext.store.devices]);
 
     const handleEditDevice = (urlId: string) => history.push(`/devices/${urlId}`);
 

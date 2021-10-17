@@ -10,11 +10,12 @@ export function Tags() {
     const [allTags, setAllTags] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [iotDeviceGroups, setIotDeviceGroups] = useState<IotDeviceGroup[]>([]);
+    const sortIotDeviceGroup = (a: IotDeviceGroup, b: IotDeviceGroup) => (a.type > b.type ? 1 : -1);
 
+    // Create the groups for the different type of devices.
     useEffect(() => {
         const groups: IotDeviceGroup[] = [];
 
-        // Create the groups for the different type of devices.
         IotDeviceTypes.forEach((iotDeviceType) => {
             groups.push({
                 type: iotDeviceType,
@@ -22,54 +23,50 @@ export function Tags() {
             });
         });
 
-        setIotDeviceGroups(groups.sort((a, b) => (a.type > b.type ? 1 : -1)));
+        setIotDeviceGroups(groups.sort(sortIotDeviceGroup));
     }, []);
 
+    // Insert all tags from all devices in a set, so to have only one value per tag.
     useEffect(() => {
-        if (appContext.devices && appContext.devices.length > 0) {
-            // Insert all tags from all devices in a set, so to have only one value per tag.
-            const allTags = new Set<string>();
+        const allTags = new Set<string>();
 
-            appContext.devices.forEach((device) => {
-                if (device.tags) {
-                    device.tags.forEach((tag) => allTags.add(tag));
-                }
+        appContext.store.devices.forEach((device) => {
+            if (device.tags) {
+                device.tags.forEach((tag) => allTags.add(tag));
+            }
+        });
+
+        setAllTags(Array.from(allTags).sort((a, b) => (a > b ? 1 : -1)));
+    }, [appContext.store.devices]);
+
+    // Filter devices that are missing the selected tags.
+    useEffect(() => {
+        const devices = appContext.store.devices.filter((device) => {
+            const remainingTags = selectedTags.filter(
+                (selectedTag) => device.tags.findIndex((tag) => tag === selectedTag) === -1
+            );
+
+            return remainingTags.length === 0;
+        });
+
+        setIotDeviceGroups((iotDeviceGroups) => {
+            const newIotDeviceGroups = [...iotDeviceGroups];
+
+            newIotDeviceGroups.forEach((iotDeviceGroup) => {
+                iotDeviceGroup.devices = [];
             });
 
-            setAllTags(Array.from(allTags).sort((a, b) => (a > b ? 1 : -1)));
-        }
-    }, [appContext.devices]);
-
-    useEffect(() => {
-        if (appContext.devices && appContext.devices.length > 0) {
-            // Filter devices that are missing the selected tags.
-            const devices = appContext.devices.filter((device) => {
-                const remainingTags = selectedTags.filter(
-                    (selectedTag) => device.tags.findIndex((tag) => tag === selectedTag) === -1
-                );
-
-                return remainingTags.length === 0;
-            });
-
-            setIotDeviceGroups((iotDeviceGroups) => {
-                const newIotDeviceGroups = [...iotDeviceGroups];
-
+            devices.forEach((device) => {
                 newIotDeviceGroups.forEach((iotDeviceGroup) => {
-                    iotDeviceGroup.devices = [];
+                    if (iotDeviceGroup.type === device.type) {
+                        iotDeviceGroup.devices.push(device);
+                    }
                 });
-
-                devices.forEach((device) => {
-                    newIotDeviceGroups.forEach((iotDeviceGroup) => {
-                        if (iotDeviceGroup.type === device.type) {
-                            iotDeviceGroup.devices.push(device);
-                        }
-                    });
-                });
-
-                return newIotDeviceGroups;
             });
-        }
-    }, [selectedTags, appContext.devices]);
+
+            return newIotDeviceGroups;
+        });
+    }, [selectedTags, appContext.store.devices]);
 
     const handleTagClicked = (label: string) => {
         // Check if tag was already selected
@@ -85,7 +82,7 @@ export function Tags() {
     };
 
     const handleGroupSelected = (iotDeviceGroup: IotDeviceGroup) => {
-        appContext.selectedGroup = iotDeviceGroup;
+        appContext.store.selectedGroup = iotDeviceGroup;
         history.push('/controls');
     };
 
