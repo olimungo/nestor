@@ -2,7 +2,7 @@ import redis from './redis';
 import { Server } from 'socket.io';
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN.split(',') || 'http://localhost:3000';
-const CHECK_DEVICE_UPDATES = 250; // milliseconds
+const CHECK_DEVICE_UPDATES = 100; // milliseconds
 const ROOM_ID = 'nestor';
 let devices = [];
 
