@@ -1,9 +1,8 @@
 import styles from './shade.module.css';
-import { ButtonBigDown, ButtonBigStop, ButtonBigUp, DeviceById, ButtonLabel } from '@components';
-import { IotDevice } from '@models';
+import { ButtonBigDown, ButtonBigStop, ButtonBigUp, DeviceSelector } from '@components';
+import { IotDevice, IotDeviceById } from '@models';
 import { useEffect, useState } from 'react';
 
-type DeviceByIdType = { id: string; netId: string; selected: boolean };
 type Props = {
     devices: IotDevice[];
     onCommand?: (name: string, command: string) => void;
@@ -12,7 +11,7 @@ type Props = {
 export function Shade(props: Props) {
     const dummyCallback = () => true;
     const { devices, onCommand = dummyCallback } = props;
-    const [devicesById, setDevicesById] = useState<DeviceByIdType[]>([]);
+    const [devicesById, setDevicesById] = useState<IotDeviceById[]>([]);
 
     useEffect(() => {
         if (devices) {
@@ -28,33 +27,12 @@ export function Shade(props: Props) {
         }
     }, [devices]);
 
-    const changeSelected = (netId: string) => {
-        setDevicesById((previousState) =>
-            previousState.map((device) => {
-                if (device.netId === netId) {
-                    return { id: device.id, netId, selected: !device.selected };
-                }
-
-                return device;
-            })
-        );
-    };
-
-    const handleAllOrNone = (selected: boolean) => {
-        setDevicesById((previousState) =>
-            previousState.map((device) => {
-                return { id: device.id, netId: device.netId, selected };
-            })
-        );
-    };
-
-    const handleCommand = (command: string) => {
+    const handleCommand = (command: string) =>
         devicesById.forEach((device) => {
             if (device.selected) {
                 onCommand(device.id, command);
             }
         });
-    };
 
     return (
         <div className={`${styles.component}`}>
@@ -71,22 +49,10 @@ export function Shade(props: Props) {
                     <ButtonBigDown onClick={() => handleCommand('down')} />
                 </div>
 
-                <div className="flex">
-                    <ButtonLabel label="All" onClick={() => handleAllOrNone(true)} />
-                    <div className="w-4"></div>
-                    <ButtonLabel label="None" onClick={() => handleAllOrNone(false)} />
-                </div>
-
-                <div className="flex text-4xl">
-                    {devicesById.map((device) => (
-                        <DeviceById
-                            key={device.netId}
-                            netId={device.netId}
-                            selected={device.selected}
-                            onClick={() => changeSelected(device.netId)}
-                        />
-                    ))}
-                </div>
+                <DeviceSelector
+                    devices={devicesById}
+                    onChange={(devices) => setDevicesById(devices)}
+                />
             </div>
         </div>
     );

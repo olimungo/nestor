@@ -1,9 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faChevronUp,
-    faChevronDown,
-    faStopCircle,
-} from '@fortawesome/free-solid-svg-icons';
+import { faChevronUp, faChevronDown, faStopCircle } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@components';
 
 type Props = { onClick?: () => void; label?: string };
@@ -160,6 +156,28 @@ export function ButtonBigStop(props: Props) {
             }
             colorClassBackground="bg-yellow-600"
             colorClassBackgroundFocus="bg-yellow-500"
+        />
+    );
+}
+
+export function ButtonOn(props: Props) {
+    return (
+        <Button
+            onClick={props.onClick}
+            content="On"
+            colorClassBackground="bg-yellow-600"
+            colorClassBackgroundFocus="bg-yellow-500"
+        />
+    );
+}
+
+export function ButtonOff(props: Props) {
+    return (
+        <Button
+            onClick={props.onClick}
+            content="Off"
+            colorClassBackground="bg-indigo-800"
+            colorClassBackgroundFocus="bg-indigo-800"
         />
     );
 }
