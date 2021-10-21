@@ -164,9 +164,10 @@ export function ButtonOn(props: Props) {
     return (
         <Button
             onClick={props.onClick}
-            content="On"
-            colorClassBackground="bg-yellow-600"
-            colorClassBackgroundFocus="bg-yellow-500"
+            content="ON"
+            textSize="large"
+            colorClassBackground="bg-green-800"
+            colorClassBackgroundFocus="bg-green-700"
         />
     );
 }
@@ -175,9 +176,10 @@ export function ButtonOff(props: Props) {
     return (
         <Button
             onClick={props.onClick}
-            content="Off"
-            colorClassBackground="bg-indigo-800"
-            colorClassBackgroundFocus="bg-indigo-800"
+            content="OFF"
+            textSize="large"
+            colorClassBackground="bg-red-800"
+            colorClassBackgroundFocus="bg-red-700"
         />
     );
 }

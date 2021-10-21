@@ -40,11 +40,13 @@ export function Clock(props: Props) {
             <div className="text-3xl mt-6 ml-6">CLOCK</div>
 
             <div className="flex flex-col items-center w-full">
-                <div className="m-5">
-                    <ButtonOn onClick={() => handleCommand('up')} />
-                </div>
-                <div className="m-5">
-                    <ButtonOff onClick={() => handleCommand('stop')} />
+                <div className="flex">
+                    <div className="m-5">
+                        <ButtonOn onClick={() => handleCommand('on')} />
+                    </div>
+                    <div className="m-5">
+                        <ButtonOff onClick={() => handleCommand('off')} />
+                    </div>
                 </div>
 
                 <DeviceSelector
