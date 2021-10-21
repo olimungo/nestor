@@ -17,6 +17,7 @@ PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"clocks"
+
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
@@ -93,6 +94,8 @@ class Main:
             self.set_state()
 
     def check_message_mqtt(self):
+        settings = Settings().load()
+
         try:
             message = self.mqtt.check_messages()
             tags = Tags().load()
@@ -104,6 +107,16 @@ class Main:
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
+                elif match("on", message):
+                    self.display_clock()
+                    settings.state = b"%s" % State.ON
+                    settings.write()
+                    self.set_state()
+                elif match("off", message):
+                    self.display.off()
+                    settings.state = b"%s" % State.OFF
+                    settings.write()
+                    self.set_state()
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
@@ -166,7 +179,6 @@ class Main:
         else:
             self.display.off()
             settings.state = b"%s" % State.OFF
-            self.set_state()
 
         settings.write()
         self.set_state()

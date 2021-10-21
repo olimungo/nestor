@@ -1,2 +1,66 @@
 .component {
 }
+
+.toggleContainer {
+    font-size: 0.9rem;
+}
+
+.toggle {
+    display: none;
+}
+
+.toggleBackground {
+    background-color: #888;
+    border-radius: 50px;
+    cursor: pointer;
+    display: inline-block;
+    width: 13.3em;
+    height: 6em;
+    position: relative;
+    border: 0.3rem solid #eee;
+}
+
+.toggle:checked + .toggleBackground {
+    background-color: rgb(73, 165, 73);
+}
+
+.ball {
+    background: #e9f7ff;
+    height: 4.9em;
+    width: 4.9em;
+    border-radius: 50%;
+    position: absolute;
+    top: 0.2em;
+    left: 0.2em;
+    align-items: center;
+    justify-content: center;
+    animation: slideOff 0.2s linear forwards;
+}
+
+.toggle:checked + .toggleBackground .ball {
+    animation: slideOn 0.2s linear forwards;
+}
+
+@keyframes slideOn {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(6.6rem) scale(1);
+    }
+}
+
+@keyframes slideOff {
+    0% {
+        transform: translateX(6.6rem) scale(1);
+    }
+    50% {
+        transform: translateX(3.2rem) scale(1.2);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}

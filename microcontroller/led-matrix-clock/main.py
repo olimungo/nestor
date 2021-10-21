@@ -28,6 +28,12 @@ WAIT_BEFORE_RESET = const(10) # seconds
 MQTT_CHECK_MESSAGE_INTERVAL = const(250) # milliseconds
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000) # milliseconds
 
+class State:
+    OFF = 0
+    ON = 1
+
+    STATE_TEXT = ["OFF", "ON"]
+
 class Main:
     def __init__(self):
         self.sta_if = WLAN(STA_IF)
@@ -49,6 +55,8 @@ class Main:
 
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
+
+        print("------ brightness: {} ".format(str(int(settings.brightness))))
         self.board.brightness(int(settings.brightness))
         self.board.fill(0)
         self.board.show()
@@ -66,12 +74,14 @@ class Main:
             while not self.sta_if.isconnected() or self.ap_if.active():
                 await sleep_ms(CHECK_CONNECTED)
 
-            self.set_state()
-
             settings = Settings().load()
-            
-            if settings.brightness != b"0":
+
+            if settings.state != b"%s" % State.ON:
+                self.clock.stop()
+            else:
                 self.clock.start()
+
+            self.set_state()
 
             while self.sta_if.isconnected():
                 await sleep_ms(CHECK_CONNECTED)
@@ -89,6 +99,8 @@ class Main:
             self.set_state()
 
     def check_message_mqtt(self):
+        settings = Settings().load()
+
         try:
             message = self.mqtt.check_messages()
             tags = Tags().load()
@@ -102,6 +114,16 @@ class Main:
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()
+                elif match("on", message):
+                    self.clock.start()
+                    settings.state = b"%s" % State.ON
+                    settings.write()
+                    self.set_state()
+                elif match("off", message):
+                    self.clock.stop()
+                    settings.state = b"%s" % State.OFF
+                    settings.write()
+                    self.set_state()
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))
@@ -109,9 +131,14 @@ class Main:
     def settings_values(self, params):
         settings = Settings().load()
 
+        if settings.state == b"%s" % State.OFF:
+            brightness = 0
+        else:
+            brightness = int(settings.brightness)
+
         result = (
             b'{"ip": "%s", "netId": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, settings.net_id, int(settings.brightness))
+            % (self.wifi.ip, settings.net_id, brightness)
         )
 
         return result
@@ -120,27 +147,22 @@ class Main:
         settings = Settings().load()
         l = int(params.get(b"l", 0))
 
-        if l >= 0 or l < 12:
+        if l == 0:
+            settings.state = b"%s" % State.OFF
+            self.clock.stop()
+        elif l < 12:
+            settings.state = b"%s" % State.ON
             settings.brightness = b"%s" % l
-            settings.write()
 
-            if l == 0:
-                self.clock.stop()
-            else:
-                self.board.brightness(l-1)
-                self.clock.start()
+            self.board.brightness(l-1)
+            self.clock.start()
 
-            self.set_state()
+        settings.write()
+        self.set_state()
 
     def set_state(self):
         settings = Settings().load()
-
-        if settings.brightness == b"0":
-            state = "OFF"
-        else:
-            state = "ON"
-
-        self.mqtt.set_state(state)
+        self.mqtt.set_state(State.STATE_TEXT[int(settings.state)])
 
 try:
     collect()
