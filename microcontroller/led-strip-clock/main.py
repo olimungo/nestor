@@ -108,7 +108,7 @@ class Main:
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                 elif match("on", message):
-                    self.display_clock()
+                    self.display.display_clock()
                     settings.state = b"%s" % State.ON
                     settings.write()
                     self.set_state()
