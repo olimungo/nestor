@@ -25,26 +25,34 @@ export function Device(props: Props) {
     return (
         <div className={`${styles.component} m-5`}>
             <Card>
-                <>
-                    <div>Name: {device.id}</div>
-                    <div className="flex items-center">
-                        <div className="mr-3">IP: {device.ip}</div>
-                        <FontAwesomeIcon
-                            className="mr-3"
-                            icon={faExternalLinkAlt}
-                            onClick={() => openDevice(device.ip)}
-                        />
-                    </div>
-                    <div>Type: {device.type}</div>
-                    <div>State: {device.state}</div>
+                <div className="m-2">
                     <div className="flex">
+                        <div className="flex text-2xl">
+                            <div>{device.type}</div>
+                            <div className="mx-4">{device.netId}</div>
+                            <div className="mx-2 text-gray-400">{device.state}</div>
+                        </div>
+                    </div>
+
+                    <div
+                        className="inline-flex mt-2 py-1 px-2 rounded-md bg-gray-800 text-lg"
+                        onClick={() => openDevice(device.ip)}
+                    >
+                        <div className="mr-3">{device.ip}</div>
+
+                        <FontAwesomeIcon className="mt-1" icon={faExternalLinkAlt} />
+                    </div>
+
+                    <div className="flex flex-wrap my-5">
                         {tags.map((tag) => (
                             <Tag key={tag} label={tag} />
                         ))}
                     </div>
 
-                    <ButtonEdit onClick={() => onEditDevice(device.urlId)} />
-                </>
+                    <div className="flex justify-end">
+                        <ButtonEdit onClick={() => onEditDevice(device.urlId)} />
+                    </div>
+                </div>
             </Card>
         </div>
     );

@@ -88,7 +88,7 @@ export function Tags() {
 
     return (
         <div className={`${styles.component}`}>
-            <div className="flex flex-wrap">
+            <div className="flex flex-wrap m-5">
                 {allTags.map((tag) => (
                     <Tag key={tag} label={tag} enableClick={true} onClick={handleTagClicked} />
                 ))}

@@ -10,8 +10,8 @@ import { log } from './logger';
 import { mockData } from './mocks';
 import { connect } from 'mqtt';
 
-const DEBUG_MOCK_DATA = false;
-const DEBUG_KEEP_DEVICE = false;
+const DEBUG_MOCK_DATA = true;
+const DEBUG_KEEP_DEVICE = true;
 const LIMIT_TO_BE_REMOVED = 4000; // milliseconds
 const CHECK_LAST_STATUS_FREQUENCY = 250; // milliseconds
 const CHECK_COMMANDS_FREQUENCY = 100; // milliseconds

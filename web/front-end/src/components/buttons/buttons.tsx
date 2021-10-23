@@ -10,7 +10,7 @@ export function ButtonLabel(props: Props) {
             onClick={props.onClick}
             content={props.label}
             colorClassBackground="bg-indigo-800"
-            colorClassBackgroundFocus="bg-indigo-800"
+            colorClassBackgroundFocus="bg-indigo-700"
         />
     );
 }
@@ -20,8 +20,30 @@ export function ButtonOk(props: Props) {
         <Button
             onClick={props.onClick}
             content={<div className="px-4">OK</div>}
-            colorClassBackground="bg-green-700"
-            colorClassBackgroundFocus="bg-green-600"
+            colorClassBackground="bg-indigo-800"
+            colorClassBackgroundFocus="bg-indigo-700"
+        />
+    );
+}
+
+export function ButtonAll(props: Props) {
+    return (
+        <Button
+            onClick={props.onClick}
+            content={<div className="w-14 text-2xl">All</div>}
+            colorClassBackground="bg-indigo-800"
+            colorClassBackgroundFocus="bg-indigo-700"
+        />
+    );
+}
+
+export function ButtonNone(props: Props) {
+    return (
+        <Button
+            onClick={props.onClick}
+            content={<div className="w-14 text-2xl">None</div>}
+            colorClassBackground="bg-indigo-800"
+            colorClassBackgroundFocus="bg-indigo-700"
         />
     );
 }
@@ -37,11 +59,11 @@ export function ButtonCancel(props: Props) {
     );
 }
 
-export function ButtonPrevious(props: Props) {
+export function ButtonBack(props: Props) {
     return (
         <Button
             onClick={props.onClick}
-            content="Previous"
+            content="Back"
             icon="chevron-left"
             colorClassBackground="bg-blue-700"
             colorClassBackgroundFocus="bg-blue-600"
@@ -87,9 +109,10 @@ export function ButtonEdit(props: Props) {
     return (
         <Button
             onClick={props.onClick}
-            content={<div className="px-4">Edit</div>}
-            colorClassBackground="bg-indigo-800"
-            colorClassBackgroundFocus="bg-indigo-700"
+            content="Edit"
+            icon="chevron-right"
+            colorClassBackground="bg-blue-700"
+            colorClassBackgroundFocus="bg-blue-600"
         />
     );
 }

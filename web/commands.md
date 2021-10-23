@@ -32,7 +32,7 @@ docker buildx use nestor-builder
 #### Build and push to Docker Hub
 
 ```bash
-docker buildx build --platform linux/arm/v7 -t olimungo/nestor:0.110 --push front-end
+docker buildx build --platform linux/arm/v7 -t olimungo/nestor:0.113 --push front-end
 docker buildx build --platform linux/arm/v7 -t olimungo/mosquitto:0.1 --push back-end/mosquitto
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor-mqtt:0.5 --push back-end/mqtt
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor-websockets:0.5 --push back-end/websockets
