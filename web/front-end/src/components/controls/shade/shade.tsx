@@ -39,13 +39,15 @@ export function Shade(props: Props) {
             <div className="text-3xl mt-6 ml-6">SHADES</div>
 
             <div className="flex flex-col items-center w-full">
-                <div className="m-5">
+                <div className="mt-5">
                     <ButtonBigUp onClick={() => handleCommand('up')} />
                 </div>
-                <div className="m-5">
+
+                <div className="mt-5">
                     <ButtonBigStop onClick={() => handleCommand('stop')} />
                 </div>
-                <div className="m-5">
+
+                <div className="mt-5">
                     <ButtonBigDown onClick={() => handleCommand('down')} />
                 </div>
 

@@ -12,8 +12,8 @@ type Props = {
     onClick?: (value: string) => void;
 };
 
-const ACTIVE_STYLE = 'bg-red-600';
-const INACTIVE_STYLE = 'bg-red-400';
+const ACTIVE_STYLE = 'bg-green-600';
+const INACTIVE_STYLE = 'bg-yellow-500';
 
 export function Tag(props: Props) {
     const dummyCallback = () => true;
@@ -50,7 +50,7 @@ export function Tag(props: Props) {
 
     return (
         <div
-            className={`${styles.component} flex rounded-lg m-2 px-2 cursor-pointer ${activeStyle}`}
+            className={`${styles.component} flex rounded-lg mr-3 py-2 px-4 cursor-pointer text-xl ${activeStyle}`}
             onClick={handleClick}
         >
             <div className="text-white">{label}</div>

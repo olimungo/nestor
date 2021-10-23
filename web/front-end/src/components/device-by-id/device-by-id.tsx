@@ -10,8 +10,6 @@ export function DeviceById(props: Props) {
     const { netId, selected = true, onClick = dummyCallback } = props;
     const [isSelected, setIsSelected] = useState(false);
     const [classSelected, setClassSelected] = useState('');
-    const [isChevronUpVisible, setIsChevronUpVisible] = useState(false);
-    const [isChevronDownVisible, setIsChevronDownVisible] = useState(false);
 
     useEffect(() => {
         setIsSelected(selected);
@@ -28,11 +26,6 @@ export function DeviceById(props: Props) {
     return (
         <div className={`${styles.component} flex flex-col items-center`}>
             <div className="flex flex-col items-center">
-                <FontAwesomeIcon
-                    className={isChevronUpVisible ? 'visible' : 'invisible'}
-                    icon={faChevronUp}
-                />
-
                 <button
                     key={netId}
                     className={`${classSelected} rounded-lg m-3 px-4 py-2 border border-transparent focus:outline-none h-20 w-20`}
@@ -40,11 +33,6 @@ export function DeviceById(props: Props) {
                 >
                     {netId}
                 </button>
-
-                <FontAwesomeIcon
-                    className={isChevronDownVisible ? 'visible' : 'invisible'}
-                    icon={faChevronDown}
-                />
             </div>
         </div>
     );

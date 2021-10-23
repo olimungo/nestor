@@ -1,6 +1,6 @@
 import { FormEvent, useContext, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Button, ButtonPrevious, Card, Input, Tag } from '@components';
+import { Button, ButtonBack, Card, Input, Tag } from '@components';
 import { AppContext, IotDevice } from '@models';
 
 export function EditDevice() {
@@ -61,12 +61,20 @@ export function EditDevice() {
     return (
         <div className="m-5">
             <Card>
-                <>
-                    <div>Name: {device?.id}</div>
-                    <div>IP: {device?.ip}</div>
-                    <div>Type: {device?.type}</div>
-                    <div>State: {device?.state}</div>
-                    <div className="flex">
+                <div className="m-2">
+                    <div className="flex justify-between content-center">
+                        <div className="flex text-2xl">
+                            <div>{device?.type}</div>
+                            <div className="mx-4">{device?.netId}</div>
+                            <div className="mx-2 text-gray-400">{device?.state}</div>
+                        </div>
+
+                        <div className="flex content-center py-1 px-2 rounded-md bg-gray-800 text-lg">
+                            {device?.ip}
+                        </div>
+                    </div>
+
+                    <div className="flex my-5">
                         {tags.map((tag) => (
                             <Tag
                                 key={tag}
@@ -77,14 +85,18 @@ export function EditDevice() {
                         ))}
                     </div>
 
-                    <form className="flex" onSubmit={handleAddTag}>
-                        <Input value={newTag} onChange={(id) => setNewTag(id)} />
-                        <Button content="Add" colorClassBackground="bg-blue-700" />
-                    </form>
-                </>
-            </Card>
+                    <div className="flex justify-between">
+                        <form className="flex" onSubmit={handleAddTag}>
+                            <Input value={newTag} onChange={(id) => setNewTag(id)} />
 
-            <ButtonPrevious onClick={() => history.goBack()} />
+                            <div className="mr-3"></div>
+
+                            <Button content="Add" colorClassBackground="bg-blue-700" />
+                        </form>
+                        <ButtonBack onClick={() => history.goBack()} />
+                    </div>
+                </div>
+            </Card>
         </div>
     );
 }
