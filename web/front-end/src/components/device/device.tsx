@@ -34,14 +34,13 @@ export function Device(props: Props) {
                         </div>
                     </div>
 
-                    <div className="inline-flex mt-2 py-1 px-2 rounded-md bg-gray-800 text-lg">
+                    <div
+                        className="inline-flex mt-2 py-1 px-2 rounded-md bg-gray-800 text-lg"
+                        onClick={() => openDevice(device.ip)}
+                    >
                         <div className="mr-3">{device.ip}</div>
 
-                        <FontAwesomeIcon
-                            className="mt-1"
-                            icon={faExternalLinkAlt}
-                            onClick={() => openDevice(device.ip)}
-                        />
+                        <FontAwesomeIcon className="mt-1" icon={faExternalLinkAlt} />
                     </div>
 
                     <div className="flex flex-wrap my-5">
