@@ -80,6 +80,8 @@ class Main:
             self.set_state()
 
     def check_message_mqtt(self):
+        settings = Settings().load()
+
         try:
             message = self.mqtt.check_messages()
             tags = Tags().load()
@@ -92,6 +94,16 @@ class Main:
                 elif match("remove-tag/", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
+                    self.set_state()
+                elif match("on", message):
+                    self.switch.on()
+                    settings.state = b"1"
+                    settings.write()
+                    self.set_state()
+                elif match("off", message):
+                    self.switch.off()
+                    settings.state = b"0"
+                    settings.write()
                     self.set_state()
 
         except Exception as e:
