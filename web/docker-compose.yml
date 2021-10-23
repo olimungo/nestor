@@ -10,7 +10,7 @@ services:
     mosquitto:
         image: olimungo/mosquitto
         container_name: mosquitto
-        build: ./mosquitto
+        build: ./back-end/mosquitto
         ports:
             - 1883:1883
         expose:
@@ -18,9 +18,9 @@ services:
     websockets:
         image: olimungo/nestor-websockets
         container_name: websockets
-        build: ./websockets
+        build: ./back-end/websockets
         volumes:
-            - ./websockets/scripts:/usr/src/app/scripts
+            - ./back-end/websockets/scripts:/usr/src/app/scripts
         ports:
             - 9000:9000
         environment:
@@ -31,9 +31,9 @@ services:
     mqtt:
         image: olimungo/nestor-mqtt
         container_name: mqtt
-        build: ./mqtt
+        build: ./back-end/mqtt
         volumes:
-            - ./mqtt/scripts:/usr/src/app/scripts
+            - ./back-end/mqtt/scripts:/usr/src/app/scripts
         ports:
             - 9001:9001
         environment:

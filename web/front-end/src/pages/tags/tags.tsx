@@ -1,6 +1,6 @@
 import styles from './tags.module.css';
 import { useContext, useEffect, useState } from 'react';
-import { AppContext, IotDeviceTypes, IotDeviceGroup } from '@models';
+import { AppContext, IotDeviceTypes, IotDeviceGroup, IotDevice, Store } from '@models';
 import { Tag, DeviceGroup } from '@components';
 import { useHistory } from 'react-router-dom';
 
@@ -41,7 +41,7 @@ export function Tags() {
 
     // Filter devices that are missing the selected tags.
     useEffect(() => {
-        const devices = appContext.store.devices.filter((device) => {
+        const filteredDevices = appContext.store.devices.filter((device) => {
             const remainingTags = selectedTags.filter(
                 (selectedTag) => device.tags.findIndex((tag) => tag === selectedTag) === -1
             );
@@ -56,7 +56,7 @@ export function Tags() {
                 iotDeviceGroup.devices = [];
             });
 
-            devices.forEach((device) => {
+            filteredDevices.forEach((device) => {
                 newIotDeviceGroups.forEach((iotDeviceGroup) => {
                     if (iotDeviceGroup.type === device.type) {
                         iotDeviceGroup.devices.push(device);

@@ -6,9 +6,9 @@ import { Redirect, Route, Switch } from 'react-router';
 import { Commands, Controls, Devices, EditDevice, Tags } from '@pages';
 
 function App() {
-    const [devices, setDevices] = useState<IotDevice[]>([]);
     const [socket, setSocket] = useState<SocketType>();
     const [store, setStore] = useState<Store>(StoreInit);
+    const [devices, setDevices] = useState<IotDevice[]>([]);
     const sortIotDevice = (a: IotDevice, b: IotDevice) => (a.id > b.id ? 1 : -1);
 
     useEffect(() => {
@@ -19,34 +19,21 @@ function App() {
         const gotDevices = (devices: IotDevice[]) => {
             const sortedDevices = devices.sort(sortIotDevice);
 
-            setStore((previous) => {
-                previous.devices = sortedDevices;
-                return previous;
+            setStore((previousStore) => {
+                previousStore.devices = sortedDevices;
+                return previousStore;
             });
 
+            // The command below has no use, but without it the store doesn't get updated in components
             setDevices(sortedDevices);
         };
 
-        const updateDevice = (updatedDevice: IotDevice) =>
-            setDevices((devices) => {
-                const filtered = devices.filter((device) => device.id !== updatedDevice.id);
-                return [...filtered, updatedDevice].sort(sortIotDevice);
-            });
-        const removeDevice = (deviceToRemoveId: string) =>
-            setDevices((devices) =>
-                devices.filter((device) => device.id !== deviceToRemoveId).sort(sortIotDevice)
-            );
-
         socket.on('devices', gotDevices);
-        socket.on('update-device', updateDevice);
-        socket.on('remove-device', removeDevice);
 
         socket.emit('get-devices');
 
         return () => {
             socket.off('devices', gotDevices);
-            socket.off('update-device', updateDevice);
-            socket.off('remove-device', removeDevice);
         };
     }, []);
 
