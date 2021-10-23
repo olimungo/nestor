@@ -1,5 +1,9 @@
 {
     "compilerOptions": {
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "rootDir": "scripts",
+        "outDir": "build",
+        "target": "es5",
+        "module": "commonjs", 
     }
 }
