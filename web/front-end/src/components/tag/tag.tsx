@@ -50,7 +50,7 @@ export function Tag(props: Props) {
 
     return (
         <div
-            className={`${styles.component} flex rounded-lg mr-3 py-2 px-4 cursor-pointer text-xl ${activeStyle}`}
+            className={`${styles.component} flex rounded-lg mr-3 mt-3 py-2 px-4 cursor-pointer text-xl ${activeStyle}`}
             onClick={handleClick}
         >
             <div className="text-white">{label}</div>

@@ -44,7 +44,7 @@ export function Input(props: Props) {
                 setWidth({ width: '9rem' });
                 break;
             case 'regular':
-                setWidth({ width: '17rem' });
+                setWidth({ width: '14rem' });
                 break;
             case 'large':
                 setWidth({ width: '33rem' });
@@ -73,7 +73,7 @@ export function Input(props: Props) {
                 value={inputValue}
                 placeholder={placeholder}
                 onChange={handleChange}
-                className={`text-white bg-gray-500 px-3 py-1 border-2 border-transparent
+                className={`text-white bg-gray-500 px-3 py-2 border-2 border-transparent
                     focus:border-yellow-500 rounded-full outline-none`}
                 style={width}
             />

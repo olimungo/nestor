@@ -26,24 +26,25 @@ export function Device(props: Props) {
         <div className={`${styles.component} m-5`}>
             <Card>
                 <div className="m-2">
-                    <div className="flex justify-between content-center">
+                    <div className="flex">
                         <div className="flex text-2xl">
                             <div>{device.type}</div>
                             <div className="mx-4">{device.netId}</div>
                             <div className="mx-2 text-gray-400">{device.state}</div>
                         </div>
-
-                        <div className="flex content-center py-1 px-2 rounded-md bg-gray-800 text-lg">
-                            <div className="mr-3">{device.ip}</div>
-                            <FontAwesomeIcon
-                                className="mt-1"
-                                icon={faExternalLinkAlt}
-                                onClick={() => openDevice(device.ip)}
-                            />
-                        </div>
                     </div>
 
-                    <div className="flex my-5">
+                    <div className="inline-flex mt-2 py-1 px-2 rounded-md bg-gray-800 text-lg">
+                        <div className="mr-3">{device.ip}</div>
+
+                        <FontAwesomeIcon
+                            className="mt-1"
+                            icon={faExternalLinkAlt}
+                            onClick={() => openDevice(device.ip)}
+                        />
+                    </div>
+
+                    <div className="flex flex-wrap my-5">
                         {tags.map((tag) => (
                             <Tag key={tag} label={tag} />
                         ))}
