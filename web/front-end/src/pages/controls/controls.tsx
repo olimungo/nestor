@@ -26,7 +26,7 @@ export function Controls() {
             {deviceType === 'SHADE' ? <Shade devices={devices} onCommand={handleCommand} /> : ''}
             {deviceType === 'SIGN' ? <Sign /> : ''}
             {deviceType === 'CLOCK' ? <Clock devices={devices} onCommand={handleCommand} /> : ''}
-            {deviceType === 'SWITCH' ? <Switch /> : ''}
+            {deviceType === 'SWITCH' ? <Switch devices={devices} onCommand={handleCommand} /> : ''}
         </div>
     );
 }
