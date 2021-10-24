@@ -4,6 +4,7 @@
     "description": "",
     "scripts": {
         "clean": "docker system prune -f",
+        "upm": "sed -e \"s/__HOST_IP__/$(ipconfig getifaddr en1)/g\" docker-compose.yml | docker-compose --file - up -d",
         "up": "sed -e \"s/__HOST_IP__/$(hostname -I | awk '{print $1}')/g\" docker-compose.yml | docker-compose --file - up -d",
         "down": "docker-compose down"
     },
