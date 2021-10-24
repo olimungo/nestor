@@ -12,7 +12,8 @@ function App() {
     const sortIotDevice = (a: IotDevice, b: IotDevice) => (a.id > b.id ? 1 : -1);
 
     useEffect(() => {
-        const socket = io(process.env.REACT_APP_WEBSOCKETS || 'ws://localhost:3001');
+        const domain = `ws://${window.location.hostname}:${process.env.REACT_APP_WEBSOCKETS_PORT}`;
+        const socket = io(domain);
 
         setSocket(socket);
 
