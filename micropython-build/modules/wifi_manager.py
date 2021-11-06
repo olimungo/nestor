@@ -129,6 +129,7 @@ class WifiManager:
             for ssid in ssids:
                 self.ssids.append('"%s"' % ssid[0].decode("ascii"))
 
+            self.ssids = list(set(self.ssids))
             self.ssids.sort()
 
         return b'{"ssids": [%s]}' % (",".join(self.ssids))
