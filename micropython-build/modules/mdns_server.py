@@ -44,16 +44,17 @@ class mDnsServer:
 
             await sleep_ms(WAIT_A_BIT_MORE)
 
-            while not self.connected:
+            while not self.connected and not self.ap_if.active():
                 await self.connect()
 
-            print("> mDNS server up and running")
+                if self.connected:
+                    print("> mDNS server up and running")
 
-            while self.sta_if.isconnected() and self.connected:
-                self.process_waiting_packets()
-                await sleep_ms(WAIT_FOR_REQUEST)
+                    while self.connected and not self.ap_if.active():
+                        self.process_waiting_packets()
+                        await sleep_ms(WAIT_FOR_REQUEST)
 
-            print("> mDNS server down")
+                    print("> mDNS server down")
 
     async def connect(self):
         try:

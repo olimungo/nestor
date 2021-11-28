@@ -6,7 +6,7 @@ from network import WLAN, STA_IF
 from tags import Tags
 
 WAIT_FOR_MDNS = const(1000)
-WAIT_BETWEEN_CONNECT = const(5000)
+WAIT_BETWEEN_CONNECT = const(15000)
 WAIT_FOR_MESSAGE = const(250)
 MQTT_STATUS_INTERVAL = const(2000)
 
@@ -35,19 +35,23 @@ class MqttManager:
             while not self.mdns.connected:
                 await sleep_ms(WAIT_FOR_MDNS)
 
-            while not self.connected:
-                await self.connect()
+            while not self.connected and self.mdns.connected:
+                await sleep_ms(WAIT_BETWEEN_CONNECT)
 
-            print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
+                if self.mdns.connected:
+                    await self.connect()
 
-            self.set_state()
+                if self.connected:
+                    print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
 
-            while self.connected and self.mdns.connected:
-                self.check_msg()
-                await sleep_ms(WAIT_FOR_MESSAGE)
+                    self.set_state()
 
-            print("> MQTT server down")
-            self.connected = False
+                    while self.connected and self.mdns.connected:
+                        self.check_msg()
+                        await sleep_ms(WAIT_FOR_MESSAGE)
+
+                    print("> MQTT server down")
+                    self.connected = False
 
     async def connect(self):
         try:
@@ -75,10 +79,8 @@ class MqttManager:
                 self.log(b"IP assigned: %s" % (self.sta_if.ifconfig()[0]))
             else:
                 print("> MQTT broker '{}' not reachable!".format(self.broker_name.decode('ascii')))
-                await sleep_ms(WAIT_BETWEEN_CONNECT)
         except Exception as e:
             print("> MQTT broker connect error: {}".format(e))
-            await sleep_ms(WAIT_BETWEEN_CONNECT)
 
     def check_msg(self):
         try:
