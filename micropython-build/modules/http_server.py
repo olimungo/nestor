@@ -1,3 +1,4 @@
+from machine import reset
 from uasyncio import get_event_loop, sleep_ms
 from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
@@ -190,7 +191,8 @@ class HttpServer:
         self.wifi.connect()
 
     def router_ip_received(self, params):
-        self.wifi.stop_access_point()
+        reset()
+        # self.wifi.stop_access_point()
 
     def settings_net_id(self, params):
         settings = Settings().load()

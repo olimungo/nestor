@@ -6,7 +6,7 @@ from network import WLAN, STA_IF
 from tags import Tags
 
 WAIT_FOR_MDNS = const(1000)
-WAIT_BETWEEN_CONNECT = const(15000)
+WAIT_BETWEEN_CONNECT = const(10000)
 WAIT_FOR_MESSAGE = const(250)
 MQTT_STATUS_INTERVAL = const(2000)
 

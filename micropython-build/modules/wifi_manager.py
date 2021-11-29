@@ -7,8 +7,8 @@ from credentials import Credentials
 AP_IP = "1.2.3.4"
 SERVER_SUBNET = "255.255.255.0"
 WAIT_FOR_CONNECTION = const(6000)
-WAIT_FOR_CONNECT = const(20000)
-WAIT_BEFORE_SHUTTING_DOWN_AP = const(10000)
+WAIT_BETWEEN_CONNECT = const(60000)
+WAIT_BEFORE_SHUTTING_DOWN_AP = const(7000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
 
@@ -56,13 +56,13 @@ class WifiManager:
         await self.start_access_point()
 
         while not self.sta_if.isconnected():
-            await sleep_ms(WAIT_FOR_CONNECT)
+            await sleep_ms(WAIT_BETWEEN_CONNECT)
 
             if not self.sta_if.isconnected():
                 await self.connect_async()
 
     def connect(self):
-        self.sta_if.disconnect()
+        # self.sta_if.disconnect()
         self.ip = AP_IP
         self.loop.create_task(self.connect_async())
 
