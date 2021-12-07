@@ -163,6 +163,8 @@ class HttpServer:
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
 
+                        self.wifi.set_http_activity()
+
                         route = self.routes.get(path.encode('ascii'), None)
 
                         if type(route) is bytes:
@@ -192,7 +194,6 @@ class HttpServer:
 
     def router_ip_received(self, params):
         reset()
-        # self.wifi.stop_access_point()
 
     def settings_net_id(self, params):
         settings = Settings().load()

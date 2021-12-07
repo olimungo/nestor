@@ -24,7 +24,7 @@ GREEN = (19, 215, 19)
 DIGITS = [1, 15, 31, 45]
 
 class Display:
-    state = STATE_CLOCK
+    state = STATE_OFF
 
     def __init__(self, wifi):
         self.wifi = wifi
@@ -38,7 +38,6 @@ class Display:
         self.button = Pin(GPIO_BUTTON, Pin.IN)
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.read_button())
 
     def off(self):
         if self.state != STATE_OFF:
@@ -73,28 +72,28 @@ class Display:
                 self.stop()
                 self.clock.start()
                 
+            self.loop.create_task(self.read_button())
             self.state = STATE_CLOCK
 
     async def read_button(self):
-        while True:
-            if self.state != STATE_IP:
-                if self.button.value():
-                    previous_state = self.state
-                    self.state = STATE_IP
+        while True and self.state == STATE_CLOCK:
+            if self.button.value():
+                previous_state = self.state
+                self.state = STATE_IP
 
-                    self.stop()
+                self.stop()
 
-                    await self.display_ip()
+                await self.display_ip()
 
-                    if self.state == STATE_CLOCK or previous_state == STATE_CLOCK:
-                        self.state = -1
-                        self.display_clock()
-                    elif self.state == STATE_SPINNER or previous_state == STATE_SPINNER:
-                        self.state = -1
-                        self.display_spinner()
-                    else:
-                        self.state = -1
-                        self.off()
+                if self.state == STATE_CLOCK or previous_state == STATE_CLOCK:
+                    self.state = -1
+                    self.display_clock()
+                elif self.state == STATE_SPINNER or previous_state == STATE_SPINNER:
+                    self.state = -1
+                    self.display_spinner()
+                else:
+                    self.state = -1
+                    self.off()
 
             await sleep_ms(READ_BUTTON_INTERVAL)
 
