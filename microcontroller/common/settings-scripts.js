@@ -133,7 +133,7 @@ function checkConnection() {
     })
         .then(response => response.json())
         .then(response => {
-            if (response.ip != '1.2.3.4') {
+            if (response.ip != '1.2.3.4' && response.ip != '0.0.0.0') {
                 setTagValue('new-ip', response.ip);
 
                 const connection = document.getElementById('connection'),

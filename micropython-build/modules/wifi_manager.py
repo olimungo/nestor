@@ -1,20 +1,26 @@
+from machine import reset
 from network import WLAN, STA_IF, AP_IF, AUTH_OPEN
 from uasyncio import get_event_loop, sleep_ms
 from blink import Blink
 from time import ticks_ms, ticks_diff
 from credentials import Credentials
 
+NO_IP = "0.0.0.0"
 AP_IP = "1.2.3.4"
 SERVER_SUBNET = "255.255.255.0"
-WAIT_FOR_CONNECT = const(6000)
-WAIT_BEFORE_SHUTTING_DOWN_AP = const(25000)
+MAX_WAIT_FOR_CONNECTION_CHECK = const(15)
+WAIT_FOR_CONNECTION_CHECK = const(1000)
+WAIT_BETWEEN_CONNECT = const(10000)
+WAIT_BEFORE_RESET = const(7000)
+LAST_ACTIVITY_TIMEOUT = const(30000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
 
 class WifiManager:
-    ip = "0.0.0.0"
+    ip = NO_IP
     ssids = []
     ssids_timestamp = 0
+    last_http_activity = -LAST_ACTIVITY_TIMEOUT
 
     def __init__(self, ap_essid):
         self.sta_if = WLAN(STA_IF)
@@ -24,44 +30,54 @@ class WifiManager:
         # Make sure that AP is not active
         self.ap_if.active(False)
 
+        # Reset the station
         self.sta_if.active(False)
         self.sta_if.active(True)
 
         self.loop = get_event_loop()
 
-        self.loop.create_task(self.check_connected())
-        self.connect()
+        self.loop.create_task(self.check_mode())
 
-    async def check_connected(self):
-        while True:
-            while not self.sta_if.isconnected():
-                await sleep_ms(CHECK_CONNECTED)
+    async def check_mode(self):
+        await self.connect_to_station()
 
-            self.ip = self.sta_if.ifconfig()[0]
+        if self.sta_if.isconnected():
+            self.loop.create_task(self.station_mode())
+        else:
+            self.loop.create_task(self.access_point_mode())
 
-            Blink().flash_3_times_fast()
+    async def station_mode(self):
+        print("> Station mode")
 
-            credentials = Credentials().load()
+        while self.sta_if.isconnected():
+            await sleep_ms(CHECK_CONNECTED)
 
-            print(
-                "> Connected to {} with IP: {}".format(
-                    credentials.essid.decode("ascii"), self.ip
-                )
-            )
+        self.sta_if.disconnect()
+        self.ip = NO_IP
 
-            self.loop.create_task(self.wait_before_shutting_down_access_point())
+        self.loop.create_task(self.access_point_mode())
 
-            while self.sta_if.isconnected():
-                await sleep_ms(CHECK_CONNECTED)
+    async def access_point_mode(self):
+        print("> AP mode")
 
-            print("> Disconnected from routeur")
+        await self.start_access_point()
 
-            self.loop.create_task(self.start_access_point())
+        while not self.sta_if.isconnected():
+            if ticks_diff(ticks_ms(), self.last_http_activity + LAST_ACTIVITY_TIMEOUT) > 0:
+                await self.connect_to_station()
+
+            if not self.sta_if.isconnected():
+                await sleep_ms(WAIT_BETWEEN_CONNECT)
+
+        self.loop.create_task(self.station_mode())
 
     def connect(self):
         self.loop.create_task(self.connect_async())
 
     async def connect_async(self):
+        await self.connect_to_station()
+
+    async def connect_to_station(self):
         credentials = Credentials().load()
 
         if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
@@ -73,15 +89,33 @@ class WifiManager:
                 )
             )
 
-            self.sta_if.active(False)
-            self.sta_if.active(True)
-
             self.sta_if.connect(credentials.essid, credentials.password)
 
-            await sleep_ms(WAIT_FOR_CONNECT)
+            retry = 0
 
-        if not self.sta_if.isconnected():
-            self.loop.create_task(self.start_access_point())
+            while retry < MAX_WAIT_FOR_CONNECTION_CHECK and not self.sta_if.isconnected():
+                retry = retry + 1
+                await sleep_ms(WAIT_FOR_CONNECTION_CHECK)
+
+            if not self.sta_if.isconnected():
+                print("> Connection not successful!")
+                self.sta_if.disconnect()
+            else:
+                self.ip = self.sta_if.ifconfig()[0]
+
+                Blink().flash_3_times_fast()
+
+                credentials = Credentials().load()
+
+                print(
+                    "> Connected to {} with IP: {}".format(
+                        credentials.essid.decode("ascii"), self.ip
+                    )
+                )
+
+                if self.ap_if.active():
+                    await sleep_ms(WAIT_BEFORE_RESET)
+                    reset()
 
     async def start_access_point(self):
         if not self.ap_if.active():
@@ -101,20 +135,6 @@ class WifiManager:
                 self.ap_if.ifconfig(),
             )
 
-    async def wait_before_shutting_down_access_point(self):
-        # Wait a bit before shutting down in case a web client is waiting to get
-        # the IP address from the router
-        await sleep_ms(WAIT_BEFORE_SHUTTING_DOWN_AP)
-
-        # Make sure that after having waited, the connection is still active
-        if self.sta_if.isconnected():
-            self.shutdown_access_point()
-
-    def shutdown_access_point(self):
-        if self.ap_if.active():
-            print("> Shuting down AP")
-            self.ap_if.active(False)
-
     def set_ap_essid(self, ap_essid):
         self.ap_essid = ap_essid
 
@@ -133,3 +153,6 @@ class WifiManager:
             self.ssids.sort()
 
         return b'{"ssids": [%s]}' % (",".join(self.ssids))
+
+    def set_http_activity(self):
+        self.last_http_activity = ticks_ms()

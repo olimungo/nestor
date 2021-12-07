@@ -17,7 +17,7 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
-WAIT_A_BIT_MORE = const(1500)
+WAIT_A_BIT_MORE = const(3000)
 WAIT_FOR_REQUEST = const(250)
 CHECK_CONNECTED = const(250)
 
@@ -44,16 +44,17 @@ class mDnsServer:
 
             await sleep_ms(WAIT_A_BIT_MORE)
 
-            while not self.connected:
+            while not self.connected and not self.ap_if.active():
                 await self.connect()
 
-            print("> mDNS server up and running")
+                if self.connected:
+                    print("> mDNS server up and running")
 
-            while self.sta_if.isconnected() and self.connected:
-                self.process_waiting_packets()
-                await sleep_ms(WAIT_FOR_REQUEST)
+                    while self.connected and not self.ap_if.active():
+                        self.process_waiting_packets()
+                        await sleep_ms(WAIT_FOR_REQUEST)
 
-            print("> mDNS server down")
+                    print("> mDNS server down")
 
     async def connect(self):
         try:

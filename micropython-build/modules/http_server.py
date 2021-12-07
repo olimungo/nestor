@@ -163,6 +163,8 @@ class HttpServer:
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
 
+                        self.wifi.set_http_activity()
+
                         route = self.routes.get(path.encode('ascii'), None)
 
                         if type(route) is bytes:
@@ -191,7 +193,6 @@ class HttpServer:
         self.wifi.connect()
 
     def router_ip_received(self, params):
-        # Reset the microcontroller to make sure that resources are freed as much as possible
         reset()
 
     def settings_net_id(self, params):

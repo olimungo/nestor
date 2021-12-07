@@ -7,7 +7,6 @@ from re import match
 from wifi_manager import WifiManager
 from http_server import HttpServer
 from mdns_server import mDnsServer
-from mqtt_manager import MqttManager
 from settings import Settings
 from tags import Tags
 from display import Display
@@ -19,11 +18,16 @@ BROKER_NAME = b"nestor.local"
 MQTT_TOPIC_NAME = b"clocks"
 
 CHECK_CONNECTED = const(250)
+WAIT_AFTER_CONNECTION = const(5000)
 WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
+MQTT_ENABLED = False
 SPINNER_MINIMUM_DISPLAY = const(2000)
 
+if MQTT_ENABLED:
+    from mqtt_manager import MqttManager
+    
 class State:
     OFF = 0
     ON = 1
@@ -38,9 +42,11 @@ class Main:
 
         self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
         self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
-        self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
-        )
+
+        if MQTT_ENABLED:
+            self.mqtt = MqttManager(
+                self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
+            )
 
         routes = {
             b"/action/color": self.set_color,
@@ -69,6 +75,8 @@ class Main:
             while not self.sta_if.isconnected() or self.ap_if.active():
                 await sleep_ms(CHECK_CONNECTED)
 
+            await sleep_ms(WAIT_AFTER_CONNECTION)
+
             settings = Settings().load()
 
             if settings.state != b"%s" % State.ON:
@@ -82,44 +90,46 @@ class Main:
                 await sleep_ms(CHECK_CONNECTED)
 
     async def check_mqtt(self):
-        while True:
-            while self.mqtt.connected:
-                self.check_message_mqtt()
+        if MQTT_ENABLED:
+            while True:
+                while self.mqtt.connected:
+                    self.check_message_mqtt()
 
-                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
+                    await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
 
-            while not self.mqtt.connected:
-                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
+                while not self.mqtt.connected:
+                    await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
 
-            self.set_state()
+                self.set_state()
 
     def check_message_mqtt(self):
-        settings = Settings().load()
+        if MQTT_ENABLED:
+            settings = Settings().load()
 
-        try:
-            message = self.mqtt.check_messages()
-            tags = Tags().load()
+            try:
+                message = self.mqtt.check_messages()
+                tags = Tags().load()
 
-            if message:
-                if match("add-tag/", message):
-                    tag = message.split(b"/")[1]
-                    tags.append(tag)
-                elif match("remove-tag/", message):
-                    tag = message.split(b"/")[1]
-                    tags.remove(tag)
-                elif match("on", message):
-                    self.display.display_clock()
-                    settings.state = b"%s" % State.ON
-                    settings.write()
-                    self.set_state()
-                elif match("off", message):
-                    self.display.off()
-                    settings.state = b"%s" % State.OFF
-                    settings.write()
-                    self.set_state()
+                if message:
+                    if match("add-tag/", message):
+                        tag = message.split(b"/")[1]
+                        tags.append(tag)
+                    elif match("remove-tag/", message):
+                        tag = message.split(b"/")[1]
+                        tags.remove(tag)
+                    elif match("on", message):
+                        self.display.display_clock()
+                        settings.state = b"%s" % State.ON
+                        settings.write()
+                        self.set_state()
+                    elif match("off", message):
+                        self.display.off()
+                        settings.state = b"%s" % State.OFF
+                        settings.write()
+                        self.set_state()
 
-        except Exception as e:
-            print("> Main.check_message_mqtt exception: {}".format(e))
+            except Exception as e:
+                print("> Main.check_message_mqtt exception: {}".format(e))
 
     def settings_values(self, params):
         settings = Settings().load()
@@ -184,8 +194,9 @@ class Main:
         self.set_state()
 
     def set_state(self):
-        settings = Settings().load()
-        self.mqtt.set_state(State.STATE_TEXT[int(settings.state)])
+        if MQTT_ENABLED:
+            settings = Settings().load()
+            self.mqtt.set_state(State.STATE_TEXT[int(settings.state)])
 
 try:
     collect()
