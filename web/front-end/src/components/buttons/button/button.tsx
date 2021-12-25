@@ -35,13 +35,13 @@ export function Button(props: Props) {
     } = props;
 
     useEffect(() => {
-        if (textSize == 'regular') {
+        if (textSize === 'regular') {
             setTextClass('');
-        } else if (textSize == 'small') {
+        } else if (textSize === 'small') {
             setTextClass('text-xs');
-        } else if (textSize == 'medium') {
+        } else if (textSize === 'medium') {
             setTextClass('text-xl');
-        } else if (textSize == 'large') {
+        } else if (textSize === 'large') {
             setTextClass('text-3xl');
         }
     }, [textSize]);

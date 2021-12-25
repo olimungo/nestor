@@ -56,7 +56,6 @@ class Main:
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
 
-        print("------ brightness: {} ".format(str(int(settings.brightness))))
         self.board.brightness(int(settings.brightness))
         self.board.fill(0)
         self.board.show()

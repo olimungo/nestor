@@ -13,17 +13,20 @@ from credentials import Credentials
 from tags import Tags
 
 PUBLIC_NAME = b"Switch"
-BROKER_NAME = b"nestor.local"
+BROKER_NAME = b"mars.local"
+# BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
-DEVICE_TYPE = b"SWITCH"
+# DEVICE_TYPE = b"SWITCH"
+DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
-PIN_SWITCH = const(5)  # D1
+PIN_SWITCH_1 = const(5)  # D1
+PIN_SWITCH_2 = const(4)  # D2
 
 class Main:
     def __init__(self):
@@ -38,18 +41,25 @@ class Main:
         )
 
         routes = {
-            b"/action/toggle": self.toggle,
+            b"/action/toggle-1": self.toggle_1,
+            b"/action/toggle-2": self.toggle_2,
             b"/settings/values": self.settings_values
         }
 
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.switch = Pin(PIN_SWITCH, Pin.OUT)
+        self.switch_1 = Pin(PIN_SWITCH_1, Pin.OUT)
+        self.switch_2 = Pin(PIN_SWITCH_2, Pin.OUT)
 
-        if settings.state == b"1":
-            self.switch.on()
+        if settings.state_1 == b"1":
+            self.switch_1.on()
         else:
-            self.switch.off()
+            self.switch_1.off()
+
+        if settings.state_2 == b"1":
+            self.switch_2.on()
+        else:
+            self.switch_2.off()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -95,14 +105,24 @@ class Main:
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()
-                elif match("on", message):
-                    self.switch.on()
-                    settings.state = b"1"
+                elif match("switch-1/on", message):
+                    self.switch_1.on()
+                    settings.state_1 = b"1"
                     settings.write()
                     self.set_state()
-                elif match("off", message):
-                    self.switch.off()
-                    settings.state = b"0"
+                elif match("switch-1/off", message):
+                    self.switch_1.off()
+                    settings.state_1 = b"0"
+                    settings.write()
+                    self.set_state()
+                elif match("switch-2/on", message):
+                    self.switch_2.on()
+                    settings.state_2 = b"1"
+                    settings.write()
+                    self.set_state()
+                elif match("switch-2/off", message):
+                    self.switch_2.off()
+                    settings.state_2 = b"0"
                     settings.write()
                     self.set_state()
 
@@ -119,34 +139,52 @@ class Main:
             essid = b""
 
         result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, settings.state,)
+            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
+            % (self.wifi.ip, settings.net_id, essid, settings.state_1, settings.state_2, DEVICE_TYPE)
         )
 
         return result
 
-    def toggle(self, params):
+    def toggle_1(self, params):
         action = params.get(b"action", None)
         settings = Settings().load()
 
         if action == b"on":
-            self.switch.on()
-            settings.state = b"1"
+            self.switch_1.on()
+            settings.state_1 = b"1"
         else:
-            self.switch.off()
-            settings.state = b"0"
+            self.switch_1.off()
+            settings.state_1 = b"0"
+
+        settings.write()
+
+    def toggle_2(self, params):
+        action = params.get(b"action", None)
+        settings = Settings().load()
+
+        if action == b"on":
+            self.switch_2.on()
+            settings.state_2 = b"1"
+        else:
+            self.switch_2.off()
+            settings.state_2 = b"0"
 
         settings.write()
 
     def set_state(self):
         settings = Settings().load()
 
-        if settings.state == b"1":
-            state = "ON"
+        if settings.state_1 == b"1":
+            state_1 = "ON"
         else:
-            state = "OFF"
+            state_1 = "OFF"
 
-        self.mqtt.set_state(state)
+        if settings.state_2 == b"1":
+            state_2 = "ON"
+        else:
+            state_2 = "OFF"
+
+        self.mqtt.set_state("%s,%s" % (state_1, state_2))
 
 try:
     collect()

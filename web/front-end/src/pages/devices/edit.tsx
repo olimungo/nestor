@@ -20,7 +20,7 @@ export function EditDevice() {
                 setTags(device.tags);
             }
         }
-    }, [urlId, appContext.store.devices]);
+    }, [urlId, appContext.store.devices, device]);
 
     const handleRemoveTag = (tagToRemove: string) => {
         if (device) {
