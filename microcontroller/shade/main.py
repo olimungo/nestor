@@ -84,11 +84,11 @@ class Main:
             tags = Tags().load()
 
             if message:
-                if match("add-tag/", message):
+                if match("add-tag", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
                     self.set_state()
-                elif match("remove-tag/", message):
+                elif match("remove-tag", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()

@@ -13,6 +13,8 @@ MQTT_STATUS_INTERVAL = const(2000)
 class MqttManager:
     message = ""
     messages = []
+    state_1 = "UNKNOWN"
+    state_2 = None
 
     def __init__(self, mdns, broker_name, topic_name, device_type):
         self.sta_if = WLAN(STA_IF)
@@ -44,7 +46,13 @@ class MqttManager:
                 if self.connected:
                     print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
 
-                    self.set_state()
+                    self.set_state(self.state_1, self.state_2)
+
+                    if self.message_1 and self.message_2:
+                        self.mqtt.subscribe((b"%s/%sa" % (self.commands_topic, self.mdns.net_id)))
+                        self.mqtt.subscribe((b"%s/%sb" % (self.commands_topic, self.mdns.net_id)))
+                    else:
+                        self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.mdns.net_id)))
 
                     while self.connected and self.mdns.connected:
                         self.check_msg()
@@ -68,11 +76,11 @@ class MqttManager:
                 broker_ip = self.broker_name
 
             if broker_ip != None:
+                print("> MQTT broker IP: %s" % broker_ip)
+
                 self.mqtt = MQTTClient(client_id, broker_ip)
                 self.mqtt.set_callback(self.message_received)
                 self.mqtt.connect()
-
-                self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.mdns.net_id)))
 
                 self.connected = True
 
@@ -89,33 +97,49 @@ class MqttManager:
             self.connected = False
 
     def message_received(self, topic, message):
-        self.messages.append(message)
+        self.messages.append({b"topic": topic, b"message": message})
 
     async def send_state(self):
         while True:
             self.publish_message()
             await sleep_ms(MQTT_STATUS_INTERVAL)
 
-    def set_state(self, state="UNKNOWN"):
+    def set_state(self, state_1, state_2=None):
         tags = Tags().load()
         tags_utf8 = []
+        self.state_1 = state_1
+        self.state_2 = state_2
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
 
-        self.message = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
+        self.message_1 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
             self.sta_if.ifconfig()[0],
             self.device_type,
-            state,
+            state_1,
             ",".join(tags_utf8)
         )
+
+        if state_2:
+            self.message_2 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
+                self.sta_if.ifconfig()[0],
+                self.device_type,
+                state_2,
+                ",".join(tags_utf8)
+            )
+        else:
+            self.message_2 = None
 
         self.publish_message()
 
     def publish_message(self):
         if self.connected:
             try:
-                self.mqtt.publish(b"%s/%s" % (self.states_topic, self.mdns.net_id), self.message)
+                if self.message_1 and self.message_2:
+                    self.mqtt.publish(b"%s/%sa" % (self.states_topic, self.mdns.net_id), self.message_1)
+                    self.mqtt.publish(b"%s/%sb" % (self.states_topic, self.mdns.net_id), self.message_2)
+                else:
+                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.mdns.net_id), self.message_1)
             except Exception as e:
                 print("> MQTT broker publish_message error: {}".format(e))
 

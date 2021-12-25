@@ -13,12 +13,12 @@ from credentials import Credentials
 from tags import Tags
 
 PUBLIC_NAME = b"Switch"
-BROKER_NAME = b"mars.local"
+# BROKER_NAME = b"mars.local"
 # BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"deathstar.local"
+BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
-# DEVICE_TYPE = b"SWITCH"
-DEVICE_TYPE = b"DOUBLE-SWITCH"
+DEVICE_TYPE = b"SWITCH"
+DOUBLE_SWITCH = True
 
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)
@@ -93,36 +93,49 @@ class Main:
         settings = Settings().load()
 
         try:
-            message = self.mqtt.check_messages()
+            mqtt_message = self.mqtt.check_messages()
             tags = Tags().load()
 
-            if message:
-                if match("add-tag/", message):
+            if mqtt_message:
+                topic = mqtt_message.get(b"topic")
+                message = mqtt_message.get(b"message")
+
+                print("> MQTT message received: %s / %s" % (topic, message))
+
+                if match("add-tag", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
                     self.set_state()
-                elif match("remove-tag/", message):
+                elif match("remove-tag", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()
-                elif match("switch-1/on", message):
-                    self.switch_1.on()
-                    settings.state_1 = b"1"
+                elif match("on", message):
+                    if match(".*/.*b$", topic):
+                        print("> Turning relay 2 on")
+
+                        self.switch_2.on()
+                        settings.state_2 = b"1"
+                    else:
+                        print("> Turning relay 1 on")
+
+                        self.switch_1.on()
+                        settings.state_1 = b"1"
+
                     settings.write()
                     self.set_state()
-                elif match("switch-1/off", message):
-                    self.switch_1.off()
-                    settings.state_1 = b"0"
-                    settings.write()
-                    self.set_state()
-                elif match("switch-2/on", message):
-                    self.switch_2.on()
-                    settings.state_2 = b"1"
-                    settings.write()
-                    self.set_state()
-                elif match("switch-2/off", message):
-                    self.switch_2.off()
-                    settings.state_2 = b"0"
+                elif match("off", message):
+                    if match(".*/.*b$", topic):
+                        print("> Turning relay 2 off")
+
+                        self.switch_2.off()
+                        settings.state_2 = b"0"
+                    else:
+                        print("> Turning relay 1 off")
+
+                        self.switch_1.off()
+                        settings.state_1 = b"0"
+
                     settings.write()
                     self.set_state()
 
@@ -138,9 +151,15 @@ class Main:
         if not essid:
             essid = b""
 
+        # Global type is SWITCH but the front-end has to know if it's a simple or double switch
+        if DOUBLE_SWITCH:
+            device_type = "DOUBLE-SWITCH"
+        else:
+            device_type = DEVICE_TYPE
+
         result = (
             b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, settings.state_1, settings.state_2, DEVICE_TYPE)
+            % (self.wifi.ip, settings.net_id, essid, settings.state_1, settings.state_2, device_type)
         )
 
         return result
@@ -184,7 +203,7 @@ class Main:
         else:
             state_2 = "OFF"
 
-        self.mqtt.set_state("%s,%s" % (state_1, state_2))
+        self.mqtt.set_state(state_1, state_2)
 
 try:
     collect()
