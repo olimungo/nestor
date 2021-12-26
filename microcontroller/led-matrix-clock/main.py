@@ -101,10 +101,15 @@ class Main:
         settings = Settings().load()
 
         try:
-            message = self.mqtt.check_messages()
+            mqtt_message = self.mqtt.check_messages()
             tags = Tags().load()
 
-            if message:
+            if mqtt_message:
+                topic = mqtt_message.get(b"topic")
+                message = mqtt_message.get(b"message")
+
+                print("> MQTT message received: %s / %s" % (topic, message))
+                
                 if match("add-tag", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)

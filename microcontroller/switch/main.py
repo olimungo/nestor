@@ -13,9 +13,8 @@ from credentials import Credentials
 from tags import Tags
 
 PUBLIC_NAME = b"Switch"
-# BROKER_NAME = b"mars.local"
-# BROKER_NAME = b"nestor.local"
-BROKER_NAME = b"deathstar.local"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
 DEVICE_TYPE = b"SWITCH"
 DOUBLE_SWITCH = True
@@ -51,15 +50,8 @@ class Main:
         self.switch_1 = Pin(PIN_SWITCH_1, Pin.OUT)
         self.switch_2 = Pin(PIN_SWITCH_2, Pin.OUT)
 
-        if settings.state_1 == b"1":
-            self.switch_1.on()
-        else:
-            self.switch_1.off()
-
-        if settings.state_2 == b"1":
-            self.switch_2.on()
-        else:
-            self.switch_2.off()
+        self.switch_1.on() if settings.state_1 == b"1" else self.switch_1.off()
+        self.switch_2.on() if settings.state_2 == b"1" else self.switch_2.off()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -193,15 +185,8 @@ class Main:
     def set_state(self):
         settings = Settings().load()
 
-        if settings.state_1 == b"1":
-            state_1 = "ON"
-        else:
-            state_1 = "OFF"
-
-        if settings.state_2 == b"1":
-            state_2 = "ON"
-        else:
-            state_2 = "OFF"
+        state_1 = "ON" if settings.state_1 == b"1" else "OFF"
+        state_2 = "ON" if settings.state_2 == b"1" else "OFF"
 
         self.mqtt.set_state(state_1, state_2)
 
