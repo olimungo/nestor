@@ -17,13 +17,15 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
 DEVICE_TYPE = b"SWITCH"
+DOUBLE_SWITCH = True
 
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
-PIN_SWITCH = const(5)  # D1
+PIN_SWITCH_1 = const(5)  # D1
+PIN_SWITCH_2 = const(4)  # D2
 
 class Main:
     def __init__(self):
@@ -38,18 +40,18 @@ class Main:
         )
 
         routes = {
-            b"/action/toggle": self.toggle,
+            b"/action/toggle-1": self.toggle_1,
+            b"/action/toggle-2": self.toggle_2,
             b"/settings/values": self.settings_values
         }
 
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.switch = Pin(PIN_SWITCH, Pin.OUT)
+        self.switch_1 = Pin(PIN_SWITCH_1, Pin.OUT)
+        self.switch_2 = Pin(PIN_SWITCH_2, Pin.OUT)
 
-        if settings.state == b"1":
-            self.switch.on()
-        else:
-            self.switch.off()
+        self.switch_1.on() if settings.state_1 == b"1" else self.switch_1.off()
+        self.switch_2.on() if settings.state_2 == b"1" else self.switch_2.off()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -83,26 +85,49 @@ class Main:
         settings = Settings().load()
 
         try:
-            message = self.mqtt.check_messages()
+            mqtt_message = self.mqtt.check_messages()
             tags = Tags().load()
 
-            if message:
-                if match("add-tag/", message):
+            if mqtt_message:
+                topic = mqtt_message.get(b"topic")
+                message = mqtt_message.get(b"message")
+
+                print("> MQTT message received: %s / %s" % (topic, message))
+
+                if match("add-tag", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
                     self.set_state()
-                elif match("remove-tag/", message):
+                elif match("remove-tag", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()
                 elif match("on", message):
-                    self.switch.on()
-                    settings.state = b"1"
+                    if match(".*/.*b$", topic):
+                        print("> Turning relay 2 on")
+
+                        self.switch_2.on()
+                        settings.state_2 = b"1"
+                    else:
+                        print("> Turning relay 1 on")
+
+                        self.switch_1.on()
+                        settings.state_1 = b"1"
+
                     settings.write()
                     self.set_state()
                 elif match("off", message):
-                    self.switch.off()
-                    settings.state = b"0"
+                    if match(".*/.*b$", topic):
+                        print("> Turning relay 2 off")
+
+                        self.switch_2.off()
+                        settings.state_2 = b"0"
+                    else:
+                        print("> Turning relay 1 off")
+
+                        self.switch_1.off()
+                        settings.state_1 = b"0"
+
                     settings.write()
                     self.set_state()
 
@@ -118,35 +143,52 @@ class Main:
         if not essid:
             essid = b""
 
+        # Global type is SWITCH but the front-end has to know if it's a simple or double switch
+        if DOUBLE_SWITCH:
+            device_type = "DOUBLE-SWITCH"
+        else:
+            device_type = DEVICE_TYPE
+
         result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, settings.state,)
+            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
+            % (self.wifi.ip, settings.net_id, essid, settings.state_1, settings.state_2, device_type)
         )
 
         return result
 
-    def toggle(self, params):
+    def toggle_1(self, params):
         action = params.get(b"action", None)
         settings = Settings().load()
 
         if action == b"on":
-            self.switch.on()
-            settings.state = b"1"
+            self.switch_1.on()
+            settings.state_1 = b"1"
         else:
-            self.switch.off()
-            settings.state = b"0"
+            self.switch_1.off()
+            settings.state_1 = b"0"
+
+        settings.write()
+
+    def toggle_2(self, params):
+        action = params.get(b"action", None)
+        settings = Settings().load()
+
+        if action == b"on":
+            self.switch_2.on()
+            settings.state_2 = b"1"
+        else:
+            self.switch_2.off()
+            settings.state_2 = b"0"
 
         settings.write()
 
     def set_state(self):
         settings = Settings().load()
 
-        if settings.state == b"1":
-            state = "ON"
-        else:
-            state = "OFF"
+        state_1 = "ON" if settings.state_1 == b"1" else "OFF"
+        state_2 = "ON" if settings.state_2 == b"1" else "OFF"
 
-        self.mqtt.set_state(state)
+        self.mqtt.set_state(state_1, state_2)
 
 try:
     collect()

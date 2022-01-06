@@ -56,7 +56,6 @@ class Main:
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
 
-        print("------ brightness: {} ".format(str(int(settings.brightness))))
         self.board.brightness(int(settings.brightness))
         self.board.fill(0)
         self.board.show()
@@ -102,15 +101,20 @@ class Main:
         settings = Settings().load()
 
         try:
-            message = self.mqtt.check_messages()
+            mqtt_message = self.mqtt.check_messages()
             tags = Tags().load()
 
-            if message:
-                if match("add-tag/", message):
+            if mqtt_message:
+                topic = mqtt_message.get(b"topic")
+                message = mqtt_message.get(b"message")
+
+                print("> MQTT message received: %s / %s" % (topic, message))
+                
+                if match("add-tag", message):
                     tag = message.split(b"/")[1]
                     tags.append(tag)
                     self.set_state()
-                elif match("remove-tag/", message):
+                elif match("remove-tag", message):
                     tag = message.split(b"/")[1]
                     tags.remove(tag)
                     self.set_state()

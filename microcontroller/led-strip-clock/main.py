@@ -22,7 +22,7 @@ WAIT_AFTER_CONNECTION = const(5000)
 WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
-MQTT_ENABLED = False
+MQTT_ENABLED = True
 SPINNER_MINIMUM_DISPLAY = const(2000)
 
 if MQTT_ENABLED:
@@ -107,14 +107,19 @@ class Main:
             settings = Settings().load()
 
             try:
-                message = self.mqtt.check_messages()
+                mqtt_message = self.mqtt.check_messages()
                 tags = Tags().load()
 
-                if message:
-                    if match("add-tag/", message):
+                if mqtt_message:
+                    topic = mqtt_message.get(b"topic")
+                    message = mqtt_message.get(b"message")
+
+                    print("> MQTT message received: %s / %s" % (topic, message))
+
+                    if match("add-tag", message):
                         tag = message.split(b"/")[1]
                         tags.append(tag)
-                    elif match("remove-tag/", message):
+                    elif match("remove-tag", message):
                         tag = message.split(b"/")[1]
                         tags.remove(tag)
                     elif match("on", message):

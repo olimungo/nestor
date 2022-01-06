@@ -14,17 +14,24 @@ function getValues() {
         .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
-            setTagValue('switch', response.state);
+
+            const states = response.state.split(',');
+            setTagValue('switch-1', states[0]);
+            
+            if(response.type == "DOUBLE-SWITCH") {
+                document.getElementById(`switch-container-2`).classList.remove('hidden');
+                setTagValue('switch-2', states[1]);
+            }
 
             document.title = `${documentTitle} ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
 
-function toggle() {
-    const action = document.getElementById('switch').checked ? 'on' : 'off';
+function toggle(id) {
+    const action = document.getElementById(`switch-${id}`).checked ? 'on' : 'off';
 
-    fetchWithTimeout(`/action/toggle?action=${action}`, {
+    fetchWithTimeout(`/action/toggle-${id}?action=${action}`, {
         timeout: 3000
     })
     .catch(() => setTimeout(toggle, 3000));
