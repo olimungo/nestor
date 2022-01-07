@@ -26,7 +26,7 @@
         {
             "label": "Build custom micropython",
             "type": "shell",
-            "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin ..; docker rm -f micropython; docker rmi -f micropython; docker system prune -f",
+            "command": "cd micropython-build; docker build -f Dockerfile -t micropython .; docker run -d --name=micropython micropython bash; docker cp micropython:/micropython/ports/esp8266/build-GENERIC/firmware-combined.bin firmware.bin; docker rm -f micropython; docker system prune -f",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -36,7 +36,7 @@
         {
             "label": "Erase and flash ESP with custom micropython",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 micropython-build/firmware.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -47,26 +47,6 @@
             "label": "Erase ESP",
             "type": "shell",
             "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "focus": true
-            }
-        },
-        {
-            "label": "Erase and Flash ESP with micropython 1.16",
-            "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 esp8266-20210618-v1.16.bin",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "focus": true
-            }
-        },
-        {
-            "label": "Flash ESP with custom micropython",
-            "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 firmware-combined.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
