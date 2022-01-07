@@ -1,11 +1,9 @@
-FROM micropython-build
+ARG VERSION=v1.17
 
-USER root
-
-ENV PATH=/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
-
-COPY modules/ /micropython/ports/esp8266/modules/
+FROM registry.gitlab.com/janpoboril/micropython-docker-build/esp8266:$VERSION
 
 WORKDIR /micropython/ports/esp8266
+
+COPY modules/ modules/
 
 RUN make
