@@ -228,6 +228,10 @@ input[type="text"] {
     width: 5rem;
 }
 
+.button-clog {
+    margin: 1rem 3rem;
+}
+
 .footer {
     position: fixed;
     left: 0;
@@ -239,10 +243,12 @@ input[type="text"] {
 }
 
 .ip {
-    font-size: 2rem;
-    letter-spacing: 0.3rem;
-    margin: 1rem;
+    font-size: 2.5rem;
+    letter-spacing: 0.8rem;
+    margin: 1rem 3rem;
     color: var(--primary-light-color);
+    flex-grow: 1;
+    text-align: left;
 }
 
 .tag {
