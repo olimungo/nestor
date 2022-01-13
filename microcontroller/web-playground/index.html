@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <link rel="stylesheet" href="style.new.css" />
+        <link rel="stylesheet" href="style.css" />
         <script defer src="common-scripts.js"></script>
         <script defer src="index-scripts.js"></script>
     </head>
@@ -14,6 +14,41 @@
         <div class="inline">
             <h1>Shade</h1>
             <div id="tag-net-id" class="tag">3</div>
+        </div>
+
+        <div class="card card-padding">
+            <h2 class="margin-bottom">CONNECTION IN PROGRESS</h2>
+
+            <div class="center-horizontal">
+                <div id="spinner" class="spinner">
+                    <div class="bounce1"></div>
+                    <div class="bounce2"></div>
+                    <div class="bounce3"></div>
+                </div>
+            </div>
+
+            <div class="connection-details">
+                Please, wait 20 seconds.<br /><br />
+
+                If the device doesn't successfully connect to your Wifi network,
+                refresh this page and retry.<br /><br />
+
+                Double-check the name of the Wifi network and the password.<br />
+            </div>
+        </div>
+
+        <div class="card card-padding">
+            <h2 class="margin-bottom">CONNECTION SUCCESSFUL</h2>
+
+            <div class="connection-details">
+                The IP adress of your device is
+            </div>
+
+            <div class="center-horizontal">
+                <a id="new-ip" class="new-ip" href="http://192.168.0.205"
+                    >192.168.0.205</a
+                >
+            </div>
         </div>
 
         <div class="card card-padding">
@@ -31,7 +66,7 @@
         </div>
 
         <div class="card card-padding">
-            <h2 class="margin-bottom">Unique ID</h2>
+            <h2 class="margin-bottom">UNIQUE ID</h2>
 
             <div class="center-horizontal">
                 <input id="unique-id" class="label unique-id" type="text" />
@@ -114,7 +149,7 @@
         </div>
 
         <div class="card card-padding">
-            <h2 class="margin-bottom">MANUAL TIMER</h2>
+            <h2 class="margin-bottom">CUSTOM TIMER</h2>
 
             <div class="inline">
                 <h2 class="margin-right">MINUTES</h2>
@@ -241,6 +276,44 @@
                     />
 
                     <label for="reverse-motor" class="toggle-background">
+                        <div class="ball"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-padding">
+            <h2 class="margin-bottom">SWITCH 1</h2>
+
+            <div class="center-horizontal">
+                <div class="toggle-container">
+                    <input
+                        id="switch-1"
+                        name="switch-1"
+                        type="checkbox"
+                        class="toggle"
+                    />
+
+                    <label for="switch-1" class="toggle-background">
+                        <div class="ball"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-padding">
+            <h2 class="margin-bottom">SWITCH 2</h2>
+
+            <div class="center-horizontal">
+                <div class="toggle-container">
+                    <input
+                        id="switch-2"
+                        name="switch-2"
+                        type="checkbox"
+                        class="toggle"
+                    />
+
+                    <label for="switch-2" class="toggle-background">
                         <div class="ball"></div>
                     </label>
                 </div>
