@@ -1,8 +1,16 @@
 // common-scripts.js must be loaded before this file
 
 window.addEventListener('DOMContentLoaded', (event) => {
-    getValues();
-    getSsids();
+    // const queryString = window.location.search;
+    // if (queryString !== '') {
+    //     const urlParams = new URLSearchParams(queryString);
+    //     if (urlParams.has('motor')) {
+    //         const motor = document.getElementById('motor');
+    //         motor.classList.remove('hidden-position-fixed');
+    //     }
+    // }
+    // getValues();
+    // getSsids();
 });
 
 function getValues() {
@@ -13,6 +21,10 @@ function getValues() {
         .then((response) => {
             setTagValue('ip', response.ip);
             setTagValue('net-id', response.netId);
+
+            if (response.motorReversed) {
+                setTagValue('motor-reversed', response.motorReversed);
+            }
         })
         .catch(() => setTimeout(getValues, 3000));
 }
@@ -38,10 +50,10 @@ function hideAll() {
         connection = document.getElementById('connection'),
         connectionSuccess = document.getElementById('connection-success');
 
-    settings.classList.add('display-none');
-    password.classList.add('display-none');
-    connection.classList.add('display-none');
-    connectionSuccess.classList.add('display-none');
+    settings.classList.add('hidden-position-fixed');
+    password.classList.add('hidden-position-fixed');
+    connection.classList.add('hidden-position-fixed');
+    connectionSuccess.classList.add('hidden-position-fixed');
 }
 
 function displaySettings() {
@@ -50,7 +62,7 @@ function displaySettings() {
     const settings = document.getElementById('settings'),
         ssidsList = document.getElementById('ssids-list');
 
-    settings.classList.remove('display-none');
+    settings.classList.remove('hidden-position-fixed');
     ssidsList.innerHTML = '';
 
     getSsids();
@@ -60,24 +72,27 @@ function displayPassword() {
     hideAll();
 
     const password = document.getElementById('password');
-    password.classList.remove('display-none');
+    password.classList.remove('hidden-position-fixed');
 }
 
 function displayConnection() {
     hideAll();
 
     const connection = document.getElementById('connection');
-    connection.classList.remove('display-none');
+    connection.classList.remove('hidden-position-fixed');
 }
 
 function displayConnectionSuccess() {
     hideAll();
 
     const connectionSucces = document.getElementById('connection-succes');
-    connectionSucces.classList.remove('display-none');
+    connectionSucces.classList.remove('hidden-position-fixed');
 }
 
 function getSsids() {
+    const spinnerWifi = document.getElementById('spinner-wifi');
+    spinnerWifi.classList.remove('hidden-position-fixed');
+
     fetchWithTimeout('/settings/ssids', {
         timeout: 15000,
     })
@@ -102,11 +117,7 @@ function getSsids() {
                 ssidsList.appendChild(li);
             });
 
-            const appSpinner = document.getElementById('app-spinner');
-            appSpinner.classList.add('display-none');
-
-            const app = document.getElementById('app');
-            app.classList.remove('display-none');
+            spinnerWifi.classList.add('hidden-position-fixed');
         })
         .catch((err) => setTimeout(getSsids, 3000));
 }
@@ -125,8 +136,8 @@ function checkConnection() {
                         document.getElementById('connection-success'),
                     newIp = document.getElementById('new-ip');
 
-                connection.classList.add('display-none');
-                connectionSuccess.classList.remove('display-none');
+                connection.classList.add('hidden-position-fixed');
+                connectionSuccess.classList.remove('hidden-position-fixed');
                 newIp.href = `http://${response.ip}`;
 
                 fetch(`/settings/router-ip-received`).then();
@@ -138,10 +149,12 @@ function checkConnection() {
 }
 
 function connect() {
-    const ssid = document.getElementById('ssid').textContent;
-    const inputPasword = document.getElementById('input-password');
+    const ssid = document.getElementById('ssid').textContent,
+        pwd = document.getElementById('pwd'),
+        password = document.getElementById('password'),
+        connection = document.getElementById('connection');
 
-    fetch(`/connect?essid=${ssid}&password=${inputPasword.value}`).then();
+    fetch(`/connect?essid=${ssid}&password=${pwd.value}`).then();
 
     displayConnection();
     setTimeout(checkConnection, 3000);

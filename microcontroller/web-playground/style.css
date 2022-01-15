@@ -22,14 +22,14 @@ html {
 body {
     width: 45rem;
     margin: 0;
-    background: var(--primary-color);
+    background: var(--primary-light-color);
 }
 
 h1 {
     color: var(--secondary-color);
     font-size: 4rem;
     margin: 2rem 0 0 0;
-    font-weight: 100;
+    font-weight: 500;
 }
 
 h2 {
@@ -50,6 +50,10 @@ button {
     background: none;
     border: none;
     letter-spacing: 0.25rem;
+}
+
+button:active {
+    background-color: var(--primary-action-color);
 }
 
 ul {
@@ -97,8 +101,16 @@ li:active {
     margin-bottom: 4rem;
 }
 
+.margin-bottom-large {
+    margin-bottom: 8rem;
+}
+
 .margin-top {
     margin-top: 3rem;
+}
+
+.margin-top-large {
+    margin-top: 20rem;
 }
 
 .padding-left-right-small {
@@ -188,9 +200,9 @@ li:active {
 ** Input selectors
 */
 
-input[type="number"],
-input[type="password"],
-input[type="text"] {
+input[type='number'],
+input[type='password'],
+input[type='text'] {
     border: solid 0.3rem var(--primary-action-color);
     outline: none;
     background-color: var(--primary-action-dark-color);
@@ -220,6 +232,14 @@ input[type="text"] {
     color: var(--primary-action-color);
 }
 
+.display-none {
+    display: none;
+}
+
+.full-height {
+    height: 100%;
+}
+
 .svg {
     width: 9rem;
 }
@@ -228,8 +248,19 @@ input[type="text"] {
     width: 5rem;
 }
 
+.svg-back {
+    width: 4rem;
+    vertical-align: middle;
+}
+
 .button-clog {
     margin: 1rem 3rem;
+    border-radius: 1rem;
+}
+
+.button-back {
+    margin-right: 1rem;
+    border-radius: 1rem;
 }
 
 .footer {
@@ -244,6 +275,7 @@ input[type="text"] {
 
 .ip {
     font-size: 2.5rem;
+    font-weight: 500;
     letter-spacing: 0.8rem;
     margin: 1rem 3rem;
     color: var(--primary-light-color);
@@ -265,7 +297,7 @@ input[type="text"] {
     align-items: center;
 }
 
-.unique-id {
+.net-id {
     width: 5rem;
 }
 
