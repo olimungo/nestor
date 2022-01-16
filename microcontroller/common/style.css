@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #555b69;
-    --primary-light-color: #797f8e;
+    --primary-color: #797f8e;
+    --primary-dark-color: #555b69;
     --secondary-color: #242c37;
     --primary-action-color: #4fe4c1;
     --primary-action-dark-color: #10755d;
@@ -23,26 +23,26 @@ html {
 body {
     width: 45rem;
     margin: 0;
-    background: var(--primary-light-color);
+    background: var(--primary-color);
 }
 
 h1 {
     color: var(--secondary-color);
-    font-size: 4rem;
+    font-size: 5rem;
     margin: 2rem 0 0 0;
     font-weight: 500;
 }
 
 h2 {
     margin: 0;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 2.3rem;
     font-weight: 500;
     letter-spacing: 0.2rem;
 }
 
 h3 {
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 2rem;
     font-weight: 400;
 }
@@ -83,6 +83,23 @@ li:active {
     background-color: var(--secondary-action-color);
 }
 
+input[type='number'],
+input[type='password'],
+input[type='text'] {
+    border: solid 0.3rem var(--primary-action-color);
+    outline: none;
+    background-color: var(--primary-action-dark-color);
+    border-radius: 50px;
+    font-size: 3rem;
+    height: 5rem;
+    padding: 0 2rem;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+
 /*
 ** Alignment selectors
 */
@@ -121,6 +138,10 @@ li:active {
 
 .margin-top {
     margin-top: 3rem;
+}
+
+.margin-top-large {
+    margin-top: 20rem;
 }
 
 .margin-top-large {
@@ -213,27 +234,6 @@ li:active {
 }
 
 /*
-** Input selectors
-*/
-
-input[type='number'],
-input[type='password'],
-input[type='text'] {
-    border: solid 0.3rem var(--primary-action-color);
-    outline: none;
-    background-color: var(--primary-action-dark-color);
-    border-radius: 50px;
-    font-size: 3rem;
-    height: 5rem;
-    padding: 0 2rem;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:focus {
-    transition: background-color 600000s 0s, color 600000s 0s;
-}
-
-/*
 ** General selectors
 */
 
@@ -254,7 +254,7 @@ input:-webkit-autofill:focus {
 }
 
 .svg {
-    width: 9rem;
+    width: 10rem;
 }
 
 .svg-clog {
@@ -264,6 +264,11 @@ input:-webkit-autofill:focus {
 .svg-back {
     width: 4rem;
     vertical-align: middle;
+}
+
+.button-svg {
+    border-radius: 50%;
+    margin: 1rem;
 }
 
 .button-clog {
@@ -292,7 +297,7 @@ input:-webkit-autofill:focus {
     font-weight: 500;
     letter-spacing: 0.8rem;
     margin: 1rem 3rem;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     flex-grow: 1;
     text-align: left;
 }
@@ -300,8 +305,8 @@ input:-webkit-autofill:focus {
 .tag {
     font-size: 2.5rem;
     font-weight: 400;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 4rem;
+    height: 4rem;
     background-color: var(--secondary-color);
     color: var(--primary-color);
     border-radius: 50%;
@@ -325,7 +330,7 @@ input:-webkit-autofill:focus {
     font-size: 3.2rem;
     font-weight: 400;
     font-size: 2.5rem;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
 }
 
 .new-ip {
@@ -364,7 +369,7 @@ input:-webkit-autofill:focus {
 }
 
 .slider-value {
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 6rem;
     text-align: center;
 }
@@ -374,7 +379,7 @@ input:-webkit-autofill:focus {
 }
 
 .toggle-background {
-    background-color: var(--primary-color);
+    background-color: var(--primary-dark-color);
     border-radius: 50px;
     cursor: pointer;
     display: inline-block;

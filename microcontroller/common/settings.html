@@ -50,7 +50,12 @@
                     <h2 class="margin-bottom">UNIQUE ID</h2>
 
                     <div class="center-horizontal">
-                        <input id="net-id" class="label net-id" type="text" />
+                        <input
+                            id="net-id"
+                            class="label net-id"
+                            type="number"
+                            oninput="if (this.value.length > 2) this.value = this.value.slice(0, 2); else debouncedSetNetId()"
+                        />
                     </div>
                 </div>
 
@@ -109,7 +114,7 @@
                 </div>
             </div>
 
-            <div id="connection" class="display-none">
+            <div id="connection" class="display-none margin-top-large">
                 <div class="card card-padding">
                     <h2 class="margin-bottom">CONNECTION IN PROGRESS</h2>
 
@@ -133,7 +138,7 @@
                 </div>
             </div>
 
-            <div id="connection-success" class="display-none">
+            <div id="connection-success" class="display-none margin-top-large">
                 <div class="card card-padding">
                     <h2 class="margin-bottom">CONNECTION SUCCESSFUL</h2>
 
