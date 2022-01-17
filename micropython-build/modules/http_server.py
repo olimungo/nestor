@@ -7,7 +7,7 @@ from gc import collect
 from credentials import Credentials
 from settings import Settings
 
-MAX_PACKET_SIZE = const(768)
+MAX_PACKET_SIZE = const(512)
 HTTP_PORT = const(80)
 IDLE_TIME_BETWEEN_CHECKS = const(100)
 

@@ -4,7 +4,7 @@ async function fetchWithTimeout(resource, options) {
         id = setTimeout(() => controller.abort(), timeout),
         response = await fetch(resource, {
             ...options,
-            signal: controller.signal
+            signal: controller.signal,
         });
 
     clearTimeout(id);
@@ -26,5 +26,9 @@ function debounce(fn, wait = 100) {
 
 function setTagValue(tagId, value) {
     const tag = document.getElementById(tagId);
-    tag.tagName == 'INPUT' ? tag.type == 'checkbox' ? (tag.checked = parseInt(value)) : (tag.value = value) : (tag.textContent = value);
+    tag.tagName == 'INPUT'
+        ? tag.type == 'checkbox'
+            ? (tag.checked = parseInt(value))
+            : (tag.value = value)
+        : (tag.textContent = value);
 }
