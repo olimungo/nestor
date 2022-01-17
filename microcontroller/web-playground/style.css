@@ -1,9 +1,10 @@
 :root {
-    --primary-color: #555b69;
-    --primary-light-color: #797f8e;
+    --primary-color: #797f8e;
+    --primary-dark-color: #555b69;
     --secondary-color: #242c37;
     --primary-action-color: #4fe4c1;
     --primary-action-dark-color: #10755d;
+    --secondary-action-color: #fac372;
 }
 
 /*
@@ -22,26 +23,26 @@ html {
 body {
     width: 45rem;
     margin: 0;
-    background: var(--primary-light-color);
+    background: var(--primary-color);
 }
 
 h1 {
     color: var(--secondary-color);
-    font-size: 4rem;
+    font-size: 5rem;
     margin: 2rem 0 0 0;
     font-weight: 500;
 }
 
 h2 {
     margin: 0;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 2.3rem;
     font-weight: 500;
     letter-spacing: 0.2rem;
 }
 
 h3 {
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 2rem;
     font-weight: 400;
 }
@@ -50,10 +51,11 @@ button {
     background: none;
     border: none;
     letter-spacing: 0.25rem;
+    cursor: pointer;
 }
 
 button:active {
-    background-color: var(--primary-action-color);
+    background-color: var(--secondary-action-color);
 }
 
 ul {
@@ -65,7 +67,7 @@ ul {
 }
 
 li {
-    background: var(--primary-action-color);
+    background-color: var(--primary-action-color);
     color: var(--secondary-color);
     font-size: 2.3rem;
     padding: 1.5rem;
@@ -74,10 +76,36 @@ li {
     width: 35rem;
     font-weight: 400;
     text-align: center;
+    cursor: pointer;
 }
 
 li:active {
-    background-color: #fac372;
+    background-color: var(--secondary-action-color);
+}
+
+input[type='number'],
+input[type='password'],
+input[type='text'] {
+    border: solid 0.3rem var(--primary-action-color);
+    outline: none;
+    background-color: var(--primary-action-dark-color);
+    border-radius: 50px;
+    font-size: 3rem;
+    height: 5rem;
+    padding: 0 2rem;
+}
+
+/* If this property is not applied, it will display a spinner into the input field */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* If this property is not applied, the browser shows a white background when chosing a value from the dropdown list (with previous entered values) */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    transition: background-color 600000s 0s, color 600000s 0s;
 }
 
 /*
@@ -85,6 +113,17 @@ li:active {
 */
 
 .inline {
+    display: flex;
+    align-items: center;
+}
+
+.center-horizontal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.center-horizontal-inline {
     display: flex;
     align-items: center;
 }
@@ -113,14 +152,20 @@ li:active {
     margin-top: 20rem;
 }
 
+.margin-top-large {
+    margin-top: 20rem;
+}
+
 .padding-left-right-small {
     padding: 0 0.5rem;
 }
 
-.center-horizontal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.display-none {
+    display: none;
+}
+
+.full-height {
+    height: 100%;
 }
 
 /*
@@ -197,22 +242,6 @@ li:active {
 }
 
 /*
-** Input selectors
-*/
-
-input[type='number'],
-input[type='password'],
-input[type='text'] {
-    border: solid 0.3rem var(--primary-action-color);
-    outline: none;
-    background-color: var(--primary-action-dark-color);
-    border-radius: 50px;
-    font-size: 3rem;
-    height: 5rem;
-    padding: 0 2rem;
-}
-
-/*
 ** General selectors
 */
 
@@ -232,16 +261,8 @@ input[type='text'] {
     color: var(--primary-action-color);
 }
 
-.display-none {
-    display: none;
-}
-
-.full-height {
-    height: 100%;
-}
-
 .svg {
-    width: 9rem;
+    width: 10rem;
 }
 
 .svg-clog {
@@ -251,6 +272,11 @@ input[type='text'] {
 .svg-back {
     width: 4rem;
     vertical-align: middle;
+}
+
+.button-svg {
+    border-radius: 50%;
+    margin: 1rem;
 }
 
 .button-clog {
@@ -271,6 +297,7 @@ input[type='text'] {
     background-color: var(--secondary-color);
     color: white;
     text-align: center;
+    height: 9rem;
 }
 
 .ip {
@@ -278,7 +305,7 @@ input[type='text'] {
     font-weight: 500;
     letter-spacing: 0.8rem;
     margin: 1rem 3rem;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     flex-grow: 1;
     text-align: left;
 }
@@ -286,8 +313,8 @@ input[type='text'] {
 .tag {
     font-size: 2.5rem;
     font-weight: 400;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 4rem;
+    height: 4rem;
     background-color: var(--secondary-color);
     color: var(--primary-color);
     border-radius: 50%;
@@ -311,7 +338,7 @@ input[type='text'] {
     font-size: 3.2rem;
     font-weight: 400;
     font-size: 2.5rem;
-    color: var(--primary-light-color);
+    color: var(--primary-color);
 }
 
 .new-ip {
@@ -350,7 +377,7 @@ input[type='text'] {
 }
 
 .slider-value {
-    color: var(--primary-light-color);
+    color: var(--primary-color);
     font-size: 6rem;
     text-align: center;
 }
@@ -360,7 +387,7 @@ input[type='text'] {
 }
 
 .toggle-background {
-    background-color: var(--primary-color);
+    background-color: var(--primary-dark-color);
     border-radius: 50px;
     cursor: pointer;
     display: inline-block;
