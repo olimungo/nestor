@@ -8,40 +8,31 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 function getValues() {
     fetchWithTimeout('/settings/values', {
-        timeout: 3000,
+        timeout: 3000
     })
-        .then((response) => response.json())
-        .then((response) => {
+        .then(response => response.json())
+        .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 
             const states = response.state.split(',');
             setTagValue('switch-1', states[0]);
-
-            if (response.type == 'DOUBLE-SWITCH') {
-                document
-                    .getElementById(`switch-container-2`)
-                    .classList.remove('display-none');
+            
+            if(response.type == "DOUBLE-SWITCH") {
+                document.getElementById(`switch-container-2`).classList.remove('hidden');
                 setTagValue('switch-2', states[1]);
             }
 
             document.title = `${documentTitle} ${response.netId}`;
-
-            const appSpinner = document.getElementById('app-spinner');
-            appSpinner.classList.add('display-none');
-
-            const app = document.getElementById('app');
-            app.classList.remove('display-none');
         })
         .catch(() => setTimeout(getValues, 3000));
 }
 
 function toggle(id) {
-    const action = document.getElementById(`switch-${id}`).checked
-        ? 'on'
-        : 'off';
+    const action = document.getElementById(`switch-${id}`).checked ? 'on' : 'off';
 
     fetchWithTimeout(`/action/toggle-${id}?action=${action}`, {
-        timeout: 3000,
-    }).catch(() => setTimeout(toggle, 3000));
+        timeout: 3000
+    })
+    .catch(() => setTimeout(toggle, 3000));
 }

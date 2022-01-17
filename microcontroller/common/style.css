@@ -95,6 +95,14 @@ input[type='text'] {
     padding: 0 2rem;
 }
 
+/* If this property is not applied, it will display a spinner into the input field */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* If this property is not applied, the browser shows a white background when chosing a value from the dropdown list (with previous entered values) */
 input:-webkit-autofill,
 input:-webkit-autofill:focus {
     transition: background-color 600000s 0s, color 600000s 0s;
