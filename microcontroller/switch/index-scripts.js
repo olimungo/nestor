@@ -12,7 +12,6 @@ function getValues() {
     })
         .then((response) => response.json())
         .then((response) => {
-            console.log(response);
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 

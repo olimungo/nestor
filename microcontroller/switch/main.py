@@ -17,7 +17,7 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"deathstar.local"
 MQTT_TOPIC_NAME = b"switches"
 DEVICE_TYPE = b"SWITCH"
-DOUBLE_SWITCH = True
+DOUBLE_SWITCH = False
 
 CHECK_CONNECTED = const(250)
 WAIT_BEFORE_RESET = const(10)

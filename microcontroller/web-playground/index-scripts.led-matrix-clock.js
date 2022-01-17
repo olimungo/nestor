@@ -4,6 +4,12 @@ const documentTitle = 'Clock';
 
 window.addEventListener('DOMContentLoaded', (event) => {
     getValues();
+
+    const slider = document.getElementById('slider');
+
+    slider.oninput = (event) => {
+        debouncedSlider(event.target.value);
+    }
 });
 
 const debouncedSlider = debounce((value) => {
@@ -12,25 +18,17 @@ const debouncedSlider = debounce((value) => {
 
 function getValues() {
     fetchWithTimeout('/settings/values', {
-        timeout: 3000,
+        timeout: 3000
     })
-        .then((response) => response.json())
-        .then((response) => {
-            console.log(response);
-
+        .then(response => response.json())
+        .then(response => {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
-
-            document.title = `${documentTitle} ${response.netId}`;
 
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
 
-            const appSpinner = document.getElementById('app-spinner');
-            appSpinner.classList.add('display-none');
-
-            const app = document.getElementById('app');
-            app.classList.remove('display-none');
+            document.title = `${documentTitle} ${response.netId}`;
         })
         .catch(() => setTimeout(getValues, 3000));
 }
