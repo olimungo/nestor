@@ -12,26 +12,29 @@ function getValues() {
     })
         .then((response) => response.json())
         .then((response) => {
+            console.log(response);
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 
             const states = response.state.split(',');
-            setTagValue('switch-1', states[0]);
+            setTagValue('switch-a', states[0]);
 
             if (response.type == 'DOUBLE-SWITCH') {
                 document
+                    .getElementById(`title-switch-a`)
+                    .classList.remove('display-none');
+
+                document
                     .getElementById(`switch-container-2`)
                     .classList.remove('display-none');
-                setTagValue('switch-2', states[1]);
+                setTagValue('switch-b', states[1]);
             }
 
             document.title = `${documentTitle} ${response.netId}`;
-
-            const appSpinner = document.getElementById('app-spinner');
-            appSpinner.classList.add('display-none');
-
-            const app = document.getElementById('app');
-            app.classList.remove('display-none');
+            document
+                .getElementById('app-spinner')
+                .classList.add('display-none');
+            document.getElementById('app').classList.remove('display-none');
         })
         .catch(() => setTimeout(getValues, 3000));
 }

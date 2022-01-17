@@ -24,8 +24,8 @@ WAIT_BEFORE_RESET = const(10)
 MQTT_CHECK_MESSAGE_INTERVAL = const(250)
 MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
 
-PIN_SWITCH_1 = const(5)  # D1
-PIN_SWITCH_2 = const(4)  # D2
+PIN_SWITCH_A = const(5)  # D1
+PIN_SWITCH_B = const(4)  # D2
 
 class Main:
     def __init__(self):
@@ -40,18 +40,18 @@ class Main:
         )
 
         routes = {
-            b"/action/toggle-1": self.toggle_1,
-            b"/action/toggle-2": self.toggle_2,
+            b"/action/toggle-a": self.toggle_a,
+            b"/action/toggle-b": self.toggle_b,
             b"/settings/values": self.settings_values
         }
 
         self.http = HttpServer(routes, self.wifi, self.mdns)
 
-        self.switch_1 = Pin(PIN_SWITCH_1, Pin.OUT)
-        self.switch_2 = Pin(PIN_SWITCH_2, Pin.OUT)
+        self.switch_a = Pin(PIN_SWITCH_A, Pin.OUT)
+        self.switch_b = Pin(PIN_SWITCH_B, Pin.OUT)
 
-        self.switch_1.on() if settings.state_1 == b"1" else self.switch_1.off()
-        self.switch_2.on() if settings.state_2 == b"1" else self.switch_2.off()
+        self.switch_a.on() if settings.state_a == b"1" else self.switch_a.off()
+        self.switch_b.on() if settings.state_b == b"1" else self.switch_b.off()
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connected())
@@ -106,13 +106,13 @@ class Main:
                     if match(".*/.*b$", topic):
                         print("> Turning relay 2 on")
 
-                        self.switch_2.on()
-                        settings.state_2 = b"1"
+                        self.switch_b.on()
+                        settings.state_b = b"1"
                     else:
                         print("> Turning relay 1 on")
 
-                        self.switch_1.on()
-                        settings.state_1 = b"1"
+                        self.switch_a.on()
+                        settings.state_a = b"1"
 
                     settings.write()
                     self.set_state()
@@ -120,13 +120,13 @@ class Main:
                     if match(".*/.*b$", topic):
                         print("> Turning relay 2 off")
 
-                        self.switch_2.off()
-                        settings.state_2 = b"0"
+                        self.switch_b.off()
+                        settings.state_b = b"0"
                     else:
                         print("> Turning relay 1 off")
 
-                        self.switch_1.off()
-                        settings.state_1 = b"0"
+                        self.switch_a.off()
+                        settings.state_a = b"0"
 
                     settings.write()
                     self.set_state()
@@ -151,44 +151,44 @@ class Main:
 
         result = (
             b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, settings.state_1, settings.state_2, device_type)
+            % (self.wifi.ip, settings.net_id, essid, settings.state_a, settings.state_b, device_type)
         )
 
         return result
 
-    def toggle_1(self, params):
+    def toggle_a(self, params):
         action = params.get(b"action", None)
         settings = Settings().load()
 
         if action == b"on":
-            self.switch_1.on()
-            settings.state_1 = b"1"
+            self.switch_a.on()
+            settings.state_a = b"1"
         else:
-            self.switch_1.off()
-            settings.state_1 = b"0"
+            self.switch_a.off()
+            settings.state_a = b"0"
 
         settings.write()
 
-    def toggle_2(self, params):
+    def toggle_b(self, params):
         action = params.get(b"action", None)
         settings = Settings().load()
 
         if action == b"on":
-            self.switch_2.on()
-            settings.state_2 = b"1"
+            self.switch_b.on()
+            settings.state_b = b"1"
         else:
-            self.switch_2.off()
-            settings.state_2 = b"0"
+            self.switch_b.off()
+            settings.state_b = b"0"
 
         settings.write()
 
     def set_state(self):
         settings = Settings().load()
 
-        state_1 = "ON" if settings.state_1 == b"1" else "OFF"
-        state_2 = "ON" if settings.state_2 == b"1" else "OFF"
+        state_a = "ON" if settings.state_a == b"1" else "OFF"
+        state_b = "ON" if settings.state_b == b"1" else "OFF"
 
-        self.mqtt.set_state(state_1, state_2)
+        self.mqtt.set_state(state_a, state_b)
 
 try:
     collect()
