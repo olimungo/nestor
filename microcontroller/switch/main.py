@@ -33,19 +33,24 @@ class Main:
         self.ap_if = WLAN(AP_IF)
         settings = Settings().load()
 
-        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
-        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
-        self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
-        )
-
-        routes = {
+        url_routes = {
             b"/action/toggle-a": self.toggle_a,
             b"/action/toggle-b": self.toggle_b,
             b"/settings/values": self.settings_values
         }
 
-        self.http = HttpServer(routes, self.wifi, self.mdns)
+        mqtt_topics = {
+            b"add-tag": self.add_remove_tag,
+            b"remove-tag": self.add_remove_tag,
+            b"on": self.on_off,
+            b"of": self.on_off,
+        }
+
+        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
+        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
+        self.mqtt = MqttManager(mqtt_topics, self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE)
+
+        self.http = HttpServer(url_routes, self.wifi, self.mdns)
 
         self.switch_a = Pin(PIN_SWITCH_A, Pin.OUT)
         self.switch_b = Pin(PIN_SWITCH_B, Pin.OUT)
@@ -81,55 +86,47 @@ class Main:
 
             self.set_state()
 
+    def add_remove_tag(self, topic, message):
+        tags = Tags().load()
+        # TODO: check why the message is split. Are there many tags sent within 1 request?
+        tag = message.split(b"/")[1]
+
+        if match("add-tag", message):
+            tags.append(tag)
+        else:
+            tags.remove(tag)
+
+    def on_off(self, topic, message):
+        settings = Settings().load()
+
+        if match("on", message):
+            action_a = self.switch_a.on
+            action_b = self.switch_b.on
+            state = b"1"
+        else:
+            action_a = self.switch_a.off
+            action_b = self.switch_b.off
+            state = b"0"
+
+        if match(".*/.*b$", topic):
+            print("> Turning relay 2 on")
+
+            action_b()
+            settings.state_b = state
+        else:
+            print("> Turning relay 1 on")
+
+            action_a()
+            settings.state_a = state
+
+        settings.write()
+        self.set_state()
+
     def check_message_mqtt(self):
         settings = Settings().load()
 
         try:
             mqtt_message = self.mqtt.check_messages()
-            tags = Tags().load()
-
-            if mqtt_message:
-                topic = mqtt_message.get(b"topic")
-                message = mqtt_message.get(b"message")
-
-                print("> MQTT message received: %s / %s" % (topic, message))
-
-                if match("add-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.append(tag)
-                    self.set_state()
-                elif match("remove-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.remove(tag)
-                    self.set_state()
-                elif match("on", message):
-                    if match(".*/.*b$", topic):
-                        print("> Turning relay 2 on")
-
-                        self.switch_b.on()
-                        settings.state_b = b"1"
-                    else:
-                        print("> Turning relay 1 on")
-
-                        self.switch_a.on()
-                        settings.state_a = b"1"
-
-                    settings.write()
-                    self.set_state()
-                elif match("off", message):
-                    if match(".*/.*b$", topic):
-                        print("> Turning relay 2 off")
-
-                        self.switch_b.off()
-                        settings.state_b = b"0"
-                    else:
-                        print("> Turning relay 1 off")
-
-                        self.switch_a.off()
-                        settings.state_a = b"0"
-
-                    settings.write()
-                    self.set_state()
 
         except Exception as e:
             print("> Main.check_message_mqtt exception: {}".format(e))

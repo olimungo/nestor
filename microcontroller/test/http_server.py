@@ -20,10 +20,12 @@ HEADER_CONTENT_CSS = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n"
 HEADER_CONTENT_JS = b"HTTP/1.1 200 OK\r\nContent-Type: text/javascript\r\n\r\n"
 
 class HttpServer:
-    def __init__(self, routes, wifi, mdns):
+    def __init__(self, routes, callback_connect, callback_get_ssids, callback_set_net_id):
         self.routes = routes
-        self.wifi = wifi
-        self.mdns = mdns
+        self.callbak_connect = callback_connect
+        self.callbak_get_ssids = callback_get_ssids
+        self.callback_set_net_id = callback_set_net_id
+        self.task_check_request = None
 
         self.credentials = Credentials().load()
 
@@ -38,8 +40,8 @@ class HttpServer:
             b"/favicon.ico": self.favicon,
             b"/settings/net-id": self.settings_net_id,
             b"/settings/ssids": self.get_ssids,
-            b"/connect": self.connect,
             b"/settings/router-ip-received": self.router_ip_received,
+            b"/connect": self.connect,
         }
 
         for route in basic_routes:
@@ -54,9 +56,21 @@ class HttpServer:
         self.poller.register(self.sock, POLLIN)
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_request())
 
-        print("> HTTP server up and running")
+        print("> HTTP server up")
+
+    def start(self):
+        if self.task_check_request == None:
+            self.task_check_request = self.loop.create_task(self.check_request())
+
+            print("> HTTP server running")
+
+    def stop(self):
+        if self.task_check_request != None:
+            self.task_check_request.cancel()
+            self.task_check_request = None
+
+            print("> HTTP server stopped")
 
     def split_request(self, request):
         method = ""
@@ -146,8 +160,6 @@ class HttpServer:
         client.close()
     
     async def check_request(self):
-        start = True
-
         while True:
             try:
                 collect()
@@ -162,8 +174,6 @@ class HttpServer:
                         method, path, params = self.split_request(request)
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
-
-                        self.wifi.set_http_activity()
 
                         route = self.routes.get(path.encode('ascii'), None)
 
@@ -203,9 +213,7 @@ class HttpServer:
         if id:
             settings.net_id = id
             settings.write()
-
-            if self.mdns != None:
-                self.mdns.set_net_id(id)
+            self.callback_set_net_id(id)
 
     def get_ssids(self, params):
-        return self.wifi.get_ssids()
+        return self.callbak_get_ssids()

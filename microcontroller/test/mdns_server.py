@@ -17,54 +17,55 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
-WAIT_A_BIT_MORE = const(3000)
 WAIT_FOR_REQUEST = const(250)
-CHECK_CONNECTED = const(250)
+WAIT_AFTER_ERROR = const(15000)
 
 class mDnsServer:
     def __init__(self, hostname, net_id):
         self.sta_if = WLAN(STA_IF)
         self.ap_if = WLAN(AP_IF)
         self.hostname = hostname
-        self.connected = False
 
         self.set_net_id(net_id)
 
         self.sock = self.make_socket()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_connected())
 
-    async def check_connected(self):
+        print("> mDNS server up")
+
+    def start(self):
+        if self.task_connect == None:
+            connect_success = self.connect()
+            self.task_connect = self.loop.create_task(self.connect_and_process_packets(connect_success))
+
+            print("> mDNS server running")
+
+    def stop(self):
+        if self.task_connect != None:
+            self.task_connect.cancel()
+            self.task_connect = None
+        
+            print("> mDNS server stopped")
+
+    async def connect_and_process_packets(self, connect_success):
+        while not connect_success:
+            await sleep_ms(WAIT_AFTER_ERROR)
+            connect_success = self.connect()
+
         while True:
-            self.connected = False
+            self.process_waiting_packets()
+            await sleep_ms(WAIT_FOR_REQUEST)
 
-            while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(CHECK_CONNECTED)
-
-            await sleep_ms(WAIT_A_BIT_MORE)
-
-            while not self.connected and not self.ap_if.active():
-                await self.connect()
-
-                if self.connected:
-                    print("> mDNS server up and running")
-
-                    while self.connected and not self.ap_if.active():
-                        self.process_waiting_packets()
-                        await sleep_ms(WAIT_FOR_REQUEST)
-
-                    print("> mDNS server down")
-
-    async def connect(self):
+    def connect(self):
         try:
-            print("> mDNS start or restart")
             self.make_socket()
             self.advertise_hostname()
-            self.connected = True
+
+            return True
         except Exception as e:
             print("> mDnsServer.connect error: {}".format(e))
-            await sleep_ms(CHECK_CONNECTED)
+            return False
 
     def make_socket(self):
         collect()
@@ -240,4 +241,8 @@ class mDnsServer:
     def set_net_id(self, net_id):
         self.net_id = net_id
         self.public_name = b"%s-%s" % (self.hostname, self.net_id)
-        self.connected = False
+
+        # Restart server
+        if self.task_connect != None:
+            self.stop()
+            self.start()
