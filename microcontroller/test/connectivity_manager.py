@@ -1,43 +1,83 @@
 from uasyncio import get_event_loop, sleep_ms
 from wifi_manager import WifiManager
 from http_server import HttpServer
+from ntp_time import NtpTime
+from settings import Settings
+from mdns_server import mDnsServer
 
 class ConnectivityManager:
-    def __init__(self, url_routes):
-        self.start_mdns = False
-        self.start_http = False
-        self.start_ntp = False
-        self.start_mqtt = False
+    def __init__(self, public_name, url_routes, settings_values=None):
         self.http_activity = False
+        self.http = None
+        self.ntp = None
+        self.mdns = None
 
-        self.wifi = WifiManager(b"Clock-99", self.wifi_connection_success, self.wifi_connection_fail, self.access_point_active)
-        self.http = HttpServer(url_routes, self.wifi.connect, self.wifi.get_ssids, None)
+        self.public_name = public_name
+        self.url_routes = url_routes
+        self.settings_values = settings_values
+
+
+        settings = Settings().load()
+        access_point_essid = b"%s-%s" % (public_name, settings.net_id)
+
+        self.wifi = WifiManager(access_point_essid, self.wifi_connection_success, self.wifi_connection_fail, self.access_point_active)
 
         self.loop = get_event_loop()
-
         self.loop.create_task(self.check_connectivity())
 
     async def check_connectivity(self):
         while True:
-            await sleep_ms(500)
+            await sleep_ms(100)
+
+    def set_settings_values(self, settings_values):
+        settings = Settings().load()
+        settings_values.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id})
+        self.http.set_settings_values(settings_values)
+
+    def set_net_id(self, net_id):
+        settings = Settings().load()
+        settings.net_id = net_id
+        settings.write()
+
+        self.set_settings_values(self.settings_values)
 
     def wifi_connection_success(self):
-        print("Wifi OK")
+        self.start_http_server()
+        self.start_ntp()
+        self.start_mdns()
+
+    async def wifi_connection_success_async(self):
+        self.start_http_server()
+        self.start_ntp()
 
     def wifi_connection_fail(self):
-        print("Wifi FAIL")
+        if self.http:
+            self.http.stop()
 
     def access_point_active(self):
+        self.start_http_server()
+
+    def start_http_server(self):
+        if not self.http:
+            self.http = HttpServer(self.url_routes, self.wifi.connect, self.wifi.get_ssids, self.set_net_id)
+
+            if self.settings_values:
+                self.set_settings_values(self.settings_values)
+
         self.http.start()
 
-    def connectivity_up(self):
-        self.start_http = True
+    def start_ntp(self):
+        if not self.ntp:
+            self.ntp = NtpTime()
+        
+        self.ntp.start()
 
-    def http_up(self):
-        self.start_ntp = True
-
-    def mdns_up(self):
-        self.start_mqtt = True
+    def start_mdns(self):
+        if not self.mdns:
+            settings = Settings().load()
+            self.mdns = mDnsServer(self.public_name.lower(), settings.net_id)
+        
+        self.mdns.start()
 
     # def http_activity(self):
     #     self.start_ntp = False

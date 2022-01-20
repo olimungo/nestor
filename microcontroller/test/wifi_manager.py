@@ -30,8 +30,6 @@ class WifiManager:
         self.callback_connection_fail = callback_connection_fail
         self.callback_access_point_active = callback_access_point_active
 
-        print(self.callback_access_point_active)
-
         # Make sure that AP is not active
         self.acess_point.active(False)
 
@@ -48,12 +46,11 @@ class WifiManager:
 
         if self.station.isconnected():
             self.loop.create_task(self.station_mode())
+            self.callback_connection_success()
         else:
             self.loop.create_task(self.start_access_point())
 
     async def station_mode(self):
-        print("> Station mode")
-
         while self.station.isconnected():
             await sleep_ms(CHECK_CONNECTED)
 
@@ -82,7 +79,12 @@ class WifiManager:
 
             self.callback_access_point_active()
 
-    def connect(self):
+    def connect(self, essid, password):
+        credentials = Credentials().load()
+        credentials.essid = essid
+        credentials.password = password
+        credentials.write()
+
         self.loop.create_task(self.connect_async())
 
     async def connect_async(self):
@@ -122,8 +124,6 @@ class WifiManager:
                         credentials.essid.decode("ascii"), self.ip
                     )
                 )
-
-                self.callback_connection_success()
 
                 if self.acess_point.active():
                     await sleep_ms(WAIT_BEFORE_RESET)

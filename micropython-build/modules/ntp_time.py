@@ -1,16 +1,19 @@
-from urequests import get
+from http_request import get
 from machine import RTC
 from ntptime import settime
 from uasyncio import get_event_loop, sleep_ms
 
 WAIT_FOR_UPDATING_TIME = const(300000) # 5 minutes
 WAIT_FOR_UPDATING_OFFSET = const(3600000) # 1 hour
-WAIT_AFTER_ERROR = const(15000)
+WAIT_AFTER_ERROR = const(5000)
 
 class NtpTime:
     def __init__(self):
         self.offset_hour = 0
         self.offset_minute = 0
+
+        self.task_time = None
+        self.task_offset = None
 
         self.loop = get_event_loop()
 
@@ -18,13 +21,14 @@ class NtpTime:
 
     def start(self):
         if self.task_time == None:
-            update_time_success = self.get_time()
-            update_offset_success = self.get_offset()
-
-            self.task_time = self.loop.create_task(self.update_time(update_time_success))
-            self.task_offset = self.loop.create_task(self.update_offset(update_offset_success))
-
             print("> NTP time running")
+
+            update_offset_success = self.update_offset()
+            update_time_success = self.update_time()
+
+            self.task_time = self.loop.create_task(self.update_time_async(update_time_success))
+            self.task_offset = self.loop.create_task(self.update_offset_async(update_offset_success))
+
 
     def stop(self):
         if self.task_time != None:
@@ -35,20 +39,20 @@ class NtpTime:
 
             print("> NTP time stopped")
 
-    def get_time(self):
+    def update_time(self):
         try:
             settime()
-            print("> NTP time updated at {}".format(RTC().datetime()))
+            print("> NTP time updated: {}".format(RTC().datetime()))
 
             return True
         except Exception as e:
             print("> NtpTime.update_time error: {}".format(e))
             return False  
 
-    def get_offset(self):
+    def update_offset(self):
         try:
             worldtime = get("http://worldtimeapi.org/api/ip")
-            offset = worldtime.json()["utc_offset"]
+            offset = worldtime["utc_offset"]
 
             self.offset_hour = int(offset[1:3])
             self.offset_minute = int(offset[4:6])
@@ -63,17 +67,17 @@ class NtpTime:
             print("> NtpTime.get_offset error: {}".format(e))
             return False         
 
-    async def update_time(self, update_success):
+    async def update_time_async(self, update_success):
         await sleep_ms(WAIT_FOR_UPDATING_TIME) if update_success else await sleep_ms(WAIT_AFTER_ERROR)
 
         while True:
-            await sleep_ms(WAIT_FOR_UPDATING_TIME) if self.get_time() else await sleep_ms(WAIT_AFTER_ERROR)
+            await sleep_ms(WAIT_FOR_UPDATING_TIME) if self.update_time() else await sleep_ms(WAIT_AFTER_ERROR)
 
-    async def update_offset(self, update_success):
+    async def update_offset_async(self, update_success):
         await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if update_success else await sleep_ms(WAIT_AFTER_ERROR)
 
         while True:
-            await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if self.get_offset() else await sleep_ms(WAIT_AFTER_ERROR)
+            await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if self.update_offset() else await sleep_ms(WAIT_AFTER_ERROR)
 
     def get_time(self):
         _, _, _, _, hour, minute, second, _ = RTC().datetime()

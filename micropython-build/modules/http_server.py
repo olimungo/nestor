@@ -4,8 +4,6 @@ from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
 from ure import compile
 from gc import collect
-from credentials import Credentials
-from settings import Settings
 
 MAX_PACKET_SIZE = const(512)
 HTTP_PORT = const(80)
@@ -27,8 +25,6 @@ class HttpServer:
         self.callback_set_net_id = callback_set_net_id
         self.task_check_request = None
 
-        self.credentials = Credentials().load()
-
         basic_routes = {
             b"/": b"./index.html",
             b"/index.html": b"./index.html",
@@ -38,7 +34,8 @@ class HttpServer:
             b"/index-scripts.js": b"./index-scripts.js",
             b"/settings-scripts.js": b"./settings-scripts.js",
             b"/favicon.ico": self.favicon,
-            b"/settings/net-id": self.settings_net_id,
+            b"/settings/values": self.get_settings_values,
+            b"/settings/net-id": self.set_net_id,
             b"/settings/ssids": self.get_ssids,
             b"/settings/router-ip-received": self.router_ip_received,
             b"/connect": self.connect,
@@ -193,26 +190,34 @@ class HttpServer:
     def favicon(self, params):
         print("> NOT sending the favico :-)")
 
+    def set_settings_values(self, settings_values):
+        self.settings_values = settings_values
+    
+    def get_settings_values(self, params):
+
+        result = ""
+
+        for value in self.settings_values:
+            if result != "":
+                result += ","
+
+            result += '"%s": "%s"' % (value.decode("ascii"), self.settings_values[value].decode("ascii"))
+
+        return "{%s}" % result
+
     def connect(self, params):
-        credentials = Credentials().load()
+        essid = params.get(b"essid", None)
+        password = params.get(b"password", None)
 
-        credentials.essid = params.get(b"essid", None)
-        credentials.password = params.get(b"password", None)
-        credentials.write()
-
-        self.wifi.connect()
+        self.callbak_connect(essid, password)
 
     def router_ip_received(self, params):
         reset()
 
-    def settings_net_id(self, params):
-        settings = Settings().load()
-        
+    def set_net_id(self, params):
         id = params.get(b"id", None)
 
         if id:
-            settings.net_id = id
-            settings.write()
             self.callback_set_net_id(id)
 
     def get_ssids(self, params):

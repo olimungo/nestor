@@ -2,19 +2,22 @@ from gc import collect, mem_free
 from uasyncio import get_event_loop
 from connectivity_manager import ConnectivityManager
 
-def settings_values(params):
-    result = (
-        b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
-        % ("1.2.3.4", "99", "", "ON", "OFF", "DOUBLE-SWITCH")
-    )
+PUBLIC_NAME = b"Switch"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"deathstar.local"
+MQTT_TOPIC_NAME = b"switches"
+DEVICE_TYPE = b"SWITCH"
+DOUBLE_SWITCH = True
 
-    return result
+if DOUBLE_SWITCH:
+    device_type = b"DOUBLE-SWITCH"
+else:
+    device_type = DEVICE_TYPE
 
-url_routes = {
-    b"/settings/values": settings_values
-}
+url_routes = {}
 
-conman = ConnectivityManager(url_routes)
+# conman = ConnectivityManager(PUBLIC_NAME, url_routes, {b"state": b"0,1", b"type": device_type})
+# conman.set_settings_values({b"state": b"0,1", b"type": b"DOUBLE-SWITCH"})
 
 collect()
 print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
