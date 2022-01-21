@@ -1,6 +1,8 @@
 from gc import collect, mem_free
-from uasyncio import get_event_loop
+from time import sleep
+from uasyncio import get_event_loop, sleep_ms
 from connectivity_manager import ConnectivityManager
+from tags import Tags
 
 PUBLIC_NAME = b"Switch"
 BROKER_NAME = b"nestor.local"
@@ -14,9 +16,16 @@ if DOUBLE_SWITCH:
 else:
     device_type = DEVICE_TYPE
 
-url_routes = {}
+def add_remove_tag(topic, message):
+        print("add-tag")
+        print(topic, message)
 
-# conman = ConnectivityManager(PUBLIC_NAME, url_routes, {b"state": b"0,1", b"type": device_type})
+url_routes = {}
+mqtt_subscribe_topics = {b"add-tag": add_remove_tag}
+settings_values = {b"state": b"0,1", b"type": device_type}
+
+
+conman = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, DEVICE_TYPE, settings_values)
 # conman.set_settings_values({b"state": b"0,1", b"type": b"DOUBLE-SWITCH"})
 
 collect()

@@ -15,6 +15,7 @@ WAIT_BEFORE_RESET = const(7000)
 LAST_ACTIVITY_TIMEOUT = const(30000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
+WAIT_FOR_BLINK = const(1000)
 
 class WifiManager:
     ip = NO_IP
@@ -116,6 +117,8 @@ class WifiManager:
                 self.ip = self.station.ifconfig()[0]
 
                 Blink().flash_3_times_fast()
+
+                await sleep_ms(WAIT_FOR_BLINK)
 
                 credentials = Credentials().load()
 

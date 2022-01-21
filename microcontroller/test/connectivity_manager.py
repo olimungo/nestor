@@ -4,18 +4,23 @@ from http_server import HttpServer
 from ntp_time import NtpTime
 from settings import Settings
 from mdns_server import mDnsServer
+from mqtt_manager import MqttManager
 
 class ConnectivityManager:
-    def __init__(self, public_name, url_routes, settings_values=None):
+    def __init__(self, public_name, broker_name, url_routes, mqtt_topic_name, mqtt_subscribe_topics, device_type, settings_values=None):
         self.http_activity = False
         self.http = None
         self.ntp = None
         self.mdns = None
+        self.mqtt = None
 
         self.public_name = public_name
+        self.broker_name = broker_name
         self.url_routes = url_routes
+        self.mqtt_topic_name = mqtt_topic_name
+        self.mqtt_subscribe_topics = mqtt_subscribe_topics
+        self.device_type = device_type
         self.settings_values = settings_values
-
 
         settings = Settings().load()
         access_point_essid = b"%s-%s" % (public_name, settings.net_id)
@@ -42,17 +47,16 @@ class ConnectivityManager:
         self.set_settings_values(self.settings_values)
 
     def wifi_connection_success(self):
-        self.start_http_server()
         self.start_ntp()
         self.start_mdns()
-
-    async def wifi_connection_success_async(self):
+        self.start_mqtt()
         self.start_http_server()
-        self.start_ntp()
 
     def wifi_connection_fail(self):
-        if self.http:
-            self.http.stop()
+        if self.ntp: self.ntp.stop()
+        if self.mdns: self.mdns.stop()
+        if self.mqtt: self.mqtt.stop()
+        if self.http: self.http.stop()
 
     def access_point_active(self):
         self.start_http_server()
@@ -78,6 +82,20 @@ class ConnectivityManager:
             self.mdns = mDnsServer(self.public_name.lower(), settings.net_id)
         
         self.mdns.start()
+
+    def start_mqtt(self):
+        if not self.mqtt:
+            settings = Settings().load()
+            broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
+
+            if broker_ip:
+                broker_ip = "{}.{}.{}.{}".format(*broker_ip)
+                self.mqtt = MqttManager(broker_ip, settings.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.device_type)
+        
+        self.mqtt.start()
+
+    def set_state(self, state_1, state_2=None):
+        self.mqtt.set_state(state_1, state_2)
 
     # def http_activity(self):
     #     self.start_ntp = False
