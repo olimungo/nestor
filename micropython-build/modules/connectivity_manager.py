@@ -4,24 +4,37 @@ from wifi_manager import WifiManager
 from settings import Settings
 
 PREVENT_AUTO_CONNECT_DELAY = const(15000)
+WAIT_BETWEEN_AUTO_CONNECT = const(30000)
+WAIT_BETWEEN_CONNECTIVITY_CHECK = const(1000)
 
 class ConnectivityManager:
-    def __init__(self, public_name, broker_name, url_routes, mqtt_topic_name, mqtt_subscribe_topics, device_type, settings_values=None):
-        self.http_activity = False
-        self.http = None
-        self.ntp = None
-        self.mdns = None
-        self.mqtt = None
-        self.task_connect = None
-        self.task_connect_async = None
+    http_activity = False
+    http = None
+    ntp = None
+    mdns = None
+    mqtt = None
+    state_1 = None
+    state_2 = None
+    task_connect = None
+    task_connect_async = None
+
+    def __init__(self,
+        public_name, broker_name, url_routes,
+        mqtt_topic_name, mqtt_subscribe_topics,
+        mqtt_device_type, http_device_type, settings_values,
+        use_ntp=False, use_mdns=False, use_mqtt=False):
 
         self.public_name = public_name
         self.broker_name = broker_name
         self.url_routes = url_routes
         self.mqtt_topic_name = mqtt_topic_name
         self.mqtt_subscribe_topics = mqtt_subscribe_topics
-        self.device_type = device_type
+        self.mqtt_device_type = mqtt_device_type
+        self.http_device_type =  http_device_type
         self.settings_values = settings_values
+        self.use_ntp = use_ntp
+        self.use_mdns = use_mdns
+        self.use_mqtt = use_mqtt
 
         settings = Settings().load()
         access_point_essid = b"%s-%s" % (public_name, settings.net_id)
@@ -33,7 +46,7 @@ class ConnectivityManager:
 
     async def check_connectivity(self):
         while True:
-            await sleep_ms(1000)
+            await sleep_ms(WAIT_BETWEEN_CONNECTIVITY_CHECK)
 
     def connect(self, essid, password):
         if self.task_connect_async:
@@ -48,19 +61,18 @@ class ConnectivityManager:
 
     async def connect_async(self):
         while True:
-            await sleep_ms(20000)
+            await sleep_ms(WAIT_BETWEEN_AUTO_CONNECT)
 
             now = ticks_ms()
             last_http_activity = self.http.last_activity
 
+            # Don't try to auto connect if there was an http activity recently
             if not last_http_activity or ticks_diff(now, last_http_activity + PREVENT_AUTO_CONNECT_DELAY) > 0:
                 self.loop.create_task(self.wifi.connect_async())
 
     def set_settings_values(self, settings_values):
         settings = Settings().load()
-        settings_values.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id})
-        print("> SETTINGS VALUES")
-        print(settings_values)
+        settings_values.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id, b"type": self.http_device_type})
         self.http.set_settings_values(settings_values)
 
     def set_net_id(self, net_id):
@@ -69,6 +81,9 @@ class ConnectivityManager:
         settings.write()
 
         self.set_settings_values(self.settings_values)
+
+        if self.mdns: self.mdns.set_net_id(settings.net_id)
+        if self.mqtt: self.mqtt.set_net_id(settings.net_id)
 
     def wifi_connection_success(self):
         if self.task_connect_async:
@@ -93,6 +108,7 @@ class ConnectivityManager:
 
     def access_point_active(self):
         self.start_http_server()
+        self.set_settings_values(self.settings_values)
 
     def start_http_server(self):
         if not self.http:
@@ -105,35 +121,44 @@ class ConnectivityManager:
         self.http.start()
 
     def start_ntp(self):
-        if not self.ntp:
-            from ntp_time import NtpTime
-            self.ntp = NtpTime()
-        
-        self.ntp.start()
+        if self.use_ntp:
+            if not self.ntp:
+                from ntp_time import NtpTime
+                self.ntp = NtpTime()
+            
+            self.ntp.start()
 
     def start_mdns(self):
-        if not self.mdns:
-            from mdns_server import mDnsServer
-            settings = Settings().load()
-            self.mdns = mDnsServer(self.public_name.lower(), settings.net_id)
+        if self.use_mdns:
+            if not self.mdns:
+                from mdns_server import mDnsServer
+                settings = Settings().load()
+                self.mdns = mDnsServer(self.public_name.lower(), settings.net_id)
         
-        self.mdns.start()
+            self.mdns.start()
 
     def start_mqtt(self):
-        if not self.mqtt:
-            settings = Settings().load()
-            broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
+        if self.use_mqtt:
+            try:
+                if not self.mqtt:
+                    settings = Settings().load()
+                    broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
 
-            if broker_ip:
-                from mqtt_manager import MqttManager
-                broker_ip = "{}.{}.{}.{}".format(*broker_ip)
-                self.mqtt = MqttManager(broker_ip, settings.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.device_type)
-        
+                    if broker_ip:
+                        from mqtt_manager import MqttManager
+                        broker_ip = "{}.{}.{}.{}".format(*broker_ip)
+                        self.mqtt = MqttManager(broker_ip, settings.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.mqtt_device_type)
+
+                        if self.state_1:
+                            self.mqtt.set_state(self.state_1, self.state_2)
+                
                 self.mqtt.start()
+            except Exception as e:
+                print("> connectivity_manager.start_mqtt: {}".format(e))
 
     def set_state(self, state_1, state_2=None):
-        self.mqtt.set_state(state_1, state_2)
+        self.state_1 = state_1
+        self.state_2 = state_2
 
-    # def http_activity(self):
-    #     self.start_ntp = False
-    #     self.start_mqtt = False
+        if self.mqtt:
+            self.mqtt.set_state(state_1, state_2)

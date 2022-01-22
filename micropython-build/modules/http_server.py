@@ -1,5 +1,5 @@
 from machine import reset
-from time import ticks_ms, ticks_diff
+from time import ticks_ms
 from uasyncio import get_event_loop, sleep_ms
 from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
@@ -171,7 +171,7 @@ class HttpServer:
 
                     if request:
                         self.last_activity = ticks_ms()
-                        
+
                         method, path, params = self.split_request(request)
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
@@ -187,7 +187,6 @@ class HttpServer:
                             self.send_page(client, "/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
-                # reset()
 
             await sleep_ms(IDLE_TIME_BETWEEN_CHECKS)
 

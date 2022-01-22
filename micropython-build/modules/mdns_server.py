@@ -21,8 +21,9 @@ WAIT_FOR_REQUEST = const(250)
 WAIT_AFTER_ERROR = const(15000)
 
 class mDnsServer:
+    task_connect = None
+    
     def __init__(self, hostname, net_id):
-        self.task_connect = None
         self.hostname = hostname
 
         self.sta_if = WLAN(STA_IF)
