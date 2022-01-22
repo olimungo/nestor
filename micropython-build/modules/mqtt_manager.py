@@ -5,8 +5,9 @@ from uasyncio import get_event_loop, sleep_ms
 from tags import Tags
 
 SEND_STATE_INTERVAL = const(2000)
-WAIT_FOR_MESSAGE = const(250)
+WAIT_FOR_MESSAGE = const(100)
 WAIT_AFTER_ERROR = const(5000)
+WAIT_A_BIT_BEFORE_LOGGING = const(1000)
 
 class MqttManager:
     def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
@@ -69,7 +70,7 @@ class MqttManager:
         self.task_send_state = self.loop.create_task(self.send_state())
         self.task_check_for_message = self.loop.create_task(self.check_for_message())
 
-        await sleep_ms(1000)
+        await sleep_ms(WAIT_A_BIT_BEFORE_LOGGING)
 
         self.log(b"IP assigned to %s-%s: %s" % (self.device_type, self.net_id, self.ip))
 

@@ -1,4 +1,5 @@
 from machine import reset
+from time import ticks_ms, ticks_diff
 from uasyncio import get_event_loop, sleep_ms
 from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from uselect import poll, POLLIN
@@ -20,10 +21,11 @@ HEADER_CONTENT_JS = b"HTTP/1.1 200 OK\r\nContent-Type: text/javascript\r\n\r\n"
 class HttpServer:
     def __init__(self, routes, callback_connect, callback_get_ssids, callback_set_net_id):
         self.routes = routes
-        self.callbak_connect = callback_connect
+        self.callback_connect = callback_connect
         self.callbak_get_ssids = callback_get_ssids
         self.callback_set_net_id = callback_set_net_id
         self.task_check_request = None
+        self.last_activity = None
 
         basic_routes = {
             b"/": b"./index.html",
@@ -168,6 +170,8 @@ class HttpServer:
                     request = client.recv(MAX_PACKET_SIZE)
 
                     if request:
+                        self.last_activity = ticks_ms()
+                        
                         method, path, params = self.split_request(request)
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
@@ -209,7 +213,7 @@ class HttpServer:
         essid = params.get(b"essid", None)
         password = params.get(b"password", None)
 
-        self.callbak_connect(essid, password)
+        self.callback_connect(essid, password)
 
     def router_ip_received(self, params):
         reset()

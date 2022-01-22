@@ -12,6 +12,7 @@ MAX_WAIT_FOR_CONNECTION_CHECK = const(10)
 WAIT_FOR_CONNECTION_CHECK = const(1000)
 WAIT_BETWEEN_CONNECT = const(60000)
 WAIT_BEFORE_RESET = const(7000)
+LAST_ACTIVITY_TIMEOUT = const(30000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
 WAIT_FOR_BLINK = const(1000)
@@ -20,6 +21,7 @@ class WifiManager:
     ip = NO_IP
     ssids = []
     ssids_timestamp = 0
+    last_http_activity = -LAST_ACTIVITY_TIMEOUT
 
     def __init__(self, access_point_essid, callback_connection_success, callback_connection_fail, callback_access_point_active, callback_set_station_ip):
         self.station = WLAN(STA_IF)

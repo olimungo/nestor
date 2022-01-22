@@ -5,7 +5,8 @@ from uasyncio import get_event_loop, sleep_ms
 
 WAIT_FOR_UPDATING_TIME = const(300000) # 5 minutes
 WAIT_FOR_UPDATING_OFFSET = const(3600000) # 1 hour
-WAIT_AFTER_ERROR = const(5000)
+WAIT_AFTER_ERROR_TIME = const(5000)
+WAIT_AFTER_ERROR_OFFSET = const(1000)
 
 class NtpTime:
     def __init__(self):
@@ -23,12 +24,11 @@ class NtpTime:
         if self.task_time == None:
             print("> NTP time running")
 
-            update_offset_success = self.update_offset()
             update_time_success = self.update_time()
+            update_offset_success = self.update_offset()
 
             self.task_time = self.loop.create_task(self.update_time_async(update_time_success))
             self.task_offset = self.loop.create_task(self.update_offset_async(update_offset_success))
-
 
     def stop(self):
         if self.task_time != None:
@@ -68,16 +68,16 @@ class NtpTime:
             return False         
 
     async def update_time_async(self, update_success):
-        await sleep_ms(WAIT_FOR_UPDATING_TIME) if update_success else await sleep_ms(WAIT_AFTER_ERROR)
+        await sleep_ms(WAIT_FOR_UPDATING_TIME) if update_success else await sleep_ms(WAIT_AFTER_ERROR_TIME)
 
         while True:
-            await sleep_ms(WAIT_FOR_UPDATING_TIME) if self.update_time() else await sleep_ms(WAIT_AFTER_ERROR)
+            await sleep_ms(WAIT_FOR_UPDATING_TIME) if self.update_time() else await sleep_ms(WAIT_AFTER_ERROR_TIME)
 
     async def update_offset_async(self, update_success):
-        await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if update_success else await sleep_ms(WAIT_AFTER_ERROR)
+        await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if update_success else await sleep_ms(WAIT_AFTER_ERROR_OFFSET)
 
         while True:
-            await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if self.update_offset() else await sleep_ms(WAIT_AFTER_ERROR)
+            await sleep_ms(WAIT_FOR_UPDATING_OFFSET) if self.update_offset() else await sleep_ms(WAIT_AFTER_ERROR_OFFSET)
 
     def get_time(self):
         _, _, _, _, hour, minute, second, _ = RTC().datetime()
