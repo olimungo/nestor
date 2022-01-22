@@ -9,12 +9,12 @@ WAIT_AFTER_ERROR_TIME = const(5000)
 WAIT_AFTER_ERROR_OFFSET = const(1000)
 
 class NtpTime:
-    def __init__(self):
-        self.offset_hour = 0
-        self.offset_minute = 0
+    offset_hour = 0
+    offset_minute = 0
+    task_time = None
+    task_offset = None
 
-        self.task_time = None
-        self.task_offset = None
+    def __init__(self):
 
         self.loop = get_event_loop()
 

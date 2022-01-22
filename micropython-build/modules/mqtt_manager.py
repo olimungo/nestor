@@ -10,13 +10,15 @@ WAIT_AFTER_ERROR = const(5000)
 WAIT_A_BIT_BEFORE_LOGGING = const(1000)
 
 class MqttManager:
+    state_1 = "UNKNOWN"
+    state_2 = None
+    message_1 = None
+    message_2 = None
+    task_check_for_connect = None
+    task_send_state = None
+    task_check_for_message = None
+
     def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
-        self.state_1 = "UNKNOWN"
-        self.state_2 = None
-        self.message_1 = None
-        self.message_2 = None
-        self.task_send_state = None
-        self.task_check_for_message = None
 
         self.broker_ip = broker_ip
         self.net_id = net_id
@@ -36,24 +38,35 @@ class MqttManager:
         if self.task_check_for_message == None:
             connect_success = self.connect()
             
-            self.task_check_for_message = self.loop.create_task(self.check_for_connect(connect_success))
+            self.task_check_for_connect = self.loop.create_task(self.check_for_connect(connect_success))
 
             print("> MQTT server running")
 
     def stop(self):
-        if self.task_check_for_message != None:
+        server_stopped = False
+
+        if self.task_check_for_connect:
+            self.task_check_for_connect.cancel()
+            self.task_check_for_connect = None
+            server_stopped = True
+
+        if self.task_check_for_message:
             self.task_check_for_message.cancel()
             self.task_check_for_message = None
+            server_stopped = True
 
-            print("> MQTT server stopped")
-
-        if self.task_send_state != None:
+        if self.task_send_state:
             self.task_send_state.cancel()
             self.task_send_state = None
+            server_stopped = True
 
-        if self.mqtt != None:
+        if self.mqtt:
             self.mqtt.disconnect()
             self.mqtt = None
+            server_stopped = True
+
+        if server_stopped:
+            print("> MQTT server stopped")
 
     async def check_for_connect(self, connect_success):
         while not connect_success:
@@ -80,7 +93,8 @@ class MqttManager:
                 self.mqtt.check_msg()
                 await sleep_ms(WAIT_FOR_MESSAGE)
             except Exception as e:
-                print("> MQTT broker connect error: {}".format(e))
+                print("> MqttManager.check_for_message error: {}".format(e))
+                self.loop.create_task(self.handle_error())
                 await sleep_ms(WAIT_AFTER_ERROR)
 
     async def send_state(self):
@@ -89,7 +103,8 @@ class MqttManager:
                 self.publish_state()
                 await sleep_ms(SEND_STATE_INTERVAL)
             except Exception as e:
-                print("> MQTT broker publish_state error: {}".format(e))
+                print("> MqttManager.send_state error: {}".format(e))
+                self.loop.create_task(self.handle_error())
                 await sleep_ms(WAIT_AFTER_ERROR)
 
     def connect(self):
@@ -106,7 +121,7 @@ class MqttManager:
         except Exception as e:
             self.mqtt = None
 
-            print("> MQTT broker connect error: {}".format(e))
+            print("> MqttManager.connect error: {}".format(e))
 
             return False
 
@@ -156,14 +171,14 @@ class MqttManager:
                 else:
                     self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.message_1)
             except Exception as e:
-                print("> MQTT broker publish_state error: {}".format(e))
+                print("> MqttManager.publish_state error: {}".format(e))
 
     def log(self, message):
         if self.task_send_state != None:
             try:
                 self.mqtt.publish(b"%s/%s" % (self.logs_topic, self.net_id), message)
             except Exception as e:
-                print("> MQTT broker log error: {}".format(e))
+                print("> MqttManager.log error: {}".format(e))
 
     def set_net_id(self, net_id):
         self.net_id = net_id
@@ -171,3 +186,11 @@ class MqttManager:
         # Restart server
         self.stop()
         self.start()
+
+    async def handle_error(self):
+        # Restart server
+        self.stop()
+        self.start()
+
+        
+        

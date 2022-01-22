@@ -5,20 +5,19 @@ print("\n\n\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 print("> Free mem at start: {}".format(mem_free()))
 print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
-from machine import reset
+from machine import freq
+freq(160000000)
 
-# from machine import freq
+import webrepl
+webrepl.start()
+
 from esp import sleep_type, SLEEP_NONE
-# import webrepl
+sleep_type(SLEEP_NONE)
 
 print(
     "\n\nJust Do It Yourself World Company Incorporated (c) from 2020 to eternity and beyond...\n"
 )
 
-# freq(160000000)
-sleep_type(SLEEP_NONE)
-
-# webrepl.start()
-
+from machine import reset
 def rst():
     reset()
