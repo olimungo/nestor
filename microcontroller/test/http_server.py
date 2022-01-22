@@ -36,7 +36,7 @@ class HttpServer:
             b"/index-scripts.js": b"./index-scripts.js",
             b"/settings-scripts.js": b"./settings-scripts.js",
             b"/favicon.ico": self.favicon,
-            b"/settings/values": self.get_settings_values,
+            b"/settings/config": self.get_config,
             b"/settings/net-id": self.set_net_id,
             b"/settings/ssids": self.get_ssids,
             b"/settings/router-ip-received": self.router_ip_received,
@@ -193,18 +193,17 @@ class HttpServer:
     def favicon(self, params):
         print("> NOT sending the favico :-)")
 
-    def set_settings_values(self, settings_values):
-        self.settings_values = settings_values
+    def set_config(self, config):
+        self.config = config
     
-    def get_settings_values(self, params):
-
+    def get_config(self, params):
         result = ""
 
-        for value in self.settings_values:
+        for value in self.config:
             if result != "":
                 result += ","
 
-            result += '"%s": "%s"' % (value.decode("ascii"), self.settings_values[value].decode("ascii"))
+            result += '"%s": "%s"' % (value.decode("ascii"), self.config[value].decode("ascii"))
 
         return "{%s}" % result
 

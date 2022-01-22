@@ -15,13 +15,14 @@ class ConnectivityManager:
     mqtt = None
     state_1 = None
     state_2 = None
+    http_config = None
     task_connect = None
     task_connect_async = None
 
     def __init__(self,
         public_name, broker_name, url_routes,
         mqtt_topic_name, mqtt_subscribe_topics,
-        mqtt_device_type, http_device_type, settings_values,
+        mqtt_device_type, http_device_type,
         use_ntp=False, use_mdns=False, use_mqtt=False):
 
         self.public_name = public_name
@@ -31,7 +32,6 @@ class ConnectivityManager:
         self.mqtt_subscribe_topics = mqtt_subscribe_topics
         self.mqtt_device_type = mqtt_device_type
         self.http_device_type =  http_device_type
-        self.settings_values = settings_values
         self.use_ntp = use_ntp
         self.use_mdns = use_mdns
         self.use_mqtt = use_mqtt
@@ -39,7 +39,7 @@ class ConnectivityManager:
         settings = Settings().load()
         access_point_essid = b"%s-%s" % (public_name, settings.net_id)
 
-        self.wifi = WifiManager(access_point_essid, self.wifi_connection_success, self.wifi_connection_fail, self.access_point_active, self.set_station_ip)
+        self.wifi = WifiManager(access_point_essid, self.wifi_connection_success, self.wifi_connection_fail, self.start_http_server, self.set_station_ip)
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connectivity())
@@ -70,17 +70,27 @@ class ConnectivityManager:
             if not last_http_activity or ticks_diff(now, last_http_activity + PREVENT_AUTO_CONNECT_DELAY) > 0:
                 self.loop.create_task(self.wifi.connect_async())
 
-    def set_settings_values(self, settings_values):
+    def set_http_config(self, http_config):
         settings = Settings().load()
-        settings_values.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id, b"type": self.http_device_type})
-        self.http.set_settings_values(settings_values)
+
+        if self.state_2:
+            state = b"%s,%s" % (self.state_1, self.state_2)
+        else:
+            state = b"%s" % self.state_1
+
+        http_config.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id, b"type": self.http_device_type, b"state": state})
+
+        self.http_config = http_config
+
+        if self.http:
+            self.http.set_config(http_config)
 
     def set_net_id(self, net_id):
         settings = Settings().load()
         settings.net_id = net_id
         settings.write()
 
-        self.set_settings_values(self.settings_values)
+        self.set_http_config(self.http_config)
 
         if self.mdns: self.mdns.set_net_id(settings.net_id)
         if self.mqtt: self.mqtt.set_net_id(settings.net_id)
@@ -96,7 +106,7 @@ class ConnectivityManager:
         self.start_ntp()
 
     def set_station_ip(self):
-        self.set_settings_values(self.settings_values)
+        self.set_http_config(self.http_config)
 
     def wifi_connection_fail(self):
         if self.ntp: self.ntp.stop()
@@ -106,17 +116,13 @@ class ConnectivityManager:
         if not self.task_connect_async:
             self.task_connect_async = self.loop.create_task(self.connect_async())
 
-    def access_point_active(self):
-        self.start_http_server()
-        self.set_settings_values(self.settings_values)
-
     def start_http_server(self):
         if not self.http:
             from http_server import HttpServer
             self.http = HttpServer(self.url_routes, self.connect, self.wifi.get_ssids, self.set_net_id)
 
-            if self.settings_values:
-                self.set_settings_values(self.settings_values)
+            if self.http_config:
+                self.set_http_config(self.http_config)
 
         self.http.start()
 

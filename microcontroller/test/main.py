@@ -9,7 +9,7 @@ PUBLIC_NAME = b"Switch"
 BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+HTTP_DEVICE_TYPE = b"SWITCH"
 
 def add_remove_tag(topic, message):
         print("add-tag")
@@ -17,12 +17,14 @@ def add_remove_tag(topic, message):
 
 url_routes = {}
 mqtt_subscribe_topics = {b"add-tag": add_remove_tag}
-settings_values = {b"state": b"0,1"}
+http_config = {b"timer": b"5"}
 
-conman = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE, settings_values,
+connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
     use_ntp=True, use_mdns=True, use_mqtt=True)
 
-conman.set_state("ON" ,"OFF")
+# connectivity.set_state("ON" ,"OFF")
+connectivity.set_state("ON")
+connectivity.set_http_config(http_config)
 
 collect()
 print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
