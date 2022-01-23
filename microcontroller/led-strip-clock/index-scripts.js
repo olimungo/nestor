@@ -20,7 +20,7 @@ function getValues() {
             setTagValue('tag-net-id', response.netId);
             setTagValue('hex', response.color);
 
-            document.title = `${documentTitle} ${response.netId}`;
+            document.title = `${documentTitle}-${response.netId}`;
 
             const slider = document.getElementById('slider');
             slider.value = response.brightness;

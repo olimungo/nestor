@@ -29,7 +29,7 @@ function getValues() {
                 setTagValue('switch-b', states[1] == 'ON' ? 1 : 0);
             }
 
-            document.title = `${documentTitle} ${response.netId}`;
+            document.title = `${documentTitle}-${response.netId}`;
             document
                 .getElementById('app-spinner')
                 .classList.add('display-none');

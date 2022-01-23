@@ -19,7 +19,6 @@ class MqttManager:
     task_check_for_message = None
 
     def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
-
         self.broker_ip = broker_ip
         self.net_id = net_id
         self.ip = ip
@@ -126,13 +125,22 @@ class MqttManager:
             return False
 
     def message_received(self, topic, message):
+        tags = Tags().load()
+
         # message contains the mqtt command and can be just "up" or "add-tag/kitchen"
         mqtt_command = message.split(b"/")[0]
 
-        callback = self.topics.get(mqtt_command, None)
+        if mqtt_command == b"add-tag":
+            tag = message.split(b"/")[1]
+            tags.append(tag)
+        elif mqtt_command == b"remove-tag":
+            tag = message.split(b"/")[1]
+            tags.remove(tag)
+        else:
+            callback = self.topics.get(mqtt_command, None)
 
-        if callback != None:
-            callback(topic, message)
+            if callback != None:
+                callback(topic, message)
 
     def set_state(self, ip, state_1, state_2=None):
         tags = Tags().load()

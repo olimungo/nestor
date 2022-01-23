@@ -2,134 +2,74 @@ from uasyncio import get_event_loop, sleep_ms
 from machine import reset
 from time import sleep
 from gc import collect, mem_free
-from network import WLAN, STA_IF, AP_IF
-from re import match
-from wifi_manager import WifiManager
-from http_server import HttpServer
-from mdns_server import mDnsServer
-from mqtt_manager import MqttManager
+from connectivity_manager import ConnectivityManager
 from settings import Settings
-from tags import Tags
 from motor import Motor
 
-DEVICE_TYPE = b"SHADE"
 PUBLIC_NAME = b"Shade"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"deathstar.local"
+# BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"shades"
+MQTT_DEVICE_TYPE = b"SHADE"
+HTTP_DEVICE_TYPE = b"SHADE"
 
-CHECK_CONNECTED = const(250) # milliseconds
+SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
-MQTT_CHECK_MESSAGE_INTERVAL = const(250) # milliseconds
-MQTT_CHECK_CONNECTED_INTERVAL = const(1000) # milliseconds
 
 class Main:
     def __init__(self):
-        self.sta_if = WLAN(STA_IF)
-        self.ap_if = WLAN(AP_IF)
-        settings = Settings().load()
-
-        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
-        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
-        self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
-        )
-
-        routes = {
+        url_routes = {
             b"/action/go-up": self.go_up,
             b"/action/go-down": self.go_down,
             b"/action/stop": self.stop,
-            b"/settings/values": self.settings_values,
             b"/settings/reverse-motor": self.reverse_motor,
         }
 
-        self.http = HttpServer(routes, self.wifi, self.mdns)
+        mqtt_subscribe_topics = {
+            b"up": self.mqtt_go_up,
+            b"down": self.mqtt_go_down,
+            b"stop": self.mqtt_stop
+        }
 
         self.motor = Motor()
 
+        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+            use_ntp=False, use_mdns=True, use_mqtt=True)
+
+        self.set_state()
+
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_connected())
-        self.loop.create_task(self.check_mqtt())
+        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
 
-    async def check_connected(self):
+    async def send_state(self):
         while True:
-            while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(CHECK_CONNECTED)
-
             self.set_state()
+            await sleep_ms(SEND_STATE_INTERVAL)
 
-            while self.sta_if.isconnected():
-                await sleep_ms(CHECK_CONNECTED)
+    def mqtt_go_up(self, topic, message):
+        self.go_up()
 
-    async def check_mqtt(self):
-        while True:
-            while self.mqtt.connected:
-                self.check_message_mqtt()
+    def mqtt_go_down(self, topic, message):
+        self.go_down()
 
-                if self.motor.check_stopped_by_ir_sensor():
-                    self.set_state()
+    def mqtt_stop(self, topic, message):
+        self.stop()
 
-                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
-
-            while not self.mqtt.connected:
-                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
-
-            self.set_state()
-
-    def check_message_mqtt(self):
-        try:
-            message = self.mqtt.check_messages()
-            tags = Tags().load()
-
-            if message:
-                if match("add-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.append(tag)
-                    self.set_state()
-                elif match("remove-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.remove(tag)
-                    self.set_state()
-                elif message == b"up":
-                    self.go_up()
-                elif message == b"down":
-                    self.go_down()
-                elif message == b"stop":
-                    self.stop()
-
-
-        except Exception as e:
-            print("> Main.check_message_mqtt exception: {}".format(e))
-
-    def settings_values(self, params):
-        settings = Settings().load()
-
-        result = (
-            b'{"ip": "%s", "netId": "%s", "motorReversed": "%s"}'
-            % (
-                self.wifi.ip,
-                settings.net_id,
-                settings.motor_reversed,
-            )
-        )
-
-        return result
-
-    def go_up(self, params=None):
+    def go_up(self, path=None, params=None):
         self.motor.go_up()
         self.set_state()
 
-    def go_down(self, params=None):
+    def go_down(self, path=None, params=None):
         self.motor.go_down()
         self.set_state()
 
-    def stop(self, params=None):
+    def stop(self, path=None, params=None):
         self.motor.stop()
         self.set_state()
 
-    def reverse_motor(self, params):
+    def reverse_motor(self, pat, params):
         settings = Settings().load()
         motor_reversed = settings.motor_reversed
 
@@ -142,15 +82,23 @@ class Main:
         settings.write()
 
         self.motor.reverse_direction()
+        self.set_state()
 
     def set_state(self):
-        self.mqtt.set_state(self.motor.get_state())
+        settings = Settings().load()
+        
+        http_config = {b"motorReversed": settings.motor_reversed}
+
+        self.connectivity.set_state(http_config, self.motor.get_state())
 
 try:
     collect()
-    print("Free mem: {}".format(mem_free()))
+    print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print("> Free mem after all classes created: {}".format(mem_free()))
+    print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
     main = Main()
+
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))

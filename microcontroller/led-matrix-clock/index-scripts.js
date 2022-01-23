@@ -21,7 +21,7 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 
-            document.title = `${documentTitle} ${response.netId}`;
+            document.title = `${documentTitle}-${response.netId}`;
 
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
