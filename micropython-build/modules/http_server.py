@@ -137,9 +137,9 @@ class HttpServer:
         file.close()
         client.close()
 
-    def call_route(self, client, route, params):
+    def call_route(self, client, route, path, params):
         # Call a function, which may or may not return a response
-        response = route(params)
+        response = route(path, params)
 
         if isinstance(response, tuple):
             body = response[0] or b""
@@ -182,7 +182,7 @@ class HttpServer:
                             # Expect a filename, so return content of file
                             self.send_page(client, route)
                         elif callable(route):
-                            self.call_route(client, route, params)
+                            self.call_route(client, route, path, params)
                         else:
                             self.send_page(client, "/index.html")
             except Exception as e:
@@ -190,13 +190,13 @@ class HttpServer:
 
             await sleep_ms(IDLE_TIME_BETWEEN_CHECKS)
 
-    def favicon(self, params):
+    def favicon(self, path, params):
         print("> NOT sending the favico :-)")
 
     def set_config(self, config):
         self.config = config
     
-    def get_config(self, params):
+    def get_config(self, path, params):
         result = ""
 
         for value in self.config:
@@ -207,20 +207,26 @@ class HttpServer:
 
         return "{%s}" % result
 
-    def connect(self, params):
+    def connect(self, path, params):
         essid = params.get(b"essid", None)
         password = params.get(b"password", None)
 
         self.callback_connect(essid, password)
 
-    def router_ip_received(self, params):
+    def router_ip_received(self, path, params):
+        self.loop.create_task(self.router_ip_received_async())
+
+    async def router_ip_received_async(self):
+        # Wait a bit before actually reset the device,
+        # so that the http call from the front-end gets a OK 200 response
+        await sleep_ms(500)
         reset()
 
-    def set_net_id(self, params):
+    def set_net_id(self, path, params):
         id = params.get(b"id", None)
 
         if id:
             self.callback_set_net_id(id)
 
-    def get_ssids(self, params):
+    def get_ssids(self, path, params):
         return self.callbak_get_ssids()

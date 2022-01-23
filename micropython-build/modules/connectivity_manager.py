@@ -2,6 +2,7 @@ from time import ticks_ms, ticks_diff
 from uasyncio import get_event_loop, sleep_ms
 from wifi_manager import WifiManager
 from settings import Settings
+from credentials import Credentials
 
 PREVENT_AUTO_CONNECT_DELAY = const(15000)
 WAIT_BETWEEN_AUTO_CONNECT = const(30000)
@@ -57,7 +58,12 @@ class ConnectivityManager:
         if self.mqtt: self.mqtt.stop()
         if self.mdns: self.mdns.stop()
 
-        self.wifi.connect(essid, password)
+        credentials = Credentials().load()
+        credentials.essid = essid
+        credentials.password = password
+        credentials.write()
+
+        self.wifi.connect()
 
     async def connect_async(self):
         while True:
@@ -69,21 +75,6 @@ class ConnectivityManager:
             # Don't try to auto connect if there was an http activity recently
             if not last_http_activity or ticks_diff(now, last_http_activity + PREVENT_AUTO_CONNECT_DELAY) > 0:
                 self.loop.create_task(self.wifi.connect_async())
-
-    def set_http_config(self, http_config):
-        settings = Settings().load()
-
-        if self.state_2:
-            state = b"%s,%s" % (self.state_1, self.state_2)
-        else:
-            state = b"%s" % self.state_1
-
-        http_config.update({b"ip" : self.wifi.ip.encode("ascii"), b"netId": settings.net_id, b"type": self.http_device_type, b"state": state})
-
-        self.http_config = http_config
-
-        if self.http:
-            self.http.set_config(http_config)
 
     def set_net_id(self, net_id):
         settings = Settings().load()
@@ -162,9 +153,26 @@ class ConnectivityManager:
             except Exception as e:
                 print("> connectivity_manager.start_mqtt: {}".format(e))
 
-    def set_state(self, state_1, state_2=None):
+    def set_http_config(self, http_config):
+        settings = Settings().load()
+
+        if self.state_2:
+            state = b"%s,%s" % (self.state_1, self.state_2)
+        else:
+            state = b"%s" % self.state_1
+
+        http_config.update({b"ip" : self.wifi.ip, b"netId": settings.net_id, b"type": self.http_device_type, b"state": state})
+
+        self.http_config = http_config
+
+        if self.http:
+            self.http.set_config(http_config)
+
+    def set_state(self, http_config, state_1, state_2=None):
         self.state_1 = state_1
         self.state_2 = state_2
 
+        self.set_http_config(http_config)
+
         if self.mqtt:
-            self.mqtt.set_state(state_1, state_2)
+            self.mqtt.set_state(self.wifi.ip, state_1, state_2)

@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 });
 
 function getValues() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())
@@ -16,7 +16,7 @@ function getValues() {
             setTagValue('tag-net-id', response.netId);
 
             const states = response.state.split(',');
-            setTagValue('switch-a', states[0]);
+            setTagValue('switch-a', states[0] == 'ON' ? 1 : 0);
 
             if (response.type == 'DOUBLE-SWITCH') {
                 document
@@ -26,7 +26,7 @@ function getValues() {
                 document
                     .getElementById(`switch-container-2`)
                     .classList.remove('display-none');
-                setTagValue('switch-b', states[1]);
+                setTagValue('switch-b', states[1] == 'ON' ? 1 : 0);
             }
 
             document.title = `${documentTitle} ${response.netId}`;

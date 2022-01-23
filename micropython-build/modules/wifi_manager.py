@@ -5,13 +5,13 @@ from blink import Blink
 from time import ticks_ms, ticks_diff
 from credentials import Credentials
 
-NO_IP = "0.0.0.0"
-AP_IP = "1.2.3.4"
+NO_IP = b"0.0.0.0"
+AP_IP = b"1.2.3.4"
 SERVER_SUBNET = "255.255.255.0"
 MAX_WAIT_FOR_CONNECTION_CHECK = const(10)
 WAIT_FOR_CONNECTION_CHECK = const(1000)
 WAIT_BETWEEN_CONNECT = const(60000)
-WAIT_BEFORE_RESET = const(10000)
+WAIT_BEFORE_RESET = const(15000)
 SCAN_SSIDS_REFRESH = const(30000)
 CHECK_CONNECTED = const(250)
 WAIT_FOR_BLINK = const(1000)
@@ -70,22 +70,14 @@ class WifiManager:
             self.ip = AP_IP
 
             # IP address, netmask, gateway, DNS
-            self.acess_point.ifconfig((AP_IP, SERVER_SUBNET, AP_IP, AP_IP))
+            self.acess_point.ifconfig((self.ip, SERVER_SUBNET, self.ip, self.ip))
 
             self.acess_point.config(essid=self.access_point_essid, authmode=AUTH_OPEN)
-            print(
-                "> AP mode configured: {} ".format(self.access_point_essid.decode("utf-8")),
-                self.acess_point.ifconfig(),
-            )
+            print("> AP mode configured: {:s} ({:s})".format(self.access_point_essid, self.ip))
 
             self.callback_access_point_active()
 
-    def connect(self, essid, password):
-        credentials = Credentials().load()
-        credentials.essid = essid
-        credentials.password = password
-        credentials.write()
-
+    def connect(self):
         self.loop.create_task(self.connect_async())
 
     async def connect_async(self):
@@ -94,11 +86,7 @@ class WifiManager:
         if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
             hidden_pass = "*" * len(credentials.password)
 
-            print(
-                "> Connecting to {:s}/{:s}".format(
-                    credentials.essid, hidden_pass
-                )
-            )
+            print("> Connecting to {:s}/{:s}".format(credentials.essid, hidden_pass))
 
             self.station.connect(credentials.essid, credentials.password)
 
@@ -114,7 +102,7 @@ class WifiManager:
                 self.station.disconnect()
                 self.callback_connection_fail()
             else:
-                self.ip = self.station.ifconfig()[0]
+                self.ip = b"%s" % self.station.ifconfig()[0]
 
                 Blink().flash_3_times_fast()
 
@@ -122,11 +110,7 @@ class WifiManager:
 
                 credentials = Credentials().load()
 
-                print(
-                    "> Connected to {} with IP: {}".format(
-                        credentials.essid.decode("ascii"), self.ip
-                    )
-                )
+                print("> Connected to {:s} with IP: {:s}".format(credentials.essid, self.ip))
 
                 if self.acess_point.active():
                     # Set the IP address of the device with the one received from the router,
