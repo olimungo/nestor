@@ -144,5 +144,5 @@ function connect() {
     fetch(`/connect?essid=${ssid}&password=${inputPasword.value}`).then();
 
     displayConnection();
-    setTimeout(checkConnection, 3000);
+    setTimeout(checkConnection, 5000);
 }

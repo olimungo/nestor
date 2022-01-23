@@ -5,11 +5,11 @@ from connectivity_manager import ConnectivityManager
 from tags import Tags
 
 PUBLIC_NAME = b"Switch"
-# BROKER_NAME = b"nestor.local"
-BROKER_NAME = b"death-star.local"
+BROKER_NAME = b"nestor.local"
+# BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"SWITCH"
+HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 def add_remove_tag(topic, message):
         print("add-tag")
@@ -22,8 +22,8 @@ http_config = {b"timer": b"5"}
 connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
     use_ntp=True, use_mdns=True, use_mqtt=True)
 
-# connectivity.set_state("ON" ,"OFF")
-connectivity.set_state("ON")
+connectivity.set_state("OFF" ,"ON")
+# connectivity.set_state("ON")
 connectivity.set_http_config(http_config)
 
 collect()
