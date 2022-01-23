@@ -19,11 +19,13 @@ class ConnectivityManager:
     http_config = None
     task_connect = None
     task_connect_async = None
+    get_time = None
 
     def __init__(self,
         public_name, broker_name, url_routes,
         mqtt_topic_name, mqtt_subscribe_topics,
         mqtt_device_type, http_device_type,
+        callback_connectivity_up=None, callback_connectivity_down=None,
         use_ntp=False, use_mdns=False, use_mqtt=False):
 
         self.public_name = public_name
@@ -33,6 +35,8 @@ class ConnectivityManager:
         self.mqtt_subscribe_topics = mqtt_subscribe_topics
         self.mqtt_device_type = mqtt_device_type
         self.http_device_type =  http_device_type
+        self.callback_connectivity_up = callback_connectivity_up
+        self.callback_connectivity_down = callback_connectivity_down
         self.use_ntp = use_ntp
         self.use_mdns = use_mdns
         self.use_mqtt = use_mqtt
@@ -96,6 +100,9 @@ class ConnectivityManager:
         self.start_http_server()
         self.start_ntp()
 
+        if self.callback_connectivity_up:
+            self.callback_connectivity_up()
+
     def set_station_ip(self):
         self.set_http_config(self.http_config)
 
@@ -103,6 +110,9 @@ class ConnectivityManager:
         if self.ntp: self.ntp.stop()
         if self.mqtt: self.mqtt.stop()
         if self.mdns: self.mdns.stop()
+
+        if self.callback_connectivity_down:
+            self.callback_connectivity_down()
 
         if not self.task_connect_async:
             self.task_connect_async = self.loop.create_task(self.connect_async())
@@ -124,6 +134,7 @@ class ConnectivityManager:
                 self.ntp = NtpTime()
             
             self.ntp.start()
+            self.get_time = self.ntp.get_time
 
     def start_mdns(self):
         if self.use_mdns:
@@ -176,3 +187,6 @@ class ConnectivityManager:
 
         if self.mqtt:
             self.mqtt.set_state(self.wifi.ip, state_1, state_2)
+
+    def get_ip(self):
+        return self.wifi.ip

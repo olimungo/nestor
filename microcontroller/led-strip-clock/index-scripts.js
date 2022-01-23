@@ -11,7 +11,7 @@ const debouncedSlider = debounce((value) => {
 }, 500);
 
 function getValues() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())

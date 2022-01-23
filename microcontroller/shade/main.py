@@ -31,11 +31,14 @@ class Main:
             b"stop": self.mqtt_stop
         }
 
-        self.motor = Motor()
 
-        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
             use_ntp=False, use_mdns=True, use_mqtt=True)
 
+        self.motor = Motor()
+        
         self.set_state()
 
         self.loop = get_event_loop()

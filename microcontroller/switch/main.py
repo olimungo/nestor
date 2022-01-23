@@ -34,7 +34,9 @@ class Main:
             b"of": self.on_off
         }
 
-        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes, MQTT_TOPIC_NAME, mqtt_subscribe_topics, MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
             use_ntp=True, use_mdns=True, use_mqtt=True)
 
         self.set_state()
