@@ -43,6 +43,7 @@ class Main:
             use_ntp=True, use_mdns=True, use_mqtt=True)
 
         self.display = Display(self.connectivity.get_ip())
+        self.display.display_spinner()
 
         self.set_state()
 
@@ -57,9 +58,10 @@ class Main:
             await sleep_ms(SEND_STATE_INTERVAL)
 
     def connectivity_up(self):
-        print("> ### CONNECTIVITY UP ###")
-        collect()
-        print("> Free mem 222: {}".format(mem_free()))
+        # print("> ### CONNECTIVITY UP ###")
+        # collect()
+        # print("> Free mem: {}".format(mem_free()))
+
         self.display.get_time = self.connectivity.get_time
         self.display.ip = self.connectivity.get_ip()
 
@@ -73,8 +75,6 @@ class Main:
         self.set_state()
 
     def connectivity_down(self):
-        print("> ### CONNECTIVITY DOWN ###")
-        print("> Free mem 333: {}".format(mem_free()))
         self.display.display_spinner()
 
     def on_off(self, topic, message):
