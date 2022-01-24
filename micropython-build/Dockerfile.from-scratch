@@ -1,0 +1,14 @@
+FROM larsks/esp-open-sdk
+
+ARG VERSION=v1.18
+RUN git clone --depth 1 --branch $VERSION https://github.com/micropython/micropython.git /micropython
+
+RUN cd /micropython/ports/esp8266 && make submodules
+RUN cd /micropython/mpy-cross && make
+RUN cd /micropython/ports/esp8266 && make
+
+WORKDIR /micropython/ports/esp8266
+
+COPY modules/ modules/
+
+RUN make

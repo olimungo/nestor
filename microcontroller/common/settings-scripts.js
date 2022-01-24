@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 });
 
 function getValues() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())
@@ -112,7 +112,7 @@ function getSsids() {
 }
 
 function checkConnection() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())
@@ -144,5 +144,5 @@ function connect() {
     fetch(`/connect?essid=${ssid}&password=${inputPasword.value}`).then();
 
     displayConnection();
-    setTimeout(checkConnection, 3000);
+    setTimeout(checkConnection, 5000);
 }

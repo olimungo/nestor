@@ -1,7 +1,6 @@
 from machine import Pin, Timer
 from neopixel import NeoPixel
 import colors
-from ntp_time import NtpTime
 
 GPIO_DATA = const(4) #D2
 LEDS = const(59)
@@ -13,12 +12,11 @@ class Clock:
     hour1 = hour2 = minute1 = minute2 = second = -1
     rgb = hex = hsl = None
     tick_timer = Timer(-1)
+    get_time = None
 
     def __init__(self, color="0000ff"):
         self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
         self.clear_all()
-
-        self.time = NtpTime()
 
         self.set_color(color, False)
 
@@ -27,23 +25,24 @@ class Clock:
         self.leds_strip.write()
 
     def tick(self, timer=None):
-        hour1, hour2, minute1, minute2, second1, second2 = self.time.get_time()
-        updated = False
+        if self.get_time:
+            hour1, hour2, minute1, minute2, _, second2 = self.get_time()
+            updated = False
 
-        updated |= self.check_update(1, self.hour1, hour1)
-        updated |= self.check_update(2, self.hour2, hour2)
-        updated |= self.check_update(3, self.minute1, minute1)
-        updated |= self.check_update(4, self.minute2, minute2)
-        updated |= self.check_update_seconds(self.second, second2)
+            updated |= self.check_update(1, self.hour1, hour1)
+            updated |= self.check_update(2, self.hour2, hour2)
+            updated |= self.check_update(3, self.minute1, minute1)
+            updated |= self.check_update(4, self.minute2, minute2)
+            updated |= self.check_update_seconds(self.second, second2)
 
-        if updated:
-            self.leds_strip.write()
+            if updated:
+                self.leds_strip.write()
 
-        self.hour1 = hour1
-        self.hour2 = hour2
-        self.minute1 = minute1
-        self.minute2 = minute2
-        self.second = second2
+            self.hour1 = hour1
+            self.hour2 = hour2
+            self.minute1 = minute1
+            self.minute2 = minute2
+            self.second = second2
 
     def check_update(self, position, prevValue, newValue):
         if prevValue != newValue:

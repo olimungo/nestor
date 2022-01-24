@@ -8,10 +8,10 @@ class Clock:
     tickTimer = Timer(-1)
     refreshTimer = Timer(-1)
     cleanTimer = Timer(-1)
+    get_time = None
 
     def __init__(self, board):
         self.board = board
-        self.time = NtpTime()
 
         self.digit1 = Char(board, 2, fonts[0])
         self.digit2 = Char(board, 7, fonts[0])
@@ -22,31 +22,32 @@ class Clock:
         self.bar2 = Column(board, 29, fonts[11][0])
 
     def tick(self, timer=None):
-        hour1, hour2, minute1, minute2, second1, second2 = self.time.get_time()
+        if self.get_time:
+            hour1, hour2, minute1, minute2, second1, second2 = self.get_time()
 
-        second = second1 * 10 + second2
-        numBars = int(second / (60 / 9))  # 9 states = 8 lights + no light
-        column = self.createbar(numBars)
+            second = second1 * 10 + second2
+            numBars = int(second / (60 / 9))  # 9 states = 8 lights + no light
+            column = self.createbar(numBars)
 
-        if second2 % 2:
-            colon = fonts[10]
-        else:
-            colon = fonts[11]
+            if second2 % 2:
+                colon = fonts[10]
+            else:
+                colon = fonts[11]
 
-        self.check_update(self.digit1, self.hour1, hour1, fonts[hour1])
-        self.check_update(self.digit2, self.hour2, hour2, fonts[hour2])
-        self.check_update(self.digit3, self.minute1, minute1, fonts[minute1])
-        self.check_update(self.digit4, self.minute2, minute2, fonts[minute2])
-        self.check_update(self.bar1, self.numBars, numBars, column)
-        self.check_update(self.bar2, self.numBars, numBars, column)
-        self.check_update(self.colon, self.second, second, colon)
+            self.check_update(self.digit1, self.hour1, hour1, fonts[hour1])
+            self.check_update(self.digit2, self.hour2, hour2, fonts[hour2])
+            self.check_update(self.digit3, self.minute1, minute1, fonts[minute1])
+            self.check_update(self.digit4, self.minute2, minute2, fonts[minute2])
+            self.check_update(self.bar1, self.numBars, numBars, column)
+            self.check_update(self.bar2, self.numBars, numBars, column)
+            self.check_update(self.colon, self.second, second, colon)
 
-        self.hour1 = hour1
-        self.hour2 = hour2
-        self.minute1 = minute1
-        self.minute2 = minute2
-        self.second = second
-        self.numBars = numBars
+            self.hour1 = hour1
+            self.hour2 = hour2
+            self.minute1 = minute1
+            self.minute2 = minute2
+            self.second = second
+            self.numBars = numBars
 
     def refresh(self, timer=None):
         self.digit1.scroll()

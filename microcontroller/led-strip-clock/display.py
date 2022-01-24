@@ -25,9 +25,10 @@ DIGITS = [1, 15, 31, 45]
 
 class Display:
     state = STATE_OFF
+    get_time = None
 
-    def __init__(self, wifi):
-        self.wifi = wifi
+    def __init__(self, ip):
+        self.ip = ip
 
         settings = Settings().load()
 
@@ -70,6 +71,7 @@ class Display:
         if self.state != STATE_CLOCK:
             if self.state != STATE_IP:
                 self.stop()
+                self.clock.get_time = self.get_time
                 self.clock.start()
                 
             self.loop.create_task(self.read_button())
@@ -98,7 +100,7 @@ class Display:
             await sleep_ms(READ_BUTTON_INTERVAL)
 
     async def display_ip(self):
-        ip = self.wifi.ip.split(".")
+        ip = self.ip.decode("ascii").split(".")
 
         self.clock.clear_all()
 
