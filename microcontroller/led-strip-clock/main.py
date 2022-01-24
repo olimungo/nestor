@@ -15,12 +15,6 @@ HTTP_DEVICE_TYPE = b"CLOCK"
 
 SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
-    
-class State:
-    OFF = 0
-    ON = 1
-
-    STATE_TEXT = ["OFF", "ON"]
 
 class Main:
     def __init__(self):
@@ -57,16 +51,15 @@ class Main:
             await sleep_ms(SEND_STATE_INTERVAL)
 
     def connectivity_up(self):
-        # print("> ### CONNECTIVITY UP ###")
-        # collect()
-        # print("> Free mem: {}".format(mem_free()))
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
 
         self.display.get_time = self.connectivity.get_time
         self.display.ip = self.connectivity.get_ip()
 
         settings = Settings().load()
 
-        if settings.state != b"%s" % State.ON:
+        if settings.state != b"1":
             self.display.off()
         else:
             self.display.display_clock()
@@ -77,23 +70,24 @@ class Main:
         self.display.display_spinner()
 
     def on_off(self, topic, message):
-        print("> ### {:s} / {:s}".format(topic, message))
-        # if match("on", message):
-        #     self.display.display_clock()
-        #     settings.state = b"%s" % State.ON
-        #     settings.write()
-        #     self.set_state()
-        # elif match("off", message):
-        #     self.display.off()
-        #     settings.state = b"%s" % State.OFF
-        #     settings.write()
-        #     self.set_state()
+        settings = Settings().load()
 
+        if message == b"on" or message == b"off":
+            if message == b"on":
+                self.display.display_clock()
+                settings.state = b"1"
+            elif message == b"off":
+                self.display.off()
+                settings.state = b"0"
+
+            settings.write()
+            self.set_state()
+        
     def display_clock(self, path=None, params=None):
         settings = Settings().load()
 
-        if settings.state != b"%s" % State.ON:
-            settings.state = b"%s" % State.ON
+        if settings.state != b"1":
+            settings.state = b"1"
             settings.write()
             self.display.display_clock()
             self.set_state()
@@ -113,7 +107,7 @@ class Main:
 
         _, _, l = self.display.clock.hsl
 
-        settings.state = b"%s" % State.ON
+        settings.state = b"1"
         settings.write()
 
         return b'{"brightness": "%s"}' % int(l)
@@ -128,10 +122,10 @@ class Main:
             self.display.clock.set_brightness(l)
 
             settings.color = b"%s" % self.display.clock.hex
-            settings.state = b"%s" % State.ON
+            settings.state = b"1"
         else:
             self.display.off()
-            settings.state = b"%s" % State.OFF
+            settings.state = b"0"
 
         settings.write()
         self.set_state()
@@ -139,23 +133,19 @@ class Main:
     def set_state(self):
         settings = Settings().load()
 
-        if settings.state == b"%s" % State.OFF:
+        if settings.state == b"0":
             l = 0
+            state = b"OFF"
         else:
             _, _, l = self.display.clock.hsl
+            state = b"ON"
 
         http_config = {b"brightness": b"%s" % l, b"color": settings.color}
 
-        self.connectivity.set_state(http_config, State.STATE_TEXT[int(settings.state)])
+        self.connectivity.set_state(http_config, state)
 
 try:
-    collect()
-    print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print("> Free mem after all classes created: {}".format(mem_free()))
-    print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
-
     main = Main()
-
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))

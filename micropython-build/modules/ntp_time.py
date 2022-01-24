@@ -1,5 +1,6 @@
 from http_request import get
 from machine import RTC
+from gc import collect
 from ntptime import settime
 from uasyncio import get_event_loop, sleep_ms
 
@@ -41,6 +42,8 @@ class NtpTime:
 
     def update_time(self):
         try:
+            collect()
+
             settime()
             print("> NTP time updated: {}".format(RTC().datetime()))
 
@@ -51,6 +54,8 @@ class NtpTime:
 
     def update_offset(self):
         try:
+            collect()
+
             worldtime = get("http://worldtimeapi.org/api/ip")
             offset = worldtime["utc_offset"]
 

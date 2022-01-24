@@ -184,7 +184,7 @@ class HttpServer:
                         elif callable(route):
                             self.call_route(client, route, path, params)
                         else:
-                            self.send_page(client, "/index.html")
+                            self.send_page(client, b"/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
 

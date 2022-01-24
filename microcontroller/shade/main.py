@@ -95,13 +95,7 @@ class Main:
         self.connectivity.set_state(http_config, self.motor.get_state())
 
 try:
-    collect()
-    print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print("> Free mem after all classes created: {}".format(mem_free()))
-    print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
-
     main = Main()
-
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))

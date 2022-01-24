@@ -2,13 +2,9 @@ from uasyncio import get_event_loop, sleep_ms
 from machine import reset, Pin, SPI
 from time import sleep
 from gc import collect, mem_free
-from network import WLAN, STA_IF, AP_IF
-from re import match
 from max7219 import Matrix8x8
 from connectivity_manager import ConnectivityManager
 from settings import Settings
-from credentials import Credentials
-from tags import Tags
 from clock import Clock
 
 PUBLIC_NAME = b"Clock"
@@ -23,17 +19,6 @@ WAIT_BEFORE_RESET = const(10) # seconds
 SPINNER_MINIMUM_DISPLAY = const(2000)
 
 CS = const(15)
-
-CHECK_CONNECTED = const(250) # milliseconds
-WAIT_BEFORE_RESET = const(10) # seconds
-MQTT_CHECK_MESSAGE_INTERVAL = const(250) # milliseconds
-MQTT_CHECK_CONNECTED_INTERVAL = const(1000) # milliseconds
-
-class State:
-    OFF = 0
-    ON = 1
-
-    STATE_TEXT = ["OFF", "ON"]
 
 class Main:
     def __init__(self):
@@ -76,106 +61,47 @@ class Main:
             await sleep_ms(SEND_STATE_INTERVAL)
 
     def connectivity_up(self):
-        # print("> ### CONNECTIVITY UP ###")
-        # collect()
-        # print("> Free mem: {}".format(mem_free()))
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
 
-        self.display.get_time = self.connectivity.get_time
-        self.display.ip = self.connectivity.get_ip()
+        self.clock.get_time = self.connectivity.get_time
 
         settings = Settings().load()
 
-        if settings.state != b"%s" % State.ON:
-            self.display.off()
+        if settings.state != b"1":
+            self.clock.stop()
         else:
-            self.display.display_clock()
+            self.clock.start()
 
         self.set_state()
 
     def connectivity_down(self):
-        self.display.display_spinner()
+        # TODO: display something so to know the connectivity is down
+        pass
 
     def on_off(self, topic, message):
-        print("> ### {:s} / {:s}".format(topic, message))
-        # if match("on", message):
-        #     self.display.display_clock()
-        #     settings.state = b"%s" % State.ON
-        #     settings.write()
-        #     self.set_state()
-        # elif match("off", message):
-        #     self.display.off()
-        #     settings.state = b"%s" % State.OFF
-        #     settings.write()
-        #     self.set_state()
+        settings = Settings().load()
 
-    async def check_connected(self):
-        while True:
-            while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(CHECK_CONNECTED)
-
-            settings = Settings().load()
-
-            if settings.state != b"%s" % State.ON:
-                self.clock.stop()
-            else:
+        if message == b"on" or message == b"off":
+            if message == b"on":
                 self.clock.start()
+                settings.state = b"1"
+            elif message == b"off":
+                self.clock.stop()
+                settings.state = b"0"
 
+            settings.write()
             self.set_state()
 
-            while self.sta_if.isconnected():
-                await sleep_ms(CHECK_CONNECTED)
-
-    def check_message_mqtt(self):
-        settings = Settings().load()
-
-        try:
-            mqtt_message = self.mqtt.check_messages()
-            tags = Tags().load()
-
-            if mqtt_message:
-                topic = mqtt_message.get(b"topic")
-                message = mqtt_message.get(b"message")
-
-                print("> MQTT message received: %s / %s" % (topic, message))
-                
-                elif match("on", message):
-                    self.clock.start()
-                    settings.state = b"%s" % State.ON
-                    settings.write()
-                    self.set_state()
-                elif match("off", message):
-                    self.clock.stop()
-                    settings.state = b"%s" % State.OFF
-                    settings.write()
-                    self.set_state()
-
-        except Exception as e:
-            print("> Main.check_message_mqtt exception: {}".format(e))
-
-    def settings_values(self, params):
-        settings = Settings().load()
-
-        if settings.state == b"%s" % State.OFF:
-            brightness = 0
-        else:
-            brightness = int(settings.brightness)
-
-        result = (
-            b'{"ip": "%s", "netId": "%s", "brightness": "%s"}'
-            % (self.wifi.ip, settings.net_id, brightness)
-        )
-
-        return result
-
-    def set_brightness(self, params):
+    def set_brightness(self, path, params):
         settings = Settings().load()
         l = int(params.get(b"l", 0))
 
         if l == 0:
-            settings.state = b"%s" % State.OFF
+            settings.state = b"0"
             self.clock.stop()
         elif l < 12:
-            settings.state = b"%s" % State.ON
+            settings.state = b"1"
             settings.brightness = b"%s" % l
 
             self.board.brightness(l-1)
@@ -186,16 +112,20 @@ class Main:
 
     def set_state(self):
         settings = Settings().load()
-        self.mqtt.set_state(State.STATE_TEXT[int(settings.state)])
+
+        if settings.state == b"0":
+            brightness = b"0"
+            state = b"OFF"
+        else:
+            brightness = settings.brightness
+            state = b"ON"
+
+        http_config = {b"brightness": brightness}
+
+        self.connectivity.set_state(http_config, state)
 
 try:
-    collect()
-    print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print("> Free mem after all classes created: {}".format(mem_free()))
-    print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
-
     main = Main()
-
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
