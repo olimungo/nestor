@@ -5,22 +5,23 @@ from gc import collect, mem_free
 from network import WLAN, STA_IF, AP_IF
 from re import match
 from max7219 import Matrix8x8
-from wifi_manager import WifiManager
-from http_server import HttpServer
-from mdns_server import mDnsServer
-from mqtt_manager import MqttManager
+from connectivity_manager import ConnectivityManager
 from settings import Settings
 from credentials import Credentials
 from tags import Tags
 from clock import Clock
 
-DEVICE_TYPE = b"CLOCK"
 PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"deathstar.local"
+# BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"clocks"
+MQTT_DEVICE_TYPE = b"CLOCK"
+HTTP_DEVICE_TYPE = b"CLOCK"
 
+SEND_STATE_INTERVAL = const(2000)
+WAIT_BEFORE_RESET = const(10) # seconds
 SPINNER_MINIMUM_DISPLAY = const(2000)
+
 CS = const(15)
 
 CHECK_CONNECTED = const(250) # milliseconds
@@ -36,22 +37,22 @@ class State:
 
 class Main:
     def __init__(self):
-        self.sta_if = WLAN(STA_IF)
-        self.ap_if = WLAN(AP_IF)
         settings = Settings().load()
 
-        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
-        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
-        self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
-        )
-
-        routes = {
-            b"/action/brightness": self.set_brightness,
-            b"/settings/values": self.settings_values,
+        url_routes = {
+            b"/action/brightness": self.set_brightness
         }
 
-        self.http = HttpServer(routes, self.wifi, self.mdns)
+        mqtt_subscribe_topics = {
+            b"on": self.on_off,
+            b"off": self.on_off
+        }
+
+        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+            self.connectivity_up, self.connectivity_down,
+            use_ntp=True, use_mdns=True, use_mqtt=True)
 
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
@@ -62,11 +63,50 @@ class Main:
 
         self.clock = Clock(self.board)
 
+        self.set_state()
+
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_connected())
-        self.loop.create_task(self.check_mqtt())
+        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
+
+    async def send_state(self):
+        while True:
+            self.set_state()
+            await sleep_ms(SEND_STATE_INTERVAL)
+
+    def connectivity_up(self):
+        # print("> ### CONNECTIVITY UP ###")
+        # collect()
+        # print("> Free mem: {}".format(mem_free()))
+
+        self.display.get_time = self.connectivity.get_time
+        self.display.ip = self.connectivity.get_ip()
+
+        settings = Settings().load()
+
+        if settings.state != b"%s" % State.ON:
+            self.display.off()
+        else:
+            self.display.display_clock()
+
+        self.set_state()
+
+    def connectivity_down(self):
+        self.display.display_spinner()
+
+    def on_off(self, topic, message):
+        print("> ### {:s} / {:s}".format(topic, message))
+        # if match("on", message):
+        #     self.display.display_clock()
+        #     settings.state = b"%s" % State.ON
+        #     settings.write()
+        #     self.set_state()
+        # elif match("off", message):
+        #     self.display.off()
+        #     settings.state = b"%s" % State.OFF
+        #     settings.write()
+        #     self.set_state()
 
     async def check_connected(self):
         while True:
@@ -85,18 +125,6 @@ class Main:
             while self.sta_if.isconnected():
                 await sleep_ms(CHECK_CONNECTED)
 
-    async def check_mqtt(self):
-        while True:
-            while self.mqtt.connected:
-                self.check_message_mqtt()
-
-                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
-
-            while not self.mqtt.connected:
-                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
-
-            self.set_state()
-
     def check_message_mqtt(self):
         settings = Settings().load()
 
@@ -110,14 +138,6 @@ class Main:
 
                 print("> MQTT message received: %s / %s" % (topic, message))
                 
-                if match("add-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.append(tag)
-                    self.set_state()
-                elif match("remove-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.remove(tag)
-                    self.set_state()
                 elif match("on", message):
                     self.clock.start()
                     settings.state = b"%s" % State.ON
@@ -170,9 +190,12 @@ class Main:
 
 try:
     collect()
-    print("Free mem: {}".format(mem_free()))
+    print("\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print("> Free mem after all classes created: {}".format(mem_free()))
+    print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
     main = Main()
+
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))

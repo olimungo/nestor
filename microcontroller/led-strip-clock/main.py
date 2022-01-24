@@ -15,7 +15,6 @@ HTTP_DEVICE_TYPE = b"CLOCK"
 
 SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
-SPINNER_MINIMUM_DISPLAY = const(2000)
     
 class State:
     OFF = 0
@@ -90,7 +89,7 @@ class Main:
         #     settings.write()
         #     self.set_state()
 
-    def display_clock(self, path, params=None):
+    def display_clock(self, path=None, params=None):
         settings = Settings().load()
 
         if settings.state != b"%s" % State.ON:
