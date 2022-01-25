@@ -158,7 +158,7 @@ class ConnectivityManager:
                         self.mqtt = MqttManager(broker_ip, settings.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.mqtt_device_type)
 
                         if self.state_1:
-                            self.mqtt.set_state(self.state_1, self.state_2)
+                            self.mqtt.set_state(self.wifi.ip, self.state_1, self.state_2)
                 
                 self.mqtt.start()
             except Exception as e:

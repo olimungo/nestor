@@ -78,7 +78,7 @@ class MqttManager:
         else:
             self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.net_id)))
         
-        self.set_state(self.state_1, self.state_2)
+        self.set_state(self.ip, self.state_1, self.state_2)
         self.task_send_state = self.loop.create_task(self.send_state())
         self.task_check_for_message = self.loop.create_task(self.check_for_message())
 
@@ -142,9 +142,10 @@ class MqttManager:
             if callback != None:
                 callback(topic, message)
 
-    def set_state(self, state_1, state_2=None):
+    def set_state(self, ip, state_1, state_2=None):
         tags = Tags().load()
         tags_utf8 = []
+        self.ip = ip
         self.state_1 = state_1
         self.state_2 = state_2
 
