@@ -11,6 +11,7 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
+# HTTP_DEVICE_TYPE = b"SWITCH"
 HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 SEND_STATE_INTERVAL = const(2000)

@@ -142,12 +142,11 @@ class MqttManager:
             if callback != None:
                 callback(topic, message)
 
-    def set_state(self, ip, state_1, state_2=None):
+    def set_state(self, state_1, state_2=None):
         tags = Tags().load()
         tags_utf8 = []
         self.state_1 = state_1
         self.state_2 = state_2
-        self.ip = ip
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
