@@ -11,8 +11,8 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-# HTTP_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+HTTP_DEVICE_TYPE = b"SWITCH"
+# HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
@@ -32,7 +32,7 @@ class Main:
 
         mqtt_subscribe_topics = {
             b"on": self.on_off,
-            b"of": self.on_off
+            b"off": self.on_off
         }
 
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
@@ -60,8 +60,7 @@ class Main:
 
     def on_off(self, topic, message):
         action = b"%s" % message
-
-        switch_id = b"a" if match(".*/.*a$", topic) else b"b"
+        switch_id = b"b" if match(".*/.*b$", topic) else b"a"
 
         self.set_switch(switch_id, action)
 
@@ -97,6 +96,9 @@ class Main:
 
         state_a = "ON" if settings.state_a == b"1" else "OFF"
         state_b = "ON" if settings.state_b == b"1" else "OFF"
+
+        if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
+            state_b = None
 
         self.connectivity.set_state({}, state_a, state_b)
 

@@ -142,6 +142,9 @@ class MqttManager:
             if callback != None:
                 callback(topic, message)
 
+        # Check immediatly if another message is available
+        self.mqtt.check_msg()
+
     def set_state(self, ip, state_1, state_2=None):
         tags = Tags().load()
         tags_utf8 = []
