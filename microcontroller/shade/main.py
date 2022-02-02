@@ -1,4 +1,4 @@
-from uasyncio import get_event_loop, sleep_ms
+from uasyncio import get_event_loop
 from machine import reset
 from time import sleep
 from gc import collect, mem_free
@@ -13,8 +13,10 @@ MQTT_TOPIC_NAME = b"shades"
 MQTT_DEVICE_TYPE = b"SHADE"
 HTTP_DEVICE_TYPE = b"SHADE"
 
-SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
+
+USE_MDNS = True
+USE_MQTT = True
 
 class Main:
     def __init__(self):
@@ -31,25 +33,26 @@ class Main:
             b"stop": self.mqtt_stop
         }
 
-
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
             MQTT_TOPIC_NAME, mqtt_subscribe_topics,
             MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
-            use_ntp=False, use_mdns=True, use_mqtt=True)
+            self.connectivity_up, self.connectivity_down,
+            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
         self.motor = Motor()
         
         self.set_state()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
 
-    async def send_state(self):
-        while True:
-            self.set_state()
-            await sleep_ms(SEND_STATE_INTERVAL)
+    def connectivity_up(self):
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
+
+    def connectivity_down(self):
+        pass
 
     def mqtt_go_up(self, topic, message):
         self.go_up()
@@ -72,7 +75,7 @@ class Main:
         self.motor.stop()
         self.set_state()
 
-    def reverse_motor(self, pat, params):
+    def reverse_motor(self, path, params):
         settings = Settings().load()
         motor_reversed = settings.motor_reversed
 

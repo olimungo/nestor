@@ -3,7 +3,6 @@ from uselect import select
 from ustruct import pack_into, unpack_from
 from usocket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
 from uasyncio import get_event_loop, sleep_ms
-from network import WLAN, STA_IF, AP_IF
 from gc import collect
 from mdns_server_helpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
 
@@ -23,11 +22,9 @@ WAIT_AFTER_ERROR = const(15000)
 class mDnsServer:
     task_connect = None
     
-    def __init__(self, hostname, net_id):
+    def __init__(self, hostname, net_id, ip):
         self.hostname = hostname
-
-        self.sta_if = WLAN(STA_IF)
-        self.ap_if = WLAN(AP_IF)
+        self.ip = ip.decode('ascii')
 
         self.set_net_id(net_id)
 
@@ -72,8 +69,6 @@ class mDnsServer:
 
     def make_socket(self):
         collect()
-
-        self.ip = self.sta_if.ifconfig()[0]
 
         self.sock = socket(AF_INET, SOCK_DGRAM)
         self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -227,19 +222,18 @@ class mDnsServer:
     def resolve_mdns_address(self, hostname, fast=False):
         collect()
 
-        if self.sta_if.isconnected():
-            q = pack_question(hostname, TYPE_A, CLASS_IN)
-            answer = []
-        
-            def _answer_handler(a):
-                addr_offset = skip_name_at(a, 0) + 10
-                answer.append(a[addr_offset : addr_offset + 4])
+        q = pack_question(hostname, TYPE_A, CLASS_IN)
+        answer = []
+    
+        def _answer_handler(a):
+            addr_offset = skip_name_at(a, 0) + 10
+            answer.append(a[addr_offset : addr_offset + 4])
 
-                return True
+            return True
 
-            self.handle_question(q, _answer_handler, fast)
+        self.handle_question(q, _answer_handler, fast)
 
-            return bytes(answer[0]) if answer else None
+        return bytes(answer[0]) if answer else None
 
     def set_net_id(self, net_id):
         self.net_id = net_id

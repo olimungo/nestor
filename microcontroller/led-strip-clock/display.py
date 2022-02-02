@@ -19,8 +19,10 @@ READ_BUTTON_INTERVAL = const(100)
 DISPLAY_IP_SEGMENT_DURATION = const(2000)
 DISPLAY_IP_SEGMENT_CLEAR_DURATION = const(500)
 SPINNER_RATE = const(120)
+
 ORANGE = (255, 98, 0)
 GREEN = (19, 215, 19)
+
 DIGITS = [1, 15, 31, 45]
 
 class Display:
@@ -28,7 +30,7 @@ class Display:
     get_time = None
 
     def __init__(self, ip):
-        self.ip = ip
+        self.ip = ip.decode("ascii")
 
         settings = Settings().load()
 
@@ -100,7 +102,7 @@ class Display:
             await sleep_ms(READ_BUTTON_INTERVAL)
 
     async def display_ip(self):
-        ip = self.ip.decode("ascii").split(".")
+        ip = self.ip.split(".")
 
         self.clock.clear_all()
 
@@ -131,7 +133,7 @@ class Display:
         while segment != "":
             number = int(segment[-1])
             segment = segment[:-1]
-            self.update(position, number, (0, 255, 0))
+            self.update(position, number, GREEN)
             position -= 1
 
         self.leds_strip.write()
@@ -149,26 +151,16 @@ class Display:
         for i in range(start, start + 7 * 2):
             self.leds_strip[i] = (0, 0, 0)
 
-        if value == 0:
-            leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
-        elif value == 1:
-            leds = [4, 5, 12, 13]
-        elif value == 2:
-            leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        elif value == 3:
-            leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
-        elif value == 4:
-            leds = [0, 1, 4, 5, 6, 7, 12, 13]
-        elif value == 5:
-            leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
-        elif value == 6:
-            leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
-        elif value == 7:
-            leds = [2, 3, 4, 5, 12, 13]
-        elif value == 8:
-            leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        elif value == 9:
-            leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+        if value == 0: leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
+        elif value == 1: leds = [4, 5, 12, 13]
+        elif value == 2: leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        elif value == 3: leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+        elif value == 4: leds = [0, 1, 4, 5, 6, 7, 12, 13]
+        elif value == 5: leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
+        elif value == 6: leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
+        elif value == 7: leds = [2, 3, 4, 5, 12, 13]
+        elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        elif value == 9: leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
 
         for led in leds:
             self.leds_strip[led + start] = rgb
