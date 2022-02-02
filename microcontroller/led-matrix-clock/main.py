@@ -14,10 +14,12 @@ MQTT_TOPIC_NAME = b"clocks"
 MQTT_DEVICE_TYPE = b"CLOCK"
 HTTP_DEVICE_TYPE = b"CLOCK"
 
-SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
-SPINNER_MINIMUM_DISPLAY = const(2000)
 
+USE_MDNS = True
+USE_MQTT = True
+
+SPINNER_MINIMUM_DISPLAY = const(2000)
 CS = const(15)
 
 class Main:
@@ -37,7 +39,7 @@ class Main:
             MQTT_TOPIC_NAME, mqtt_subscribe_topics,
             MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
-            use_ntp=True, use_mdns=True, use_mqtt=True)
+            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
@@ -51,19 +53,11 @@ class Main:
         self.set_state()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
 
-    async def send_state(self):
-        while True:
-            self.set_state()
-            await sleep_ms(SEND_STATE_INTERVAL)
 
     def connectivity_up(self):
-        collect()
-        print("> Free mem after all services up: {}".format(mem_free()))
-
         self.clock.get_time = self.connectivity.get_time
 
         settings = Settings().load()
@@ -74,6 +68,9 @@ class Main:
             self.clock.start()
 
         self.set_state()
+
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
 
     def connectivity_down(self):
         # TODO: display something so to know the connectivity is down

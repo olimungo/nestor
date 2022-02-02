@@ -1,4 +1,4 @@
-from uasyncio import get_event_loop, sleep_ms
+from uasyncio import get_event_loop
 from machine import reset
 from time import sleep
 from gc import collect, mem_free
@@ -13,8 +13,10 @@ MQTT_TOPIC_NAME = b"clocks"
 MQTT_DEVICE_TYPE = b"CLOCK"
 HTTP_DEVICE_TYPE = b"CLOCK"
 
-SEND_STATE_INTERVAL = const(2000)
 WAIT_BEFORE_RESET = const(10) # seconds
+
+USE_MDNS = False
+USE_MQTT = False
 
 class Main:
     def __init__(self):
@@ -33,7 +35,7 @@ class Main:
             MQTT_TOPIC_NAME, mqtt_subscribe_topics,
             MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
-            use_ntp=True, use_mdns=True, use_mqtt=True)
+            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
         self.display = Display(self.connectivity.get_ip())
         self.display.display_spinner()
@@ -41,19 +43,10 @@ class Main:
         self.set_state()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.send_state())
         self.loop.run_forever()
         self.loop.close()
 
-    async def send_state(self):
-        while True:
-            self.set_state()
-            await sleep_ms(SEND_STATE_INTERVAL)
-
     def connectivity_up(self):
-        collect()
-        print("> Free mem after all services up: {}".format(mem_free()))
-
         self.display.get_time = self.connectivity.get_time
         self.display.ip = self.connectivity.get_ip()
 
@@ -65,6 +58,9 @@ class Main:
             self.display.display_clock()
 
         self.set_state()
+
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
 
     def connectivity_down(self):
         self.display.display_spinner()

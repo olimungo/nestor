@@ -141,7 +141,7 @@ class ConnectivityManager:
             if not self.mdns:
                 from mdns_server import mDnsServer
                 settings = Settings().load()
-                self.mdns = mDnsServer(self.public_name.lower(), settings.net_id)
+                self.mdns = mDnsServer(self.public_name.lower(), settings.net_id, self.wifi.ip)
         
             self.mdns.start()
 
