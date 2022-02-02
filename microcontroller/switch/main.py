@@ -80,6 +80,8 @@ class Main:
 
         switch = self.switch_a if switch_id == b"a" else self.switch_b
 
+        switch = self.switch_a if switch_id == b"a" else self.switch_b
+
         if action == b"on":
             switch.on()
             state = b"1"
@@ -105,7 +107,6 @@ class Main:
             state_b = None
 
         self.connectivity.set_state({}, state_a, state_b)
-
 try:
     main = Main()
 except Exception as e:

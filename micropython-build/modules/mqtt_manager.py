@@ -119,7 +119,6 @@ class MqttManager:
             return True
         except Exception as e:
             self.mqtt = None
-
             print("> MqttManager.connect error: {}".format(e))
 
             return False
@@ -151,6 +150,7 @@ class MqttManager:
         self.ip = ip
         self.state_1 = state_1
         self.state_2 = state_2
+        self.ip = ip
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
