@@ -1,4 +1,4 @@
-from uasyncio import get_event_loop
+from uasyncio import get_event_loop, sleep_ms
 from machine import reset, Pin
 from time import sleep
 from gc import collect, mem_free
@@ -23,9 +23,12 @@ USE_MQTT = False
 PIN_SWITCH_A = const(5)  # D1
 PIN_SWITCH_B = const(4)  # D2
 
-class Main:
-    def __init__(self):
+WAIT_FOR_TIMER = const(1000)
 
+class Main:
+    task_handle_timer = None
+
+    def __init__(self):
         settings = Settings().load()
 
         url_routes = {
@@ -59,11 +62,50 @@ class Main:
         self.loop.close()
 
     def connectivity_up(self):
+        settings = Settings().load()
+
+        if settings.timer_a != b"0" or settings.timer_b != b"0":
+            self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
         collect()
         print("> Free mem after all services up: {}".format(mem_free()))
 
     def connectivity_down(self):
         pass
+
+    async def handle_timer(self):
+        all_timers_expired = False
+
+        while not all_timers_expired:
+            settings = Settings().load()
+
+            if settings.timer_a != b"0" or settings.timer_b != b"0":
+                hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
+                now = ((hour1 * 10 + hour2) * 60) + (minute1 * 10 + minute2)
+
+                if self.check_timer(settings.timer_a, now):
+                    settings.timer_a = b"0"
+                    settings.write()
+                    self.set_switch(b"a", b"off")
+
+                if self.check_timer(settings.timer_b, now):
+                    settings.timer_b = b"0"
+                    settings.write()
+                    self.set_switch(b"b", b"off")
+
+                await sleep_ms(WAIT_FOR_TIMER)
+            else:
+                all_timers_expired = True
+                self.task_handle_timer = None
+
+    def check_timer(self, timer, now):
+        if timer == b"0":
+            return False
+        else:
+            split = timer.split(b":")
+            target = int(split[0]) * 60 + int(split[1])
+
+            return now >= target and now - target < 5
 
     def on_off(self, topic, message):
         action = b"%s" % message
@@ -104,11 +146,15 @@ class Main:
             
             self.set_state()
 
+            if not self.task_handle_timer:
+                self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
             return b'{"timer": "%s"}' % timer
 
     def set_switch(self, switch_id, action):
-        settings = Settings().load()
+        print(f'> Turning switch {switch_id:s}: {action:s}')
 
+        settings = Settings().load()
         switch = self.switch_a if switch_id == b"a" else self.switch_b
 
         if action == b"on":
