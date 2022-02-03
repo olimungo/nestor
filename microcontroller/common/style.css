@@ -148,6 +148,10 @@ input:-webkit-autofill:focus {
     margin-top: 3rem;
 }
 
+.margin-top-medium {
+    margin-top: 6rem;
+}
+
 .margin-top-large {
     margin-top: 15rem;
 }
@@ -158,6 +162,10 @@ input:-webkit-autofill:focus {
 
 .display-none {
     display: none;
+}
+
+.visibility-hidden {
+    visibility: hidden;
 }
 
 .full-height {
@@ -347,6 +355,18 @@ input:-webkit-autofill:focus {
     text-decoration: none;
 }
 
+.timer-message {
+    margin: 2rem 0;
+    padding: 0.01rem 1rem;
+    border-radius: 1rem;
+    text-align: center;
+    background-color: var(--secondary-action-color);
+}
+
+.timer-message h3 {
+    color: var(--secondary-color);
+}
+
 /*
 ** Components selector
 */
@@ -375,6 +395,12 @@ input:-webkit-autofill:focus {
 .slider-value {
     color: var(--primary-color);
     font-size: 6rem;
+    text-align: center;
+}
+
+.slider-minutes {
+    color: var(--primary-color);
+    font-size: 3rem;
     text-align: center;
 }
 

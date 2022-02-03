@@ -39,7 +39,6 @@ class Settings:
         self.net_id = self.state = self.brightness = None
 
     def is_valid(self):
-        # Ensure the credentials are entered as bytes
         if not isinstance(self.net_id, bytes):
             return False
         if not isinstance(self.state, bytes):

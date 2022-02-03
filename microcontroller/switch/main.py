@@ -3,6 +3,7 @@ from machine import reset, Pin
 from time import sleep
 from gc import collect, mem_free
 from re import match
+from math import floor
 from connectivity_manager import ConnectivityManager
 from settings import Settings
 
@@ -11,13 +12,13 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"SWITCH"
-# HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+# HTTP_DEVICE_TYPE = b"SWITCH"
+HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 WAIT_BEFORE_RESET = const(10) # seconds
 
-USE_MDNS = True
-USE_MQTT = True
+USE_MDNS = False
+USE_MQTT = False
 
 PIN_SWITCH_A = const(5)  # D1
 PIN_SWITCH_B = const(4)  # D2
@@ -29,7 +30,9 @@ class Main:
 
         url_routes = {
             b"/action/toggle-a": self.toggle_a_b,
-            b"/action/toggle-b": self.toggle_a_b
+            b"/action/toggle-b": self.toggle_a_b,
+            b"/action/timer-a": self.timer_a_b,
+            b"/action/timer-b": self.timer_a_b
         }
 
         mqtt_subscribe_topics = {
@@ -75,10 +78,36 @@ class Main:
 
         self.set_switch(switch_id, action)
 
+    def timer_a_b(self, path, params):
+        delay = params.get(b"minutes", None)
+
+        if delay:
+            settings = Settings().load()
+
+            hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
+
+            hour = hour1 * 10 + hour2
+            minute = minute1 * 10 + minute2
+
+            minutes_delay = hour * 60 + minute + int(delay)
+            minutes_target = minutes_delay % (24 * 60)
+            new_hour = floor(minutes_target / 60)
+            new_minute = minutes_target % 60
+            timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
+
+            if match(".*/.*a$", path):
+                settings.timer_a = timer
+            else:
+                settings.timer_b = timer
+
+            settings.write()
+            
+            self.set_state()
+
+            return b'{"timer": "%s"}' % timer
+
     def set_switch(self, switch_id, action):
         settings = Settings().load()
-
-        switch = self.switch_a if switch_id == b"a" else self.switch_b
 
         switch = self.switch_a if switch_id == b"a" else self.switch_b
 
@@ -88,6 +117,11 @@ class Main:
         else:
             switch.off()
             state = b"0"
+
+            if switch_id == b"a":
+                settings.timer_a = b"0"
+            else:
+                settings.timer_b = b"0"
 
         if switch_id == b"a":
             settings.state_a = state
@@ -103,12 +137,14 @@ class Main:
         state_a = "ON" if settings.state_a == b"1" else "OFF"
         state_b = "ON" if settings.state_b == b"1" else "OFF"
 
+        http_config = {b"timer": b"%s,%s" % (settings.timer_a, settings.timer_b)}
+
         if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
             state_b = None
 
-        self.connectivity.set_state({}, state_a, state_b)
+        self.connectivity.set_state(http_config, state_a, state_b)
 try:
-    main = Main()
+    Main()
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
