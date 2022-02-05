@@ -1,9 +1,9 @@
 from machine import reset
 from time import ticks_ms
 from uasyncio import get_event_loop, sleep_ms
-from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from uselect import poll, POLLIN
-from ure import compile
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+from select import poll, POLLIN
+from re import compile
 from gc import collect
 
 MAX_PACKET_SIZE = const(512)

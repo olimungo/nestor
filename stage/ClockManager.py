@@ -1,5 +1,5 @@
 from uasyncio import get_event_loop, sleep_ms
-from uselect import poll
+from select import poll
 from gc import mem_free, collect, threshold, mem_alloc
 import network
 

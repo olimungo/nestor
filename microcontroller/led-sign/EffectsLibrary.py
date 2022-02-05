@@ -1,4 +1,4 @@
-import uasyncio as asyncio
+import asyncio as asyncio
 import time
 from ledsConfig import leds, letters, anglesRight, anglesLeft
 import math

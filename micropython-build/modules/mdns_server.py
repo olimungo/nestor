@@ -1,7 +1,7 @@
 from time import ticks_ms, ticks_diff
-from uselect import select
-from ustruct import pack_into, unpack_from
-from usocket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
+from select import select
+from struct import pack_into, unpack_from
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
 from uasyncio import get_event_loop, sleep_ms
 from gc import collect
 from mdns_server_helpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
