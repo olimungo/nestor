@@ -94,13 +94,13 @@ export function Tags() {
                 ))}
             </div>
 
-            {iotDeviceGroups.map((iotDeviceGroup) => (
-                <DeviceGroup
-                    key={iotDeviceGroup.type}
-                    iotDeviceGroup={iotDeviceGroup}
-                    onSelected={handleGroupSelected}
-                />
-            ))}
+            {iotDeviceGroups.map((iotDeviceGroup) => 
+                iotDeviceGroup.devices.length > 0 && (
+                    <DeviceGroup key={iotDeviceGroup.type}
+                        iotDeviceGroup={iotDeviceGroup}
+                        onSelected={handleGroupSelected}/>
+                )
+            )}
         </div>
     );
 }
