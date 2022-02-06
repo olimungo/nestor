@@ -132,9 +132,11 @@ class MqttManager:
         if mqtt_command == b"add-tag":
             tag = message.split(b"/")[1]
             tags.append(tag)
+            self.set_state(self.ip, self.state_1, self.state_2)
         elif mqtt_command == b"remove-tag":
             tag = message.split(b"/")[1]
             tags.remove(tag)
+            self.set_state(self.ip, self.state_1, self.state_2)
         else:
             callback = self.topics.get(mqtt_command, None)
 

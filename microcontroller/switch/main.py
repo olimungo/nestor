@@ -29,7 +29,7 @@ class Main:
     task_handle_timer = None
 
     def __init__(self):
-        settings = Settings().load()
+        self.settings = Settings().load()
 
         url_routes = {
             b"/action/toggle-a": self.toggle_a_b,
@@ -54,17 +54,15 @@ class Main:
         self.switch_a = Pin(PIN_SWITCH_A, Pin.OUT)
         self.switch_b = Pin(PIN_SWITCH_B, Pin.OUT)
 
-        self.switch_a.on() if settings.state_a == b"1" else self.switch_a.off()
-        self.switch_b.on() if settings.state_b == b"1" else self.switch_b.off()
+        self.switch_a.on() if self.settings.state_a == b"1" else self.switch_a.off()
+        self.switch_b.on() if self.settings.state_b == b"1" else self.switch_b.off()
 
         self.loop = get_event_loop()
         self.loop.run_forever()
         self.loop.close()
 
     def connectivity_up(self):
-        settings = Settings().load()
-
-        if settings.timer_a != b"0" or settings.timer_b != b"0":
+        if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
             self.task_handle_timer = self.loop.create_task(self.handle_timer())
 
         collect()
@@ -77,20 +75,18 @@ class Main:
         all_timers_expired = False
 
         while not all_timers_expired:
-            settings = Settings().load()
-
-            if settings.timer_a != b"0" or settings.timer_b != b"0":
+            if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
                 hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
                 now = ((hour1 * 10 + hour2) * 60) + (minute1 * 10 + minute2)
 
-                if self.check_timer(settings.timer_a, now):
-                    settings.timer_a = b"0"
-                    settings.write()
+                if self.check_timer(self.settings.timer_a, now):
+                    self.settings.timer_a = b"0"
+                    self.settings.write()
                     self.set_switch(b"a", b"off")
 
-                if self.check_timer(settings.timer_b, now):
-                    settings.timer_b = b"0"
-                    settings.write()
+                if self.check_timer(self.settings.timer_b, now):
+                    self.settings.timer_b = b"0"
+                    self.settings.write()
                     self.set_switch(b"b", b"off")
 
                 await sleep_ms(WAIT_FOR_TIMER)
@@ -124,8 +120,6 @@ class Main:
         delay = params.get(b"minutes", None)
 
         if delay:
-            settings = Settings().load()
-
             hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
 
             hour = hour1 * 10 + hour2
@@ -138,13 +132,23 @@ class Main:
             timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
 
             if match(".*/.*a$", path):
-                settings.timer_a = timer
+                self.settings.timer_a = timer
+                self.set_switch(b"a", b"on")
             else:
-                settings.timer_b = timer
+                self.settings.timer_b = timer
+                self.set_switch(b"b", b"on")
 
-            settings.write()
+            self.settings.write()
             
             self.set_state()
+
+            if not self.task_handle_timer:
+                self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
+            return b'{"timer": "%s"}' % timer
+
+    def set_switch(self, switch_id, action):
+        print(f'> Turning switch {switch_id:s}: {action:s}')
 
             if not self.task_handle_timer:
                 self.task_handle_timer = self.loop.create_task(self.handle_timer())
@@ -165,23 +169,23 @@ class Main:
             state = b"0"
 
             if switch_id == b"a":
-                settings.timer_a = b"0"
+                self.settings.timer_a = b"0"
             else:
-                settings.timer_b = b"0"
+                self.settings.timer_b = b"0"
 
         if switch_id == b"a":
-            settings.state_a = state
+            self.settings.state_a = state
         else:
-            settings.state_b = state
+            self.settings.state_b = state
 
-        settings.write()
+        self.settings.write()
         self.set_state()
 
     def set_state(self):
-        settings = Settings().load()
+        state_a = "ON" if self.settings.state_a == b"1" else "OFF"
+        state_b = "ON" if self.settings.state_b == b"1" else "OFF"
 
-        state_a = "ON" if settings.state_a == b"1" else "OFF"
-        state_b = "ON" if settings.state_b == b"1" else "OFF"
+        http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
 
         http_config = {b"timer": b"%s,%s" % (settings.timer_a, settings.timer_b)}
 
