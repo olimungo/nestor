@@ -1,4 +1,4 @@
-from uos import remove
+from os import remove
 
 FILE = "./creds.csv"
 

@@ -7,7 +7,7 @@ m1 = d1motor.Motor(1, i2c)
 m0.speed(5000)
 """
 
-import ustruct
+import struct
 from blink import Blink
 
 _STATE_BRAKE = const(0)
@@ -41,7 +41,7 @@ class Motor:
 
         try:
             self.i2c.writeto_mem(self.address, 0x00 | self.index,
-                ustruct.pack(">BH", 0x00, frequency))
+                struct.pack(">BH", 0x00, frequency))
         except Exception as e:
             Blink().flash_once_slow()
             print("> Motor.frequency exception: {}".format(e))
@@ -52,7 +52,7 @@ class Motor:
 
         try:
             self.i2c.writeto_mem(self.address, 0x10 | self.index,
-                ustruct.pack(">BH", self._state, self._speed))
+                struct.pack(">BH", self._state, self._speed))
         except Exception as e:
             print("> Motor.update exception: {}".format(e))
 
