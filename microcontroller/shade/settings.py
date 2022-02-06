@@ -3,22 +3,21 @@ from uos import remove
 FILE = "./settings.csv"
 
 class Settings:
-    def __init__(self, net_id=b"0", motor_reversed=b"0"):
-        self.net_id = net_id
+    def __init__(self, motor_reversed=b"0"):
         self.motor_reversed = motor_reversed
 
     def write(self):
         if self.is_valid():
             with open(FILE, "wb") as f:
-                f.write(b",".join([self.net_id, self.motor_reversed]))
+                f.write(b",".join([self.motor_reversed]))
 
     def load(self):
         try:
             with open(FILE, "rb") as f:
                 contents = f.read().split(b",")
 
-            if len(contents) == 2:
-                self.net_id, self.motor_reversed = contents
+            if len(contents) == 1:
+                self.motor_reversed = contents
 
             if not self.is_valid():
                 self.remove()
@@ -35,11 +34,9 @@ class Settings:
         except OSError:
             pass
 
-        self.net_id = self.motor_reversed = None
+        self.motor_reversed = None
 
     def is_valid(self):
-        if not isinstance(self.net_id, bytes):
-            return False
         if not isinstance(self.motor_reversed, bytes):
             return False
 
