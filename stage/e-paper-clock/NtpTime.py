@@ -1,4 +1,4 @@
-from urequests import get
+from requests import get
 from machine import RTC
 from ntptime import settime
 from uasyncio import get_event_loop, sleep

@@ -6,10 +6,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     getValues();
 });
 
-const debouncedSlider = debounce((value) => {
-    fetch(`/action/brightness?l=${value}`).then();
-}, 500);
-
 function getValues() {
     fetchWithTimeout('/settings/config', {
         timeout: 3000,
@@ -34,3 +30,7 @@ function getValues() {
         })
         .catch(() => setTimeout(getValues, 3000));
 }
+
+const debouncedSlider = debounce((value) => {
+    fetch(`/action/brightness?l=${value}`).then();
+}, 500);

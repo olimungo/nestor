@@ -1,7 +1,7 @@
 from machine import Pin, SPI
 import max7219
 from EffectsLibrary import Effects
-import uasyncio as asyncio
+import asyncio as asyncio
 import math
 import random
 from ledsConfig import leds

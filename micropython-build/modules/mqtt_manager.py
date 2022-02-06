@@ -1,4 +1,4 @@
-from ubinascii import hexlify
+from binascii import hexlify
 from umqtt.simple import MQTTClient
 from machine import unique_id
 from uasyncio import get_event_loop, sleep_ms
