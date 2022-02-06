@@ -1,5 +1,5 @@
-from uselect import poll, POLLIN, POLLHUP
-from usocket import socket, getaddrinfo, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR
+from select import poll, POLLIN, POLLHUP
+from socket import socket, getaddrinfo, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR
 from uasyncio import get_event_loop, sleep_ms
 from gc import collect
 

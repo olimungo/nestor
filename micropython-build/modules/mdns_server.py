@@ -1,9 +1,8 @@
 from time import ticks_ms, ticks_diff
-from uselect import select
-from ustruct import pack_into, unpack_from
-from usocket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
+from select import select
+from struct import pack_into, unpack_from
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, IPPROTO_IP, IP_ADD_MEMBERSHIP
 from uasyncio import get_event_loop, sleep_ms
-from network import WLAN, STA_IF, AP_IF
 from gc import collect
 from mdns_server_helpers import dotted_ip_to_bytes, check_name, pack_answer, compare_q_and_a, skip_question, skip_answer, pack_question, skip_name_at
 
@@ -17,59 +16,59 @@ FLAGS_AA = const(0x0400)
 CLASS_IN = const(1)
 TYPE_A = const(1)
 
-WAIT_A_BIT_MORE = const(3000)
 WAIT_FOR_REQUEST = const(250)
-CHECK_CONNECTED = const(250)
+WAIT_AFTER_ERROR = const(15000)
 
 class mDnsServer:
-    def __init__(self, hostname, net_id):
-        self.sta_if = WLAN(STA_IF)
-        self.ap_if = WLAN(AP_IF)
+    task_connect = None
+    
+    def __init__(self, hostname, net_id, ip):
         self.hostname = hostname
-        self.connected = False
+        self.ip = ip.decode('ascii')
 
         self.set_net_id(net_id)
 
         self.sock = self.make_socket()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_connected())
 
-    async def check_connected(self):
+        print("> mDNS server up")
+
+    def start(self):
+        if self.task_connect == None:
+            connect_success = self.connect()
+            self.task_connect = self.loop.create_task(self.connect_and_process_packets(connect_success))
+
+            print("> mDNS server running")
+
+    def stop(self):
+        if self.task_connect != None:
+            self.task_connect.cancel()
+            self.task_connect = None
+        
+            print("> mDNS server stopped")
+
+    async def connect_and_process_packets(self, connect_success):
+        while not connect_success:
+            await sleep_ms(WAIT_AFTER_ERROR)
+            connect_success = self.connect()
+
         while True:
-            self.connected = False
+            self.process_waiting_packets()
+            await sleep_ms(WAIT_FOR_REQUEST)
 
-            while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(CHECK_CONNECTED)
-
-            await sleep_ms(WAIT_A_BIT_MORE)
-
-            while not self.connected and not self.ap_if.active():
-                await self.connect()
-
-                if self.connected:
-                    print("> mDNS server up and running")
-
-                    while self.connected and not self.ap_if.active():
-                        self.process_waiting_packets()
-                        await sleep_ms(WAIT_FOR_REQUEST)
-
-                    print("> mDNS server down")
-
-    async def connect(self):
+    def connect(self):
         try:
-            print("> mDNS start or restart")
             self.make_socket()
             self.advertise_hostname()
-            self.connected = True
+
+            return True
         except Exception as e:
             print("> mDnsServer.connect error: {}".format(e))
-            await sleep_ms(CHECK_CONNECTED)
+            return False
 
     def make_socket(self):
         collect()
-
-        self.ip = self.sta_if.ifconfig()[0]
 
         self.sock = socket(AF_INET, SOCK_DGRAM)
         self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -223,21 +222,24 @@ class mDnsServer:
     def resolve_mdns_address(self, hostname, fast=False):
         collect()
 
-        if self.sta_if.isconnected():
-            q = pack_question(hostname, TYPE_A, CLASS_IN)
-            answer = []
-        
-            def _answer_handler(a):
-                addr_offset = skip_name_at(a, 0) + 10
-                answer.append(a[addr_offset : addr_offset + 4])
+        q = pack_question(hostname, TYPE_A, CLASS_IN)
+        answer = []
+    
+        def _answer_handler(a):
+            addr_offset = skip_name_at(a, 0) + 10
+            answer.append(a[addr_offset : addr_offset + 4])
 
-                return True
+            return True
 
-            self.handle_question(q, _answer_handler, fast)
+        self.handle_question(q, _answer_handler, fast)
 
-            return bytes(answer[0]) if answer else None
+        return bytes(answer[0]) if answer else None
 
     def set_net_id(self, net_id):
         self.net_id = net_id
         self.public_name = b"%s-%s" % (self.hostname, self.net_id)
-        self.connected = False
+
+        # Restart server
+        if self.task_connect != None:
+            self.stop()
+            self.start()

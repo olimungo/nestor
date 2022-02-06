@@ -1,9 +1,9 @@
 from gc import collect, mem_free
 
 collect()
-print("\n\n\n> >>>>>>>>>>>>>>>>>>>>>>>>>>")
+print("\n\n\n> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 print("> Free mem at start: {}".format(mem_free()))
-print("> >>>>>>>>>>>>>>>>>>>>>>>>>>")
+print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
 from machine import freq
 freq(160000000)

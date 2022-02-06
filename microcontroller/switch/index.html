@@ -25,44 +25,172 @@
                 <div id="tag-net-id" class="tag"></div>
             </div>
 
-            <div class="card card-padding">
-                <h2 id="title-switch-a" class="margin-bottom display-none">
-                    SWTICH A
-                </h2>
+            <div class="margin-top-medium">
+                <div class="card card-padding">
+                    <h2 id="title-switch-a" class="margin-bottom display-none">
+                        SWITCH A
+                    </h2>
 
-                <div class="center-horizontal">
-                    <div class="toggle-container">
-                        <input
-                            id="switch-a"
-                            name="switch-a"
-                            type="checkbox"
-                            class="toggle"
-                            onclick="toggle('a')"
-                        />
+                    <div class="center-horizontal">
+                        <div class="toggle-container">
+                            <input
+                                id="switch-a"
+                                name="switch-a"
+                                type="checkbox"
+                                class="toggle"
+                                onclick="toggle('a')"
+                            />
 
-                        <label for="switch-a" class="toggle-background">
-                            <div class="ball"></div>
-                        </label>
+                            <label for="switch-a" class="toggle-background">
+                                <div class="ball"></div>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="switch-container-2" class="card card-padding display-none">
-                <h2 class="margin-bottom">SWTICH B</h2>
+            <div
+                id="switch-off-block-timer-a"
+                class="timer-message visibility-hidden"
+            >
+                <h3>
+                    PROGRAMMED TO SWITCH OFF AT
+                    <span id="switch-off-timer-a"></span>
+                </h3>
+            </div>
 
-                <div class="center-horizontal">
-                    <div class="toggle-container">
+            <div class="card">
+                <div class="card-padding">
+                    <h2>
+                        TIMER
+                        <span id="title-timer-switch-a" class="display-none"
+                            >SWITCH A</span
+                        >
+                    </h2>
+                </div>
+
+                <div id="slider-value-a" class="slider-value">5</div>
+                <div class="slider-minutes">minutes</div>
+
+                <div class="padding-left-right-small">
+                    <input
+                        id="slider-a"
+                        class="slider"
+                        type="range"
+                        min="5"
+                        max="60"
+                        step="5"
+                        value="0"
+                        oninput="updateTimerValue('a', event.target.value)"
+                    />
+                </div>
+
+                <div class="card-padding center-horizontal">
+                    <button class="button-send" onclick="setSliderTimer('a')">
+                        SEND
+                    </button>
+                </div>
+            </div>
+
+            <div class="card card-padding">
+                <h2 class="margin-bottom">
+                    CUSTOM TIMER
+                    <span id="title-custom-timer-switch-a" class="display-none">
+                        SWITCH A
+                    </span>
+                </h2>
+
+                <div class="inline">
+                    <h2 class="margin-right">MINUTES</h2>
+                    <input
+                        id="manual-timer-a"
+                        class="label margin-right"
+                        type="number"
+                    />
+                    <button class="button-send" onclick="setManualTimer('a')">
+                        SEND
+                    </button>
+                </div>
+            </div>
+
+            <div id="switch-container-b" class="display-none">
+                <div class="card card-padding">
+                    <h2 class="margin-bottom">SWITCH B</h2>
+
+                    <div class="center-horizontal">
+                        <div class="toggle-container">
+                            <input
+                                id="switch-b"
+                                name="switch-b"
+                                type="checkbox"
+                                class="toggle"
+                                onclick="toggle('b')"
+                            />
+
+                            <label for="switch-b" class="toggle-background">
+                                <div class="ball"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    id="switch-off-block-timer-b"
+                    class="timer-message visibility-hidden"
+                >
+                    <h3>
+                        PROGRAMMED TO SWITCH OFF AT
+                        <span id="switch-off-timer-b"></span>
+                    </h3>
+                </div>
+
+                <div class="card">
+                    <div class="card-padding">
+                        <h2>TIMER SWITCH B</h2>
+                    </div>
+
+                    <div id="slider-value-b" class="slider-value">5</div>
+                    <div class="slider-minutes">minutes</div>
+
+                    <div class="padding-left-right-small">
                         <input
-                            id="switch-b"
-                            name="switch-b"
-                            type="checkbox"
-                            class="toggle"
-                            onclick="toggle('b')"
+                            id="slider-b"
+                            class="slider"
+                            type="range"
+                            min="5"
+                            max="60"
+                            step="5"
+                            value="0"
+                            oninput="updateTimerValue('b', event.target.value)"
                         />
+                    </div>
 
-                        <label for="switch-b" class="toggle-background">
-                            <div class="ball"></div>
-                        </label>
+                    <div class="card-padding center-horizontal">
+                        <button
+                            class="button-send"
+                            onclick="setSliderTimer('b')"
+                        >
+                            SEND
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card card-padding">
+                    <h2 class="margin-bottom">CUSTOM TIMER SWITCH B</h2>
+
+                    <div class="inline">
+                        <h2 class="margin-right">MINUTES</h2>
+                        <input
+                            id="manual-timer-b"
+                            class="label margin-right"
+                            type="number"
+                        />
+                        <button
+                            class="button-send"
+                            onclick="setManualTimer('b')"
+                        >
+                            SEND
+                        </button>
                     </div>
                 </div>
             </div>

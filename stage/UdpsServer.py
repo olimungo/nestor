@@ -1,6 +1,6 @@
 from select import select
 import socket
-import uasyncio as asyncio
+import asyncio as asyncio
 import gc
 
 _MAX_PACKET_SIZE = const(512)

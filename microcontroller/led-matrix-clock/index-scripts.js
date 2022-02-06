@@ -6,12 +6,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
     getValues();
 });
 
-const debouncedSlider = debounce((value) => {
-    fetch(`/action/brightness?l=${value}`).then();
-}, 500);
-
 function getValues() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())
@@ -21,7 +17,7 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 
-            document.title = `${documentTitle} ${response.netId}`;
+            document.title = `${documentTitle}-${response.netId}`;
 
             const slider = document.getElementById('slider');
             slider.value = response.brightness;
@@ -34,3 +30,7 @@ function getValues() {
         })
         .catch(() => setTimeout(getValues, 3000));
 }
+
+const debouncedSlider = debounce((value) => {
+    fetch(`/action/brightness?l=${value}`).then();
+}, 500);

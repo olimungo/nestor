@@ -1,11 +1,10 @@
 from machine import reset
+from time import ticks_ms
 from uasyncio import get_event_loop, sleep_ms
-from usocket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from uselect import poll, POLLIN
-from ure import compile
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+from select import poll, POLLIN
+from re import compile
 from gc import collect
-from credentials import Credentials
-from settings import Settings
 
 MAX_PACKET_SIZE = const(512)
 HTTP_PORT = const(80)
@@ -20,12 +19,13 @@ HEADER_CONTENT_CSS = b"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n"
 HEADER_CONTENT_JS = b"HTTP/1.1 200 OK\r\nContent-Type: text/javascript\r\n\r\n"
 
 class HttpServer:
-    def __init__(self, routes, wifi, mdns):
+    def __init__(self, routes, callback_connect, callback_get_ssids, callback_set_net_id):
         self.routes = routes
-        self.wifi = wifi
-        self.mdns = mdns
-
-        self.credentials = Credentials().load()
+        self.callback_connect = callback_connect
+        self.callbak_get_ssids = callback_get_ssids
+        self.callback_set_net_id = callback_set_net_id
+        self.task_check_request = None
+        self.last_activity = None
 
         basic_routes = {
             b"/": b"./index.html",
@@ -36,10 +36,11 @@ class HttpServer:
             b"/index-scripts.js": b"./index-scripts.js",
             b"/settings-scripts.js": b"./settings-scripts.js",
             b"/favicon.ico": self.favicon,
-            b"/settings/net-id": self.settings_net_id,
+            b"/settings/config": self.get_config,
+            b"/settings/net-id": self.set_net_id,
             b"/settings/ssids": self.get_ssids,
-            b"/connect": self.connect,
             b"/settings/router-ip-received": self.router_ip_received,
+            b"/connect": self.connect,
         }
 
         for route in basic_routes:
@@ -54,9 +55,21 @@ class HttpServer:
         self.poller.register(self.sock, POLLIN)
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_request())
 
-        print("> HTTP server up and running")
+        print("> HTTP server up")
+
+    def start(self):
+        if self.task_check_request == None:
+            self.task_check_request = self.loop.create_task(self.check_request())
+
+            print("> HTTP server running")
+
+    def stop(self):
+        if self.task_check_request != None:
+            self.task_check_request.cancel()
+            self.task_check_request = None
+
+            print("> HTTP server stopped")
 
     def split_request(self, request):
         method = ""
@@ -124,9 +137,9 @@ class HttpServer:
         file.close()
         client.close()
 
-    def call_route(self, client, route, params):
+    def call_route(self, client, route, path, params):
         # Call a function, which may or may not return a response
-        response = route(params)
+        response = route(path, params)
 
         if isinstance(response, tuple):
             body = response[0] or b""
@@ -146,8 +159,6 @@ class HttpServer:
         client.close()
     
     async def check_request(self):
-        start = True
-
         while True:
             try:
                 collect()
@@ -159,11 +170,11 @@ class HttpServer:
                     request = client.recv(MAX_PACKET_SIZE)
 
                     if request:
+                        self.last_activity = ticks_ms()
+
                         method, path, params = self.split_request(request)
 
                         print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
-
-                        self.wifi.set_http_activity()
 
                         route = self.routes.get(path.encode('ascii'), None)
 
@@ -171,41 +182,51 @@ class HttpServer:
                             # Expect a filename, so return content of file
                             self.send_page(client, route)
                         elif callable(route):
-                            self.call_route(client, route, params)
+                            self.call_route(client, route, path, params)
                         else:
-                            self.send_page(client, "/index.html")
+                            self.send_page(client, b"/index.html")
             except Exception as e:
                 print("> HttpServer.check_request exception: {}".format(e))
-                # reset()
 
             await sleep_ms(IDLE_TIME_BETWEEN_CHECKS)
 
-    def favicon(self, params):
+    def favicon(self, path, params):
         print("> NOT sending the favico :-)")
 
-    def connect(self, params):
-        credentials = Credentials().load()
+    def set_config(self, config):
+        self.config = config
+    
+    def get_config(self, path, params):
+        result = ""
 
-        credentials.essid = params.get(b"essid", None)
-        credentials.password = params.get(b"password", None)
-        credentials.write()
+        for value in self.config:
+            if result != "":
+                result += ","
 
-        self.wifi.connect()
+            result += '"%s": "%s"' % (value.decode("ascii"), self.config[value].decode("ascii"))
 
-    def router_ip_received(self, params):
+        return "{%s}" % result
+
+    def connect(self, path, params):
+        essid = params.get(b"essid", None)
+        password = params.get(b"password", None)
+
+        self.callback_connect(essid, password)
+
+    def router_ip_received(self, path, params):
+        self.loop.create_task(self.router_ip_received_async())
+
+    async def router_ip_received_async(self):
+        # Wait a bit before actually reset the device,
+        # so that the http call from the front-end gets a OK 200 response
+        await sleep_ms(500)
         reset()
 
-    def settings_net_id(self, params):
-        settings = Settings().load()
-        
+    def set_net_id(self, path, params):
         id = params.get(b"id", None)
 
         if id:
-            settings.net_id = id
-            settings.write()
+            self.callback_set_net_id(id)
 
-            if self.mdns != None:
-                self.mdns.set_net_id(id)
-
-    def get_ssids(self, params):
-        return self.wifi.get_ssids()
+    def get_ssids(self, path, params):
+        return self.callbak_get_ssids()

@@ -1,120 +1,164 @@
-from ubinascii import hexlify
+from binascii import hexlify
 from umqtt.simple import MQTTClient
 from machine import unique_id
 from uasyncio import get_event_loop, sleep_ms
-from network import WLAN, STA_IF
 from tags import Tags
 
-WAIT_FOR_MDNS = const(1000)
-WAIT_BETWEEN_CONNECT = const(10000)
-WAIT_FOR_MESSAGE = const(250)
-MQTT_STATUS_INTERVAL = const(2000)
+SEND_STATE_INTERVAL = const(2000)
+WAIT_FOR_MESSAGE = const(100)
+WAIT_AFTER_ERROR = const(5000)
+WAIT_A_BIT_BEFORE_LOGGING = const(1000)
 
 class MqttManager:
-    message = ""
-    messages = []
     state_1 = "UNKNOWN"
     state_2 = None
+    message_1 = None
+    message_2 = None
+    task_check_for_connect = None
+    task_send_state = None
+    task_check_for_message = None
 
-    def __init__(self, mdns, broker_name, topic_name, device_type):
-        self.sta_if = WLAN(STA_IF)
-        self.mdns = mdns
-        self.broker_name = broker_name
+    def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
+        self.broker_ip = broker_ip
+        self.net_id = net_id
+        self.ip = ip
+        self.topics = topics
         self.commands_topic = b"commands/%s" % topic_name
         self.states_topic = b"states/%s" % topic_name
         self.logs_topic = b"logs/%s" % topic_name
         self.device_type = device_type
 
         self.loop = get_event_loop()
-        self.connected = False
         self.messages = []
 
-        self.loop.create_task(self.check_mdns())
-        self.loop.create_task(self.send_state())
+        print("> MQTT server up")
 
-    async def check_mdns(self):
+    def start(self):
+        if self.task_check_for_message == None:
+            connect_success = self.connect()
+            
+            self.task_check_for_connect = self.loop.create_task(self.check_for_connect(connect_success))
+
+            print("> MQTT server running")
+
+    def stop(self):
+        server_stopped = False
+
+        if self.task_check_for_connect:
+            self.task_check_for_connect.cancel()
+            self.task_check_for_connect = None
+            server_stopped = True
+
+        if self.task_check_for_message:
+            self.task_check_for_message.cancel()
+            self.task_check_for_message = None
+            server_stopped = True
+
+        if self.task_send_state:
+            self.task_send_state.cancel()
+            self.task_send_state = None
+            server_stopped = True
+
+        if self.mqtt:
+            self.mqtt.disconnect()
+            self.mqtt = None
+            server_stopped = True
+
+        if server_stopped:
+            print("> MQTT server stopped")
+
+    async def check_for_connect(self, connect_success):
+        while not connect_success:
+            await sleep_ms(WAIT_AFTER_ERROR)
+            connect_success = self.connect()
+
+        if self.message_1 and self.message_2:
+            self.mqtt.subscribe((b"%s/%sa" % (self.commands_topic, self.net_id)))
+            self.mqtt.subscribe((b"%s/%sb" % (self.commands_topic, self.net_id)))
+        else:
+            self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.net_id)))
+        
+        self.set_state(self.ip, self.state_1, self.state_2)
+        self.task_send_state = self.loop.create_task(self.send_state())
+        self.task_check_for_message = self.loop.create_task(self.check_for_message())
+
+        await sleep_ms(WAIT_A_BIT_BEFORE_LOGGING)
+
+        self.log(b"IP assigned to %s-%s: %s" % (self.device_type, self.net_id, self.ip))
+
+    async def check_for_message(self):
         while True:
-            while not self.mdns.connected:
-                await sleep_ms(WAIT_FOR_MDNS)
-
-            while not self.connected and self.mdns.connected:
-                await sleep_ms(WAIT_BETWEEN_CONNECT)
-
-                if self.mdns.connected:
-                    await self.connect()
-
-                if self.connected:
-                    print("> MQTT client connected to {}".format(self.broker_name.decode('ascii')))
-
-                    self.set_state(self.state_1, self.state_2)
-
-                    if self.message_1 and self.message_2:
-                        self.mqtt.subscribe((b"%s/%sa" % (self.commands_topic, self.mdns.net_id)))
-                        self.mqtt.subscribe((b"%s/%sb" % (self.commands_topic, self.mdns.net_id)))
-                    else:
-                        self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.mdns.net_id)))
-
-                    while self.connected and self.mdns.connected:
-                        self.check_msg()
-                        await sleep_ms(WAIT_FOR_MESSAGE)
-
-                    print("> MQTT server down")
-                    self.connected = False
-
-    async def connect(self):
-        try:
-            client_id = hexlify(unique_id())
-
-            broker_name = self.broker_name.split(b".")
-
-            if len(broker_name) == 2 and broker_name[1] == b"local":
-                broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
-
-                if broker_ip != None:
-                    broker_ip = "{}.{}.{}.{}".format(*broker_ip)
-            else:
-                broker_ip = self.broker_name
-
-            if broker_ip != None:
-                print("> MQTT broker IP: %s" % broker_ip)
-
-                self.mqtt = MQTTClient(client_id, broker_ip)
-                self.mqtt.set_callback(self.message_received)
-                self.mqtt.connect()
-
-                self.connected = True
-
-                self.log(b"IP assigned: %s" % (self.sta_if.ifconfig()[0]))
-            else:
-                print("> MQTT broker '{}' not reachable!".format(self.broker_name.decode('ascii')))
-        except Exception as e:
-            print("> MQTT broker connect error: {}".format(e))
-
-    def check_msg(self):
-        try:
-            self.mqtt.check_msg()
-        except Exception as e:
-            self.connected = False
-
-    def message_received(self, topic, message):
-        self.messages.append({b"topic": topic, b"message": message})
+            try:
+                self.mqtt.check_msg()
+                await sleep_ms(WAIT_FOR_MESSAGE)
+            except Exception as e:
+                print("> MqttManager.check_for_message error: {}".format(e))
+                self.loop.create_task(self.handle_error())
+                await sleep_ms(WAIT_AFTER_ERROR)
 
     async def send_state(self):
         while True:
-            self.publish_message()
-            await sleep_ms(MQTT_STATUS_INTERVAL)
+            try:
+                self.publish_state()
+                await sleep_ms(SEND_STATE_INTERVAL)
+            except Exception as e:
+                print("> MqttManager.send_state error: {}".format(e))
+                self.loop.create_task(self.handle_error())
+                await sleep_ms(WAIT_AFTER_ERROR)
 
-    def set_state(self, state_1, state_2=None):
+    def connect(self):
+        try:
+            client_id = hexlify(unique_id())
+
+            self.mqtt = MQTTClient(client_id, self.broker_ip)
+            self.mqtt.set_callback(self.message_received)
+            self.mqtt.connect()
+
+            print("> MQTT client connected to broker: {}".format(self.broker_ip))
+
+            return True
+        except Exception as e:
+            self.mqtt = None
+            print("> MqttManager.connect error: {}".format(e))
+
+            return False
+
+    def message_received(self, topic, message):
+        tags = Tags().load()
+
+        # message contains the mqtt command and can be just "up" or "add-tag/kitchen"
+        mqtt_command = message.split(b"/")[0]
+
+        if mqtt_command == b"add-tag":
+            tag = message.split(b"/")[1]
+            tags.append(tag)
+            self.set_state(self.ip, self.state_1, self.state_2)
+        elif mqtt_command == b"remove-tag":
+            tag = message.split(b"/")[1]
+            tags.remove(tag)
+            self.set_state(self.ip, self.state_1, self.state_2)
+        else:
+            callback = self.topics.get(mqtt_command, None)
+
+            if callback != None:
+                callback(topic, message)
+
+        # Check immediatly if another message is available
+        self.mqtt.check_msg()
+
+    def set_state(self, ip, state_1, state_2=None):
         tags = Tags().load()
         tags_utf8 = []
+        self.ip = ip
         self.state_1 = state_1
         self.state_2 = state_2
+        self.ip = ip
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
 
         self.message_1 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
-            self.sta_if.ifconfig()[0],
+            self.ip,
             self.device_type,
             state_1,
             ",".join(tags_utf8)
@@ -122,7 +166,7 @@ class MqttManager:
 
         if state_2:
             self.message_2 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
-                self.sta_if.ifconfig()[0],
+                self.ip,
                 self.device_type,
                 state_2,
                 ",".join(tags_utf8)
@@ -130,29 +174,37 @@ class MqttManager:
         else:
             self.message_2 = None
 
-        self.publish_message()
+        self.publish_state()
 
-    def publish_message(self):
-        if self.connected:
+    def publish_state(self):
+        if self.task_send_state != None:
             try:
                 if self.message_1 and self.message_2:
-                    self.mqtt.publish(b"%s/%sa" % (self.states_topic, self.mdns.net_id), self.message_1)
-                    self.mqtt.publish(b"%s/%sb" % (self.states_topic, self.mdns.net_id), self.message_2)
+                    self.mqtt.publish(b"%s/%sa" % (self.states_topic, self.net_id), self.message_1)
+                    self.mqtt.publish(b"%s/%sb" % (self.states_topic, self.net_id), self.message_2)
                 else:
-                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.mdns.net_id), self.message_1)
+                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.message_1)
             except Exception as e:
-                print("> MQTT broker publish_message error: {}".format(e))
+                print("> MqttManager.publish_state error: {}".format(e))
 
     def log(self, message):
-        if self.connected:
+        if self.task_send_state != None:
             try:
-                self.mqtt.publish(b"%s/%s" % (self.logs_topic, self.mdns.net_id), message)
+                self.mqtt.publish(b"%s/%s" % (self.logs_topic, self.net_id), message)
             except Exception as e:
-                print("> MQTT broker log error: {}".format(e))
+                print("> MqttManager.log error: {}".format(e))
 
-    def check_messages(self):
-        if len(self.messages) > 0:
-            # Return first elem of the array
-            return self.messages.pop(-len(self.messages))
+    def set_net_id(self, net_id):
+        self.net_id = net_id
 
-        return None
+        # Restart server
+        self.stop()
+        self.start()
+
+    async def handle_error(self):
+        # Restart server
+        self.stop()
+        self.start()
+
+        
+        

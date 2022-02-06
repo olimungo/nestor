@@ -1,26 +1,25 @@
-from uos import remove
+from os import remove
 
 FILE = "./creds.csv"
 
 class Credentials:
-    def __init__(self, essid=None, password=None):
+    def __init__(self, essid=None, password=None, net_id=b"0"):
         self.essid = essid
         self.password = password
+        self.net_id = net_id
 
     def write(self):
-        """Write credentials to FILE if valid input found."""
-        
         if self.is_valid():
             with open(FILE, "wb") as f:
-                f.write(b",".join([self.essid, self.password]))
+                f.write(b",".join([self.essid, self.password, self.net_id]))
 
     def load(self):
         try:
             with open(FILE, "rb") as f:
                 contents = f.read().split(b",")
 
-            if len(contents) == 2:
-                self.essid, self.password = contents
+            if len(contents) == 3:
+                self.essid, self.password, self.net_id = contents
 
             if not self.is_valid():
                 self.remove()
@@ -38,10 +37,11 @@ class Credentials:
         self.essid = self.password = None
 
     def is_valid(self):
-        # Ensure the credentials are entered as bytes
         if not isinstance(self.essid, bytes):
             return False
         if not isinstance(self.password, bytes):
+            return False
+        if not isinstance(self.net_id, bytes):
             return False
 
         # Ensure credentials are not None or empty

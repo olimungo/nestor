@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 });
 
 function getValues() {
-    fetchWithTimeout('/settings/values', {
+    fetchWithTimeout('/settings/config', {
         timeout: 3000,
     })
         .then((response) => response.json())
@@ -16,7 +16,7 @@ function getValues() {
             setTagValue('tag-net-id', response.netId);
             setTagValue('reverse-motor', response.motorReversed);
 
-            document.title = `${documentTitle} ${response.netId}`;
+            document.title = `${documentTitle}-${response.netId}`;
 
             const appSpinner = document.getElementById('app-spinner');
             appSpinner.classList.add('display-none');

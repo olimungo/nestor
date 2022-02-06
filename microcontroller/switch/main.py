@@ -2,199 +2,191 @@ from uasyncio import get_event_loop, sleep_ms
 from machine import reset, Pin
 from time import sleep
 from gc import collect, mem_free
-from network import WLAN, STA_IF, AP_IF
 from re import match
-from wifi_manager import WifiManager
-from http_server import HttpServer
-from mdns_server import mDnsServer
-from mqtt_manager import MqttManager
+from math import floor
+from connectivity_manager import ConnectivityManager
 from settings import Settings
-from credentials import Credentials
-from tags import Tags
 
 PUBLIC_NAME = b"Switch"
 BROKER_NAME = b"nestor.local"
-# BROKER_NAME = b"deathstar.local"
+# BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
-DEVICE_TYPE = b"SWITCH"
-DOUBLE_SWITCH = False
+MQTT_DEVICE_TYPE = b"SWITCH"
+# HTTP_DEVICE_TYPE = b"SWITCH"
+HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
-CHECK_CONNECTED = const(250)
-WAIT_BEFORE_RESET = const(10)
-MQTT_CHECK_MESSAGE_INTERVAL = const(250)
-MQTT_CHECK_CONNECTED_INTERVAL = const(1000)
+WAIT_BEFORE_RESET = const(10) # seconds
+
+USE_MDNS = True
+USE_MQTT = True
 
 PIN_SWITCH_A = const(5)  # D1
 PIN_SWITCH_B = const(4)  # D2
 
+WAIT_FOR_TIMER = const(1000)
+
 class Main:
+    task_handle_timer = None
+
     def __init__(self):
-        self.sta_if = WLAN(STA_IF)
-        self.ap_if = WLAN(AP_IF)
-        settings = Settings().load()
+        self.settings = Settings().load()
 
-        self.wifi = WifiManager(b"%s-%s" % (PUBLIC_NAME, settings.net_id))
-        self.mdns = mDnsServer(PUBLIC_NAME.lower(), settings.net_id)
-        self.mqtt = MqttManager(
-            self.mdns, BROKER_NAME, MQTT_TOPIC_NAME, DEVICE_TYPE
-        )
-
-        routes = {
-            b"/action/toggle-a": self.toggle_a,
-            b"/action/toggle-b": self.toggle_b,
-            b"/settings/values": self.settings_values
+        url_routes = {
+            b"/action/toggle-a": self.toggle_a_b,
+            b"/action/toggle-b": self.toggle_a_b,
+            b"/action/timer-a": self.timer_a_b,
+            b"/action/timer-b": self.timer_a_b
         }
 
-        self.http = HttpServer(routes, self.wifi, self.mdns)
+        mqtt_subscribe_topics = {
+            b"on": self.on_off,
+            b"off": self.on_off
+        }
+
+        self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+            self.connectivity_up, self.connectivity_down,
+            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
+
+        self.set_state()
 
         self.switch_a = Pin(PIN_SWITCH_A, Pin.OUT)
         self.switch_b = Pin(PIN_SWITCH_B, Pin.OUT)
 
-        self.switch_a.on() if settings.state_a == b"1" else self.switch_a.off()
-        self.switch_b.on() if settings.state_b == b"1" else self.switch_b.off()
+        self.switch_a.on() if self.settings.state_a == b"1" else self.switch_a.off()
+        self.switch_b.on() if self.settings.state_b == b"1" else self.switch_b.off()
 
         self.loop = get_event_loop()
-        self.loop.create_task(self.check_connected())
-        self.loop.create_task(self.check_mqtt())
         self.loop.run_forever()
         self.loop.close()
 
-    async def check_connected(self):
-        while True:
-            while not self.sta_if.isconnected() or self.ap_if.active():
-                await sleep_ms(CHECK_CONNECTED)
+    def connectivity_up(self):
+        if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
+            self.task_handle_timer = self.loop.create_task(self.handle_timer())
 
-            self.set_state()
-        
-            while self.sta_if.isconnected():
-                await sleep_ms(CHECK_CONNECTED)
+        collect()
+        print("> Free mem after all services up: {}".format(mem_free()))
 
-    async def check_mqtt(self):
-        while True:
-            while self.mqtt.connected:
-                self.check_message_mqtt()
+    def connectivity_down(self):
+        pass
 
-                await sleep_ms(MQTT_CHECK_MESSAGE_INTERVAL)
+    async def handle_timer(self):
+        all_timers_expired = False
 
-            while not self.mqtt.connected:
-                await sleep_ms(MQTT_CHECK_CONNECTED_INTERVAL)
+        while not all_timers_expired:
+            if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
+                hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
+                now = ((hour1 * 10 + hour2) * 60) + (minute1 * 10 + minute2)
 
-            self.set_state()
+                if self.check_timer(self.settings.timer_a, now):
+                    self.settings.timer_a = b"0"
+                    self.settings.write()
+                    self.set_switch(b"a", b"off")
 
-    def check_message_mqtt(self):
-        settings = Settings().load()
+                if self.check_timer(self.settings.timer_b, now):
+                    self.settings.timer_b = b"0"
+                    self.settings.write()
+                    self.set_switch(b"b", b"off")
 
-        try:
-            mqtt_message = self.mqtt.check_messages()
-            tags = Tags().load()
+                await sleep_ms(WAIT_FOR_TIMER)
+            else:
+                all_timers_expired = True
+                self.task_handle_timer = None
 
-            if mqtt_message:
-                topic = mqtt_message.get(b"topic")
-                message = mqtt_message.get(b"message")
-
-                print("> MQTT message received: %s / %s" % (topic, message))
-
-                if match("add-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.append(tag)
-                    self.set_state()
-                elif match("remove-tag", message):
-                    tag = message.split(b"/")[1]
-                    tags.remove(tag)
-                    self.set_state()
-                elif match("on", message):
-                    if match(".*/.*b$", topic):
-                        print("> Turning relay 2 on")
-
-                        self.switch_b.on()
-                        settings.state_b = b"1"
-                    else:
-                        print("> Turning relay 1 on")
-
-                        self.switch_a.on()
-                        settings.state_a = b"1"
-
-                    settings.write()
-                    self.set_state()
-                elif match("off", message):
-                    if match(".*/.*b$", topic):
-                        print("> Turning relay 2 off")
-
-                        self.switch_b.off()
-                        settings.state_b = b"0"
-                    else:
-                        print("> Turning relay 1 off")
-
-                        self.switch_a.off()
-                        settings.state_a = b"0"
-
-                    settings.write()
-                    self.set_state()
-
-        except Exception as e:
-            print("> Main.check_message_mqtt exception: {}".format(e))
-
-    def settings_values(self, params):
-        credentials = Credentials().load()
-        settings = Settings().load()
-
-        essid = credentials.essid
-
-        if not essid:
-            essid = b""
-
-        # Global type is SWITCH but the front-end has to know if it's a simple or double switch
-        if DOUBLE_SWITCH:
-            device_type = "DOUBLE-SWITCH"
+    def check_timer(self, timer, now):
+        if timer == b"0":
+            return False
         else:
-            device_type = DEVICE_TYPE
+            split = timer.split(b":")
+            target = int(split[0]) * 60 + int(split[1])
 
-        result = (
-            b'{"ip": "%s", "netId": "%s",  "essid": "%s", "state": "%s,%s", "type": "%s"}'
-            % (self.wifi.ip, settings.net_id, essid, settings.state_a, settings.state_b, device_type)
-        )
+            return now >= target and now - target < 5
 
-        return result
+    def on_off(self, topic, message):
+        action = b"%s" % message
+        switch_id = b"b" if match(".*/.*b$", topic) else b"a"
 
-    def toggle_a(self, params):
+        self.set_switch(switch_id, action)
+
+    def toggle_a_b(self, path, params):
         action = params.get(b"action", None)
+
+        switch_id = b"a" if match(".*/.*a$", path) else b"b"
+
+        self.set_switch(switch_id, action)
+
+    def timer_a_b(self, path, params):
+        delay = params.get(b"minutes", None)
+
+        if delay:
+            hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
+
+            hour = hour1 * 10 + hour2
+            minute = minute1 * 10 + minute2
+
+            minutes_delay = hour * 60 + minute + int(delay)
+            minutes_target = minutes_delay % (24 * 60)
+            new_hour = floor(minutes_target / 60)
+            new_minute = minutes_target % 60
+            timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
+
+            if match(".*/.*a$", path):
+                self.settings.timer_a = timer
+                self.set_switch(b"a", b"on")
+            else:
+                self.settings.timer_b = timer
+                self.set_switch(b"b", b"on")
+
+            self.settings.write()
+            
+            self.set_state()
+
+            if not self.task_handle_timer:
+                self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
+            return b'{"timer": "%s"}' % timer
+
+    def set_switch(self, switch_id, action):
+        print(f'> Turning switch {switch_id:s}: {action:s}')
+
         settings = Settings().load()
+        switch = self.switch_a if switch_id == b"a" else self.switch_b
 
         if action == b"on":
-            self.switch_a.on()
-            settings.state_a = b"1"
+            switch.on()
+            state = b"1"
         else:
-            self.switch_a.off()
-            settings.state_a = b"0"
+            switch.off()
+            state = b"0"
 
-        settings.write()
+            if switch_id == b"a":
+                self.settings.timer_a = b"0"
+            else:
+                self.settings.timer_b = b"0"
 
-    def toggle_b(self, params):
-        action = params.get(b"action", None)
-        settings = Settings().load()
-
-        if action == b"on":
-            self.switch_b.on()
-            settings.state_b = b"1"
+        if switch_id == b"a":
+            self.settings.state_a = state
         else:
-            self.switch_b.off()
-            settings.state_b = b"0"
+            self.settings.state_b = state
 
-        settings.write()
+        self.settings.write()
+        self.set_state()
 
     def set_state(self):
-        settings = Settings().load()
+        state_a = "ON" if self.settings.state_a == b"1" else "OFF"
+        state_b = "ON" if self.settings.state_b == b"1" else "OFF"
 
-        state_a = "ON" if settings.state_a == b"1" else "OFF"
-        state_b = "ON" if settings.state_b == b"1" else "OFF"
+        http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
 
-        self.mqtt.set_state(state_a, state_b)
+        http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
 
+        if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
+            state_b = None
+
+        self.connectivity.set_state(http_config, state_a, state_b)
 try:
-    collect()
-    print("Free mem: {}".format(mem_free()))
-
-    main = Main()
+    Main()
 except Exception as e:
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
