@@ -1,4 +1,4 @@
-from ustruct import pack_into, unpack_from
+from struct import pack_into, unpack_from
 
 TYPE_ANY = const(255)
 TYPE_A = const(1)

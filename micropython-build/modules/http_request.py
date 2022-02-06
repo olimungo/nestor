@@ -1,5 +1,5 @@
 from socket import socket, getaddrinfo
-from ujson import loads
+from json import loads
 
 MAX_PACKET_SIZE = const(100)
 
