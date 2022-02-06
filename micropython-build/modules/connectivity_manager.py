@@ -1,7 +1,6 @@
 from time import ticks_ms, ticks_diff
 from uasyncio import get_event_loop, sleep_ms
 from wifi_manager import WifiManager
-from settings import Settings
 from credentials import Credentials
 
 PREVENT_AUTO_CONNECT_DELAY = const(15000)
@@ -41,8 +40,8 @@ class ConnectivityManager:
         self.use_mdns = use_mdns
         self.use_mqtt = use_mqtt
 
-        settings = Settings().load()
-        access_point_essid = b"%s-%s" % (public_name, settings.net_id)
+        creds = Credentials().load()
+        access_point_essid = b"%s-%s" % (public_name, creds.net_id)
 
         self.wifi = WifiManager(access_point_essid, self.wifi_connection_success, self.wifi_connection_fail, self.start_http_server, self.set_station_ip)
 
@@ -81,14 +80,14 @@ class ConnectivityManager:
                 self.loop.create_task(self.wifi.connect_async())
 
     def set_net_id(self, net_id):
-        settings = Settings().load()
-        settings.net_id = net_id
-        settings.write()
+        creds = Credentials().load()
+        creds.net_id = net_id
+        creds.write()
 
         self.set_http_config(self.http_config)
 
-        if self.mdns: self.mdns.set_net_id(settings.net_id)
-        if self.mqtt: self.mqtt.set_net_id(settings.net_id)
+        if self.mdns: self.mdns.set_net_id(creds.net_id)
+        if self.mqtt: self.mqtt.set_net_id(creds.net_id)
 
     def wifi_connection_success(self):
         if self.task_connect_async:
@@ -140,8 +139,8 @@ class ConnectivityManager:
         if self.use_mdns:
             if not self.mdns:
                 from mdns_server import mDnsServer
-                settings = Settings().load()
-                self.mdns = mDnsServer(self.public_name.lower(), settings.net_id, self.wifi.ip)
+                creds = Credentials().load()
+                self.mdns = mDnsServer(self.public_name.lower(), creds.net_id, self.wifi.ip)
         
             self.mdns.start()
 
@@ -149,13 +148,13 @@ class ConnectivityManager:
         if self.use_mqtt:
             try:
                 if not self.mqtt:
-                    settings = Settings().load()
+                    creds = Credentials().load()
                     broker_ip = self.mdns.resolve_mdns_address(self.broker_name.decode('ascii'))
 
                     if broker_ip:
                         from mqtt_manager import MqttManager
                         broker_ip = "{}.{}.{}.{}".format(*broker_ip)
-                        self.mqtt = MqttManager(broker_ip, settings.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.mqtt_device_type)
+                        self.mqtt = MqttManager(broker_ip, creds.net_id, self.wifi.ip, self.mqtt_topic_name, self.mqtt_subscribe_topics, self.mqtt_device_type)
 
                         if self.state_1:
                             self.mqtt.set_state(self.wifi.ip, self.state_1, self.state_2)
@@ -165,14 +164,14 @@ class ConnectivityManager:
                 print("> connectivity_manager.start_mqtt: {}".format(e))
 
     def set_http_config(self, http_config):
-        settings = Settings().load()
+        creds = Credentials().load()
 
         if self.state_2:
             state = b"%s,%s" % (self.state_1, self.state_2)
         else:
             state = b"%s" % self.state_1
 
-        http_config.update({b"ip" : self.wifi.ip, b"netId": settings.net_id, b"type": self.http_device_type, b"state": state})
+        http_config.update({b"ip" : self.wifi.ip, b"netId": creds.net_id, b"type": self.http_device_type, b"state": state})
 
         self.http_config = http_config
 
