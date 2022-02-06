@@ -12,13 +12,13 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"SWITCH"
-# HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+# HTTP_DEVICE_TYPE = b"SWITCH"
+HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
 
 WAIT_BEFORE_RESET = const(10) # seconds
 
-USE_MDNS = True
-USE_MQTT = True
+USE_MDNS = False
+USE_MQTT = False
 
 PIN_SWITCH_A = const(5)  # D1
 PIN_SWITCH_B = const(4)  # D2
@@ -120,7 +120,6 @@ class Main:
         delay = params.get(b"minutes", None)
 
         if delay:
-
             hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
 
             hour = hour1 * 10 + hour2
@@ -151,6 +150,15 @@ class Main:
     def set_switch(self, switch_id, action):
         print(f'> Turning switch {switch_id:s}: {action:s}')
 
+            if not self.task_handle_timer:
+                self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
+            return b'{"timer": "%s"}' % timer
+
+    def set_switch(self, switch_id, action):
+        print(f'> Turning switch {switch_id:s}: {action:s}')
+
+        settings = Settings().load()
         switch = self.switch_a if switch_id == b"a" else self.switch_b
 
         if action == b"on":
@@ -178,6 +186,8 @@ class Main:
         state_b = "ON" if self.settings.state_b == b"1" else "OFF"
 
         http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
+
+        http_config = {b"timer": b"%s,%s" % (settings.timer_a, settings.timer_b)}
 
         if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
             state_b = None
