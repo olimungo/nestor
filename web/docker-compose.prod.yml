@@ -35,7 +35,7 @@ services:
             - REDIS_URL=redis://redis
             - MOSQUITTO_URL=mqtt://mosquitto
     nestor:
-        image: olimungo/nestor:0.115
+        image: olimungo/nestor:0.116
         container_name: nestor
         ports:
             - 80:80
