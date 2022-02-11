@@ -7,18 +7,16 @@ from tags import Tags
 SEND_STATE_INTERVAL = const(2000)
 WAIT_FOR_MESSAGE = const(100)
 WAIT_AFTER_ERROR = const(5000)
-WAIT_A_BIT_BEFORE_LOGGING = const(1000)
 
 class MqttManager:
-    state_1 = "UNKNOWN"
-    state_2 = None
-    message_1 = None
-    message_2 = None
+    states = []
+    messages = []
     task_check_for_connect = None
     task_send_state = None
     task_check_for_message = None
+    connected = False
 
-    def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
+    def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type, count_devices=1):
         self.broker_ip = broker_ip
         self.net_id = net_id
         self.ip = ip
@@ -27,6 +25,7 @@ class MqttManager:
         self.states_topic = b"states/%s" % topic_name
         self.logs_topic = b"logs/%s" % topic_name
         self.device_type = device_type
+        self.count_devices = count_devices
 
         self.loop = get_event_loop()
         self.messages = []
@@ -35,9 +34,9 @@ class MqttManager:
 
     def start(self):
         if self.task_check_for_message == None:
-            connect_success = self.connect()
+            self.connected = self.connect()
             
-            self.task_check_for_connect = self.loop.create_task(self.check_for_connect(connect_success))
+            self.task_check_for_connect = self.loop.create_task(self.check_for_connect())
 
             print("> MQTT server running")
 
@@ -67,22 +66,24 @@ class MqttManager:
         if server_stopped:
             print("> MQTT server stopped")
 
-    async def check_for_connect(self, connect_success):
-        while not connect_success:
+    async def check_for_connect(self):
+        while not self.connected:
             await sleep_ms(WAIT_AFTER_ERROR)
-            connect_success = self.connect()
+            self.connected = self.connect()
 
-        if self.message_1 and self.message_2:
-            self.mqtt.subscribe((b"%s/%sa" % (self.commands_topic, self.net_id)))
-            self.mqtt.subscribe((b"%s/%sb" % (self.commands_topic, self.net_id)))
+        if self.count_devices > 1:
+            for index in range(1, self.count_devices + 1):
+                subscription = b"%s/%s.%s" % (self.commands_topic, self.net_id, index)
+                self.mqtt.subscribe(subscription)
+                print(f"> MQTT subscription to {subscription:s}")
         else:
-            self.mqtt.subscribe((b"%s/%s" % (self.commands_topic, self.net_id)))
+            subscription = b"%s/%s" % (self.commands_topic, self.net_id)
+            self.mqtt.subscribe(subscription)
+            print(f"> MQTT subscription to {subscription:s}")
         
-        self.set_state(self.ip, self.state_1, self.state_2)
+        self.set_state(self.ip, self.states)
         self.task_send_state = self.loop.create_task(self.send_state())
         self.task_check_for_message = self.loop.create_task(self.check_for_message())
-
-        await sleep_ms(WAIT_A_BIT_BEFORE_LOGGING)
 
         self.log(b"IP assigned to %s-%s: %s" % (self.device_type, self.net_id, self.ip))
 
@@ -132,11 +133,11 @@ class MqttManager:
         if mqtt_command == b"add-tag":
             tag = message.split(b"/")[1]
             tags.append(tag)
-            self.set_state(self.ip, self.state_1, self.state_2)
+            self.set_state(self.ip, self.states)
         elif mqtt_command == b"remove-tag":
             tag = message.split(b"/")[1]
             tags.remove(tag)
-            self.set_state(self.ip, self.state_1, self.state_2)
+            self.set_state(self.ip, self.states)
         else:
             callback = self.topics.get(mqtt_command, None)
 
@@ -146,51 +147,43 @@ class MqttManager:
         # Check immediatly if another message is available
         self.mqtt.check_msg()
 
-    def set_state(self, ip, state_1, state_2=None):
+    def set_state(self, ip, states):
         tags = Tags().load()
         tags_utf8 = []
         self.ip = ip
-        self.state_1 = state_1
-        self.state_2 = state_2
+        self.states = states
         self.ip = ip
+        self.messages = []
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
 
-        self.message_1 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
+        for state in states:
+            self.messages.append(b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
             self.ip,
             self.device_type,
-            state_1,
+            state,
             ",".join(tags_utf8)
-        )
-
-        if state_2:
-            self.message_2 = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
-                self.ip,
-                self.device_type,
-                state_2,
-                ",".join(tags_utf8)
-            )
-        else:
-            self.message_2 = None
+        ))
 
         self.publish_state()
 
     def publish_state(self):
-        if self.task_send_state != None:
+        if self.connected:
             try:
-                if self.message_1 and self.message_2:
-                    self.mqtt.publish(b"%s/%sa" % (self.states_topic, self.net_id), self.message_1)
-                    self.mqtt.publish(b"%s/%sb" % (self.states_topic, self.net_id), self.message_2)
-                else:
-                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.message_1)
+                if self.count_devices > 1:
+                    for index in range(1, len(self.messages) + 1):
+                        self.mqtt.publish(b"%s/%s.%s" % (self.states_topic, self.net_id, index), self.messages[index - 1])
+                elif len(self.messages) > 0:
+                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.messages[0])
             except Exception as e:
                 print("> MqttManager.publish_state error: {}".format(e))
 
     def log(self, message):
-        if self.task_send_state != None:
+        if self.connected:
             try:
                 self.mqtt.publish(b"%s/%s" % (self.logs_topic, self.net_id), message)
+                print(f"> MQTT log: {self.logs_topic:s}/{self.net_id:s} - {message:s}")
             except Exception as e:
                 print("> MqttManager.log error: {}".format(e))
 

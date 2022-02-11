@@ -12,8 +12,9 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
 MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"SWITCH"
-# HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+# HTTP_DEVICE_TYPE = b"SWITCH"
+HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
+COUNT_DEVICES = const(2)
 
 WAIT_BEFORE_RESET = const(10) # seconds
 
@@ -45,7 +46,7 @@ class Main:
 
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
             MQTT_TOPIC_NAME, mqtt_subscribe_topics,
-            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE, COUNT_DEVICES,
             self.connectivity_up, self.connectivity_down,
             use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
@@ -105,14 +106,13 @@ class Main:
 
     def on_off(self, topic, message):
         action = b"%s" % message
-        switch_id = b"b" if match(".*/.*b$", topic) else b"a"
+        switch_id = b"b" if match(".*/.*2$", topic) else b"a"
 
         self.set_switch(switch_id, action)
 
     def toggle_a_b(self, path, params):
         action = params.get(b"action", None)
-
-        switch_id = b"a" if match(".*/.*a$", path) else b"b"
+        switch_id = b"b" if match(".*/.*b$", path) else b"a"
 
         self.set_switch(switch_id, action)
 
@@ -131,12 +131,12 @@ class Main:
             new_minute = minutes_target % 60
             timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
 
-            if match(".*/.*a$", path):
-                self.settings.timer_a = timer
-                self.set_switch(b"a", b"on")
-            else:
+            if match(".*/.*b$", path):
                 self.settings.timer_b = timer
                 self.set_switch(b"b", b"on")
+            else:
+                self.settings.timer_a = timer
+                self.set_switch(b"a", b"on")
 
             self.settings.write()
             
@@ -148,7 +148,7 @@ class Main:
             return b'{"timer": "%s"}' % timer
 
     def set_switch(self, switch_id, action):
-        print(f'> Turning switch {switch_id:s}: {action:s}')
+        print(f"> Turning switch {switch_id:s}: {action:s}")
 
         settings = Settings().load()
         switch = self.switch_a if switch_id == b"a" else self.switch_b
@@ -174,17 +174,15 @@ class Main:
         self.set_state()
 
     def set_state(self):
-        state_a = "ON" if self.settings.state_a == b"1" else "OFF"
-        state_b = "ON" if self.settings.state_b == b"1" else "OFF"
-
-        http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
+        state_a = b"ON" if self.settings.state_a == b"1" else b"OFF"
+        state_b = b"ON" if self.settings.state_b == b"1" else b"OFF"
 
         http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
 
         if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
             state_b = None
 
-        self.connectivity.set_state(http_config, state_a, state_b)
+        self.connectivity.set_state(http_config, [state_a, state_b])
 try:
     Main()
 except Exception as e:
