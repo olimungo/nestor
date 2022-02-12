@@ -34,7 +34,7 @@ docker buildx use nestor-builder
 ```bash
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor:0.116 --push front-end
 docker buildx build --platform linux/arm/v7 -t olimungo/mosquitto:0.1 --push back-end/mosquitto
-docker buildx build --platform linux/arm/v7 -t olimungo/nestor-mqtt:0.5 --push back-end/mqtt
+docker buildx build --platform linux/arm/v7 -t olimungo/nestor-mqtt:0.6 --push back-end/mqtt
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor-websockets:0.5 --push back-end/websockets
 ```
 
