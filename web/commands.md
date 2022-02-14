@@ -22,14 +22,14 @@ docker exec -it nestor /bin/sh -l
 
 ## Build for Raspberry Pi
 
-#### Create builder
+### Create builder
 
 ```bash
 docker buildx create --name nestor-builder
 docker buildx use nestor-builder
 ```
 
-#### Build and push to Docker Hub
+### Build and push to Docker Hub
 
 ```bash
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor:0.116 --push front-end
@@ -38,7 +38,7 @@ docker buildx build --platform linux/arm/v7 -t olimungo/nestor-mqtt:0.6 --push b
 docker buildx build --platform linux/arm/v7 -t olimungo/nestor-websockets:0.5 --push back-end/websockets
 ```
 
-#### Download and run container on Pi and inject the host IP address
+### Download and run container on Pi and inject the host IP address
 
 :exclamation: Make sure that a file log.txt exists locally on the Pi (touch log.txt). Otherwise the command below will create a directory and will throw an error. :exclamation:
 
