@@ -21,10 +21,10 @@ class WifiManager:
     ssids = []
     ssids_timestamp = 0
 
-    def __init__(self, access_point_essid, callback_connection_success, callback_connection_fail, callback_access_point_active, callback_set_station_ip):
+    def __init__(self, public_id, callback_connection_success, callback_connection_fail, callback_access_point_active, callback_set_station_ip):
         self.station = WLAN(STA_IF)
         self.access_point = WLAN(AP_IF)
-        self.access_point_essid = access_point_essid
+        self.public_id = public_id
         self.callback_connection_success = callback_connection_success
         self.callback_connection_fail = callback_connection_fail
         self.callback_access_point_active = callback_access_point_active
@@ -36,6 +36,8 @@ class WifiManager:
         # Reset the station
         self.station.active(False)
         self.station.active(True)
+
+        self.station.config(dhcp_hostname=self.public_id)
 
         self.loop = get_event_loop()
 
@@ -72,8 +74,8 @@ class WifiManager:
             # IP address, netmask, gateway, DNS
             self.access_point.ifconfig((self.ip, SERVER_SUBNET, self.ip, self.ip))
 
-            self.access_point.config(essid=self.access_point_essid, authmode=AUTH_OPEN)
-            print("> AP mode configured: {:s} ({:s})".format(self.access_point_essid, self.ip))
+            self.access_point.config(essid=self.public_id, authmode=AUTH_OPEN)
+            print("> AP mode configured: {:s} ({:s})".format(self.public_id, self.ip))
 
             self.callback_access_point_active()
 
@@ -121,9 +123,6 @@ class WifiManager:
                     reset()
                 else:
                     self.callback_connection_success()
-
-    def set_access_point_essid(self, access_point_essid):
-        self.access_point_essid = access_point_essid
 
     def get_ssids(self):
         now = ticks_ms()
