@@ -34,12 +34,12 @@ class mDnsServer:
 
         print("> mDNS server up")
 
+        self.start()
+
     def start(self):
         if self.task_connect == None:
             connect_success = self.connect()
             self.task_connect = self.loop.create_task(self.connect_and_process_packets(connect_success))
-
-            print("> mDNS server running")
 
     def stop(self):
         if self.task_connect != None:
@@ -61,6 +61,8 @@ class mDnsServer:
         try:
             self.make_socket()
             self.advertise_hostname()
+
+            print("> mDNS server running")
 
             return True
         except Exception as e:

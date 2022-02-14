@@ -125,15 +125,12 @@ class ConnectivityManager:
             if self.http_config:
                 self.set_http_config(self.http_config)
 
-        self.http.start()
-
     def start_ntp(self):
         if self.use_ntp:
             if not self.ntp:
                 from ntp_time import NtpTime
                 self.ntp = NtpTime()
             
-            self.ntp.start()
             self.get_time = self.ntp.get_time
 
     def start_mdns(self):
@@ -142,8 +139,6 @@ class ConnectivityManager:
                 from mdns_server import mDnsServer
                 creds = Credentials().load()
                 self.mdns = mDnsServer(self.public_name.lower(), creds.net_id, self.wifi.ip)
-        
-            self.mdns.start()
 
     def start_mqtt(self):
         if self.use_mqtt:
@@ -160,8 +155,6 @@ class ConnectivityManager:
 
                         if self.states:
                             self.mqtt.set_state(self.wifi.ip, self.states)
-                
-                self.mqtt.start()
             except Exception as e:
                 print("> connectivity_manager.start_mqtt: {}".format(e))
 

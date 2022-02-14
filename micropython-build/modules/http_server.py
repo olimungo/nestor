@@ -58,6 +58,8 @@ class HttpServer:
 
         print("> HTTP server up")
 
+        self.start()
+
     def start(self):
         if self.task_check_request == None:
             self.task_check_request = self.loop.create_task(self.check_request())

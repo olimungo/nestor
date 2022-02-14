@@ -32,13 +32,13 @@ class MqttManager:
 
         print("> MQTT server up")
 
+        self.start()
+
     def start(self):
         if self.task_check_for_message == None:
             self.connected = self.connect()
             
             self.task_check_for_connect = self.loop.create_task(self.check_for_connect())
-
-            print("> MQTT server running")
 
     def stop(self):
         server_stopped = False
@@ -114,6 +114,8 @@ class MqttManager:
             self.mqtt = MQTTClient(client_id, self.broker_ip)
             self.mqtt.set_callback(self.message_received)
             self.mqtt.connect()
+
+            print("> MQTT server running")
 
             print("> MQTT client connected to broker: {}".format(self.broker_ip))
 

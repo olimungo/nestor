@@ -21,6 +21,8 @@ class NtpTime:
 
         print("> NTP time up")
 
+        self.start()
+
     def start(self):
         if self.task_time == None:
             print("> NTP time running")
