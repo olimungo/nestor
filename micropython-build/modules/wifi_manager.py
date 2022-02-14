@@ -23,7 +23,7 @@ class WifiManager:
 
     def __init__(self, access_point_essid, callback_connection_success, callback_connection_fail, callback_access_point_active, callback_set_station_ip):
         self.station = WLAN(STA_IF)
-        self.acess_point = WLAN(AP_IF)
+        self.access_point = WLAN(AP_IF)
         self.access_point_essid = access_point_essid
         self.callback_connection_success = callback_connection_success
         self.callback_connection_fail = callback_connection_fail
@@ -31,7 +31,7 @@ class WifiManager:
         self.callback_set_station_ip = callback_set_station_ip
 
         # Make sure that AP is not active
-        self.acess_point.active(False)
+        self.access_point.active(False)
 
         # Reset the station
         self.station.active(False)
@@ -61,18 +61,18 @@ class WifiManager:
         self.loop.create_task(self.start_access_point())
 
     async def start_access_point(self):
-        if not self.acess_point.active():
-            self.acess_point.active(True)
+        if not self.access_point.active():
+            self.access_point.active(True)
 
-            while not self.acess_point.active():
+            while not self.access_point.active():
                 await sleep_ms(CHECK_CONNECTED)
 
             self.ip = AP_IP
 
             # IP address, netmask, gateway, DNS
-            self.acess_point.ifconfig((self.ip, SERVER_SUBNET, self.ip, self.ip))
+            self.access_point.ifconfig((self.ip, SERVER_SUBNET, self.ip, self.ip))
 
-            self.acess_point.config(essid=self.access_point_essid, authmode=AUTH_OPEN)
+            self.access_point.config(essid=self.access_point_essid, authmode=AUTH_OPEN)
             print("> AP mode configured: {:s} ({:s})".format(self.access_point_essid, self.ip))
 
             self.callback_access_point_active()
@@ -112,7 +112,7 @@ class WifiManager:
 
                 print("> Connected to {:s} with IP: {:s}".format(credentials.essid, self.ip))
 
-                if self.acess_point.active():
+                if self.access_point.active():
                     # Set the IP address of the device with the one received from the router,
                     # so that the front-end app can get the new IP before the device is reset.
                     self.callback_set_station_ip()
