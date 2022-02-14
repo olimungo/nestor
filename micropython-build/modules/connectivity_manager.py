@@ -42,9 +42,9 @@ class ConnectivityManager:
         self.use_mqtt = use_mqtt
 
         creds = Credentials().load()
-        access_point_essid = b"%s-%s" % (public_name, creds.net_id)
+        public_id = b"%s-%s" % (public_name, creds.net_id)
 
-        self.wifi = WifiManager(access_point_essid, self.wifi_connection_success, self.wifi_connection_fail, self.start_http_server, self.set_station_ip)
+        self.wifi = WifiManager(public_id, self.wifi_connection_success, self.wifi_connection_fail, self.start_http_server, self.set_station_ip)
 
         self.loop = get_event_loop()
         self.loop.create_task(self.check_connectivity())
