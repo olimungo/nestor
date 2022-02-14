@@ -4,7 +4,7 @@ export function log(message) {
     const data = getDateAndTime() + '|' + message;
     const dataArray = new Uint8Array(Buffer.from(data + '\n'));
 
-    appendFile('messages.log', dataArray, (err) => {
+    appendFile('logs/messages.log', dataArray, (err) => {
         if (err) throw err;
     });
 }

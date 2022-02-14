@@ -34,6 +34,7 @@ services:
         build: ./back-end/mqtt
         volumes:
             - ./back-end/mqtt/scripts:/usr/src/app/scripts
+            - ./back-end/mqtt/logs:/usr/src/app/logs
         ports:
             - 9001:9001
         environment:
