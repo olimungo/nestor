@@ -176,7 +176,7 @@ class HttpServer:
 
                         method, path, params = self.split_request(request)
 
-                        print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
+                        print("> Http: method => {} | path => {} | params => {}".format(method, path, params))
 
                         route = self.routes.get(path.encode('ascii'), None)
 

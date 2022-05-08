@@ -15,6 +15,7 @@ class MqttManager:
     task_send_state = None
     task_check_for_message = None
     connected = False
+    mqtt = None
 
     def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type, count_devices=1):
         self.broker_ip = broker_ip
@@ -41,29 +42,20 @@ class MqttManager:
             self.task_check_for_connect = self.loop.create_task(self.check_for_connect())
 
     def stop(self):
-        server_stopped = False
-
         if self.task_check_for_connect:
             self.task_check_for_connect.cancel()
             self.task_check_for_connect = None
-            server_stopped = True
 
         if self.task_check_for_message:
             self.task_check_for_message.cancel()
             self.task_check_for_message = None
-            server_stopped = True
 
         if self.task_send_state:
             self.task_send_state.cancel()
             self.task_send_state = None
-            server_stopped = True
 
         if self.mqtt:
-            self.mqtt.disconnect()
             self.mqtt = None
-            server_stopped = True
-
-        if server_stopped:
             print("> MQTT server stopped")
 
     async def check_for_connect(self):
@@ -86,6 +78,25 @@ class MqttManager:
         self.task_check_for_message = self.loop.create_task(self.check_for_message())
 
         self.log(b"IP assigned to %s-%s: %s" % (self.device_type, self.net_id, self.ip))
+    
+    def connect(self):
+        try:
+            client_id = hexlify(unique_id())
+
+            self.mqtt = MQTTClient(client_id, self.broker_ip)
+            self.mqtt.set_callback(self.message_received)
+            self.mqtt.connect()
+
+            print("> MQTT server running")
+
+            print("> MQTT client connected to broker: {}".format(self.broker_ip))
+
+            return True
+        except Exception as e:
+            self.mqtt = None
+            print("> MqttManager.connect error: {}".format(e))
+
+            return False
 
     async def check_for_message(self):
         while True:
@@ -106,25 +117,6 @@ class MqttManager:
                 print("> MqttManager.send_state error: {}".format(e))
                 self.loop.create_task(self.handle_error())
                 await sleep_ms(WAIT_AFTER_ERROR)
-
-    def connect(self):
-        try:
-            client_id = hexlify(unique_id())
-
-            self.mqtt = MQTTClient(client_id, self.broker_ip)
-            self.mqtt.set_callback(self.message_received)
-            self.mqtt.connect()
-
-            print("> MQTT server running")
-
-            print("> MQTT client connected to broker: {}".format(self.broker_ip))
-
-            return True
-        except Exception as e:
-            self.mqtt = None
-            print("> MqttManager.connect error: {}".format(e))
-
-            return False
 
     def message_received(self, topic, message):
         tags = Tags().load()

@@ -13,6 +13,7 @@ BROKER_NAME = b"nestor.local"
 MQTT_TOPIC_NAME = b"clocks"
 MQTT_DEVICE_TYPE = b"CLOCK"
 HTTP_DEVICE_TYPE = b"CLOCK"
+COUNT_DEVICES = const(1)
 
 WAIT_BEFORE_RESET = const(10) # seconds
 
@@ -37,7 +38,7 @@ class Main:
 
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
             MQTT_TOPIC_NAME, mqtt_subscribe_topics,
-            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE,
+            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE, COUNT_DEVICES,
             self.connectivity_up, self.connectivity_down,
             use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
@@ -119,7 +120,7 @@ class Main:
 
         http_config = {b"brightness": brightness}
 
-        self.connectivity.set_state(http_config, state)
+        self.connectivity.set_state(http_config, [state])
 
 try:
     Main()

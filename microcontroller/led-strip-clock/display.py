@@ -102,7 +102,7 @@ class Display:
             await sleep_ms(READ_BUTTON_INTERVAL)
 
     async def display_ip(self):
-        ip = self.ip.split(".")
+        ip = f"{self.ip:s}".split(".")
 
         self.clock.clear_all()
 

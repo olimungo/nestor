@@ -3,7 +3,7 @@ from os import remove
 FILE = "./creds.csv"
 
 class Credentials:
-    def __init__(self, essid=None, password=None, net_id=b"0"):
+    def __init__(self, essid=b"", password=b"", net_id=b"0"):
         self.essid = essid
         self.password = password
         self.net_id = net_id
@@ -44,5 +44,4 @@ class Credentials:
         if not isinstance(self.net_id, bytes):
             return False
 
-        # Ensure credentials are not None or empty
-        return all((self.essid, self.password))
+        return True
