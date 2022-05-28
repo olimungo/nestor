@@ -4,9 +4,10 @@ import colors
 
 GPIO_DATA = const(4) #D2
 LEDS = const(59)
-DOTS = const(29)
-DIGITS = [1, 15, 31, 45]
-EFFECT_INIT = [(0, 1), (2, 3), (4, 5), (12, 13), (10, 11), (8, 9)]
+#DOTS = const(29)
+DOTS = const(15)
+#DIGITS = [1, 15, 31, 45]
+DIGITS = [1, 8, 17, 24]
 
 class Clock:
     hour1 = hour2 = minute1 = minute2 = second = -1
@@ -55,29 +56,32 @@ class Clock:
         leds = []
         start = DIGITS[position - 1]
 
-        for i in range(start, start + 7 * 2):
+        # for i in range(start, start + 7 * 2):
+
+        for i in range(start, start + 7):
             self.leds_strip[i] = (0, 0, 0)
 
-        if value == 0:
-            leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
-        elif value == 1:
-            leds = [4, 5, 12, 13]
-        elif value == 2:
-            leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        elif value == 3:
-            leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
-        elif value == 4:
-            leds = [0, 1, 4, 5, 6, 7, 12, 13]
-        elif value == 5:
-            leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
-        elif value == 6:
-            leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
-        elif value == 7:
-            leds = [2, 3, 4, 5, 12, 13]
-        elif value == 8:
-            leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        elif value == 9:
-            leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+        # if value == 0: leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
+        # elif value == 1: leds = [4, 5, 12, 13]
+        # elif value == 2: leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        # elif value == 3: leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+        # elif value == 4: leds = [0, 1, 4, 5, 6, 7, 12, 13]
+        # elif value == 5: leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
+        # elif value == 6: leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
+        # elif value == 7: leds = [2, 3, 4, 5, 12, 13]
+        # elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        # elif value == 9: leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+
+        if value == 0: leds = [0, 1, 2, 4, 5, 6]
+        elif value == 1: leds = [2, 6]
+        elif value == 2: leds = [1, 2, 3, 4, 5]
+        elif value == 3: leds = [1, 2, 3, 5, 6]
+        elif value == 4: leds = [0, 2, 3, 6]
+        elif value == 5: leds = [0, 1, 3, 5, 6]
+        elif value == 6: leds = [0, 1, 3, 4, 5, 6]
+        elif value == 7: leds = [1, 2, 6]
+        elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6]
+        elif value == 9: leds = [0, 1, 2, 3, 6]
 
         for led in leds:
             self.leds_strip[led + start] = rgb
