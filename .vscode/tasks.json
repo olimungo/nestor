@@ -36,7 +36,7 @@
         {
             "label": "Erase and flash ESP with custom micropython",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 micropython-build/firmware.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --chip esp8266 --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --chip esp8266 --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 micropython-build/firmware.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -46,7 +46,7 @@
         {
             "label": "Erase and flash ESP with v1.18 micropython",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 micropython-build/v1.18.bin",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --chip esp8266 --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash; esptool.py --chip esp8266 --port /dev/${env:MICROCONTROLLER_USB_PORT} --baud 460800 write_flash --flash_size=detect 0 micropython-build/v1.18.bin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -56,7 +56,7 @@
         {
             "label": "Erase ESP",
             "type": "shell",
-            "command": "${env:PKILL_CMD} mpfshell; esptool.py --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
+            "command": "${env:PKILL_CMD} mpfshell; esptool.py --chip esp8266 --port /dev/${env:MICROCONTROLLER_USB_PORT} erase_flash",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

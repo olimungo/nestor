@@ -21,8 +21,8 @@ WAIT_BEFORE_RESET = const(10) # seconds
 USE_MDNS = True
 USE_MQTT = True
 
-PIN_SWITCH_A = const(5)  # D1
-PIN_SWITCH_B = const(4)  # D2
+PIN_SWITCH_A = const(5)  # D1 - GPIO5
+PIN_SWITCH_B = const(4)  # D2 - GPIO4
 
 WAIT_FOR_TIMER = const(1000)
 
