@@ -1,15 +1,14 @@
-from machine import reset, freq
-from esp import sleep_type, SLEEP_NONE, osdebug
-import webrepl
+from machine import Pin
+from time import sleep_ms
 
-osdebug(None)
+pin = Pin(2, Pin.OUT) # D4
 
-print("\n\nJust Do It Yourself World Company Incorporated (c) from 2020 to eternity and beyond...\n")
-
-# freq(160000000)
-sleep_type(SLEEP_NONE)
-
-# webrepl.start()
-
-def rst():
-    reset()
+while True:
+    pin.off()
+    sleep_ms(200)
+    pin.on()
+    sleep_ms(150)
+    pin.off()
+    sleep_ms(200)
+    pin.on()
+    sleep_ms(800)

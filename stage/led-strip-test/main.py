@@ -2,6 +2,8 @@ import time
 import machine, neopixel
 import random
 
+PIN = const(4) # GPIO4 - D2
+
 LEDS = 59
 ledsStrip = None
 
@@ -52,7 +54,7 @@ def demo():
 
 def setLedsStrip(ledsCount):
     global ledsStrip
-    ledsStrip = neopixel.NeoPixel(machine.Pin(4), ledsCount)
+    ledsStrip = neopixel.NeoPixel(machine.Pin(PIN), ledsCount)
 
 
 def setNumber(position, r, g, b, number):

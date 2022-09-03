@@ -81,7 +81,7 @@ class Clock:
         elif value == 6: leds = [0, 1, 3, 4, 5, 6]
         elif value == 7: leds = [1, 2, 6]
         elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6]
-        elif value == 9: leds = [0, 1, 2, 3, 6]
+        elif value == 9: leds = [0, 1, 2, 3, 5, 6]
 
         for led in leds:
             self.leds_strip[led + start] = rgb
