@@ -177,12 +177,14 @@ class Main:
         state_a = b"ON" if self.settings.state_a == b"1" else b"OFF"
         state_b = b"ON" if self.settings.state_b == b"1" else b"OFF"
 
+        if COUNT_DEVICES > 1:
+            state = [state_a, state_b]
+        else:
+            state = [state_a]
+
         http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
 
-        if HTTP_DEVICE_TYPE != b"DOUBLE-SWITCH":
-            state_b = None
-
-        self.connectivity.set_state(http_config, [state_a, state_b])
+        self.connectivity.set_state(http_config, state)
 try:
     Main()
 except Exception as e:
