@@ -7,7 +7,6 @@ class Gpio:
     I2C_SDA = 4 # D2
     IR_SENSOR = 0  # A0 - ADC
     IR_POWER = 16  # D0
-    STDBY_PWM_POWER = 4  # D2
     IR_SENSOR_THRESHOLD = 40
 
 class MotorDirection:

@@ -54,6 +54,10 @@ from time import sleep_ms
 
 pin = Pin(2, Pin.OUT) # D4
 
+from machine import reset
+def rst():
+    reset()
+
 while True:
     pin.off()
     sleep_ms(200)

@@ -17,7 +17,7 @@ class MqttManager:
     connected = False
     mqtt = None
 
-    def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type, count_devices=1):
+    def __init__(self, broker_ip, net_id, ip, topic_name, topics, device_type):
         self.broker_ip = broker_ip
         self.net_id = net_id
         self.ip = ip
@@ -26,10 +26,9 @@ class MqttManager:
         self.states_topic = b"states/%s" % topic_name
         self.logs_topic = b"logs/%s" % topic_name
         self.device_type = device_type
-        self.count_devices = count_devices
 
         self.loop = get_event_loop()
-        self.messages = []
+        self.message = b""
 
         print("> MQTT server up")
 
@@ -63,15 +62,9 @@ class MqttManager:
             await sleep_ms(WAIT_AFTER_ERROR)
             self.connected = self.connect()
 
-        if self.count_devices > 1:
-            for index in range(1, self.count_devices + 1):
-                subscription = b"%s/%s.%s" % (self.commands_topic, self.net_id, index)
-                self.mqtt.subscribe(subscription)
-                print(f"> MQTT subscription to {subscription:s}")
-        else:
-            subscription = b"%s/%s" % (self.commands_topic, self.net_id)
-            self.mqtt.subscribe(subscription)
-            print(f"> MQTT subscription to {subscription:s}")
+        subscription = b"%s/%s" % (self.commands_topic, self.net_id)
+        self.mqtt.subscribe(subscription)
+        print(f"> MQTT subscription to {subscription:s}")
         
         self.set_state(self.ip, self.states)
         self.task_send_state = self.loop.create_task(self.send_state())
@@ -141,37 +134,30 @@ class MqttManager:
         # Check immediatly if another message is available
         self.mqtt.check_msg()
 
-    def set_state(self, ip, states):
+    def set_state(self, ip, state):
         tags = Tags().load()
         tags_utf8 = []
         self.ip = ip
-        self.states = states
+        self.state = state
         self.ip = ip
-        self.messages = []
 
         for tag in tags.tags:
             tags_utf8.append("\"%s\"" % (tag.decode('utf-8')))
 
-        for state in states:
-            self.messages.append(b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (
-            self.ip,
-            self.device_type,
-            state,
-            ",".join(tags_utf8)
-        ))
+        self.message = b'{"ip": "%s", "type": "%s", "state": "%s", "tags": [%s] }' % (self.ip, self.device_type,state, ",".join(tags_utf8))
 
         self.publish_state()
 
     def publish_state(self):
         if self.connected:
             try:
-                if self.count_devices > 1:
-                    for index in range(1, len(self.messages) + 1):
-                        self.mqtt.publish(b"%s/%s.%s" % (self.states_topic, self.net_id, index), self.messages[index - 1])
-                elif len(self.messages) > 0:
-                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.messages[0])
+                if self.message != b"":
+                    self.mqtt.publish(b"%s/%s" % (self.states_topic, self.net_id), self.message)
             except Exception as e:
                 print("> MqttManager.publish_state error: {}".format(e))
+
+    def publish_message(self, device, message):
+        self.mqtt.publish(b"commands/%s" % (device), message)
 
     def log(self, message):
         if self.connected:

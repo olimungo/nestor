@@ -11,18 +11,15 @@ PUBLIC_NAME = b"Switch"
 BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"switches"
-MQTT_DEVICE_TYPE = b"SWITCH"
-HTTP_DEVICE_TYPE = b"SWITCH"
-# HTTP_DEVICE_TYPE = b"DOUBLE-SWITCH"
-COUNT_DEVICES = const(1)
+DEVICE_TYPE = b"SWITCH"
 
 WAIT_BEFORE_RESET = const(10) # seconds
 
 USE_MDNS = True
 USE_MQTT = True
+USE_NTP = True
 
-PIN_SWITCH_A = const(5)  # D1 - GPIO5
-PIN_SWITCH_B = const(4)  # D2 - GPIO4
+PIN_SWITCH = const(5)  # D1 - GPIO5
 
 WAIT_FOR_TIMER = const(1000)
 
@@ -30,40 +27,38 @@ class Main:
     task_handle_timer = None
 
     def __init__(self):
-        self.settings = Settings().load()
+        settings = Settings().load()
 
         url_routes = {
-            b"/action/toggle-a": self.toggle_a_b,
-            b"/action/toggle-b": self.toggle_a_b,
-            b"/action/timer-a": self.timer_a_b,
-            b"/action/timer-b": self.timer_a_b
+            b"/action/toggle": self.toggle,
+            b"/action/timer": self.timer
         }
 
         mqtt_subscribe_topics = {
-            b"on": self.on_off,
-            b"off": self.on_off
+            b"on": self.command_on_off,
+            b"off": self.command_on_off,
+            b"timer": self.command_timer
         }
 
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
-            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
-            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE, COUNT_DEVICES,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics, DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
-            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
+            use_ntp=USE_NTP, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
 
         self.set_state()
 
-        self.switch_a = Pin(PIN_SWITCH_A, Pin.OUT)
-        self.switch_b = Pin(PIN_SWITCH_B, Pin.OUT)
+        self.switch = Pin(PIN_SWITCH, Pin.OUT)
 
-        self.switch_a.on() if self.settings.state_a == b"1" else self.switch_a.off()
-        self.switch_b.on() if self.settings.state_b == b"1" else self.switch_b.off()
+        self.switch.on() if settings.state == b"1" else self.switch.off()
 
         self.loop = get_event_loop()
         self.loop.run_forever()
         self.loop.close()
 
     def connectivity_up(self):
-        if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
+        settings = Settings().load()
+
+        if settings.timer != b"0":
             self.task_handle_timer = self.loop.create_task(self.handle_timer())
 
         collect()
@@ -74,21 +69,17 @@ class Main:
 
     async def handle_timer(self):
         all_timers_expired = False
+        settings = Settings().load()
 
         while not all_timers_expired:
-            if self.settings.timer_a != b"0" or self.settings.timer_b != b"0":
+            if settings.timer != b"0":
                 hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
                 now = ((hour1 * 10 + hour2) * 60) + (minute1 * 10 + minute2)
 
-                if self.check_timer(self.settings.timer_a, now):
-                    self.settings.timer_a = b"0"
-                    self.settings.write()
-                    self.set_switch(b"a", b"off")
-
-                if self.check_timer(self.settings.timer_b, now):
-                    self.settings.timer_b = b"0"
-                    self.settings.write()
-                    self.set_switch(b"b", b"off")
+                if self.check_timer(settings.timer, now):
+                    settings.timer = b"0"
+                    settings.write()
+                    self.set_switch(b"off")
 
                 await sleep_ms(WAIT_FOR_TIMER)
             else:
@@ -104,85 +95,77 @@ class Main:
 
             return now >= target and now - target < 5
 
-    def on_off(self, topic, message):
+    def command_on_off(self, topic, message):
         action = b"%s" % message
-        switch_id = b"b" if match(".*/.*2$", topic) else b"a"
+        self.set_switch(action)
 
-        self.set_switch(switch_id, action)
+    def command_timer(self, topic, message):
+        duration = message.split(b"/")
 
-    def toggle_a_b(self, path, params):
+        if len(duration) == 2:
+            self.set_timer(duration[1])
+
+    def toggle(self, path, params):
         action = params.get(b"action", None)
-        switch_id = b"b" if match(".*/.*b$", path) else b"a"
+        self.set_switch(action)
 
-        self.set_switch(switch_id, action)
+    def timer(self, path, params):
+        duration = params.get(b"minutes", None)
+        return self.set_timer(duration)
 
-    def timer_a_b(self, path, params):
-        delay = params.get(b"minutes", None)
+    def set_timer(self, duration):
+        settings = Settings().load()
 
-        if delay:
-            hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
+        hour1, hour2, minute1, minute2, _, _ = self.connectivity.ntp.get_time()
 
-            hour = hour1 * 10 + hour2
-            minute = minute1 * 10 + minute2
+        hour = hour1 * 10 + hour2
+        minute = minute1 * 10 + minute2
 
-            minutes_delay = hour * 60 + minute + int(delay)
-            minutes_target = minutes_delay % (24 * 60)
-            new_hour = floor(minutes_target / 60)
-            new_minute = minutes_target % 60
-            timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
+        minutes_duration = hour * 60 + minute + int(duration)
+        minutes_target = minutes_duration % (24 * 60)
+        new_hour = floor(minutes_target / 60)
+        new_minute = minutes_target % 60
+        timer = b"%s:%s" % (f'{new_hour:02}', f'{new_minute:02}')
 
-            if match(".*/.*b$", path):
-                self.settings.timer_b = timer
-                self.set_switch(b"b", b"on")
-            else:
-                self.settings.timer_a = timer
-                self.set_switch(b"a", b"on")
+        settings.timer = timer
 
-            self.settings.write()
-            
-            self.set_state()
+        print(f"> Timer set for {timer:s}")
 
-            if not self.task_handle_timer:
-                self.task_handle_timer = self.loop.create_task(self.handle_timer())
+        self.set_switch(b"on")
 
-            return b'{"timer": "%s"}' % timer
+        settings.write()
+        
+        self.set_state()
 
-    def set_switch(self, switch_id, action):
-        print(f"> Turning switch {switch_id:s}: {action:s}")
+        if not self.task_handle_timer:
+            self.task_handle_timer = self.loop.create_task(self.handle_timer())
+
+        return b'{"timer": "%s"}' % timer
+
+    def set_switch(self, action):
+        print(f"> Turning switch {action:s}")
 
         settings = Settings().load()
-        switch = self.switch_a if switch_id == b"a" else self.switch_b
 
         if action == b"on":
-            switch.on()
+            self.switch.on()
             state = b"1"
         else:
-            switch.off()
+            self.switch.off()
             state = b"0"
+            settings.timer = b"0"
 
-            if switch_id == b"a":
-                self.settings.timer_a = b"0"
-            else:
-                self.settings.timer_b = b"0"
+        settings.state = state
 
-        if switch_id == b"a":
-            self.settings.state_a = state
-        else:
-            self.settings.state_b = state
+        settings.write()
 
-        self.settings.write()
         self.set_state()
 
     def set_state(self):
-        state_a = b"ON" if self.settings.state_a == b"1" else b"OFF"
-        state_b = b"ON" if self.settings.state_b == b"1" else b"OFF"
+        settings = Settings().load()
 
-        if COUNT_DEVICES > 1:
-            state = [state_a, state_b]
-        else:
-            state = [state_a]
-
-        http_config = {b"timer": b"%s,%s" % (self.settings.timer_a, self.settings.timer_b)}
+        state = b"ON" if settings.state == b"1" else b"OFF"
+        http_config = {b"timer": b"%s" % (settings.timer)}
 
         self.connectivity.set_state(http_config, state)
 try:

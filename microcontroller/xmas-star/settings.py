@@ -3,22 +3,21 @@ from uos import remove
 FILE = "./settings.csv"
 
 class Settings:
-    def __init__(self, state=b"0", timer=b"0"):
-        self.state = state
-        self.timer = timer
+    def __init__(self, mode=b"0"):
+        self.mode = mode
 
     def write(self):
         if self.is_valid():
             with open(FILE, "wb") as f:
-                f.write(b",".join([self.state, self.timer]))
+                f.write(b",".join([self.mode]))
 
     def load(self):
         try:
             with open(FILE, "rb") as f:
-                contents = f.read().split(b",")
+                content = f.read().split(b",")
 
-            if len(contents) == 2:
-                self.state, self.timer = contents
+            if len(content) == 1:
+                self.mode = content[0]
 
             if not self.is_valid():
                 self.remove()
@@ -35,12 +34,10 @@ class Settings:
         except OSError:
             pass
 
-        self.state = self.timer = None
+        self.mode = None
 
     def is_valid(self):
-        if not isinstance(self.state, bytes):
-            return False
-        if not isinstance(self.timer, bytes):
+        if not isinstance(self.mode, bytes):
             return False
 
         return True

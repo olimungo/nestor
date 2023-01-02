@@ -2,7 +2,8 @@ import time
 import machine, neopixel
 import random
 
-PIN = const(4) # GPIO4 - D2
+# PIN = const(4) # GPIO4 - D2
+PIN = const(5) # GPIO5 - D1
 
 LEDS = 59
 ledsStrip = None

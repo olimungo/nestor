@@ -15,37 +15,10 @@ function getValues() {
             setTagValue('ip', response.ip);
             setTagValue('tag-net-id', response.netId);
 
-            const states = response.state.split(',');
-            setTagValue('switch-a', states[0] == 'ON' ? 1 : 0);
+            setTagValue('switch', response.state == 'ON' ? 1 : 0);
 
-            if (response.type == 'DOUBLE-SWITCH') {
-                document
-                    .getElementById(`title-switch-a`)
-                    .classList.remove('display-none');
-
-                document
-                    .getElementById(`title-timer-switch-a`)
-                    .classList.remove('display-none');
-
-                document
-                    .getElementById(`title-custom-timer-switch-a`)
-                    .classList.remove('display-none');
-
-                document
-                    .getElementById(`switch-container-b`)
-                    .classList.remove('display-none');
-
-                setTagValue('switch-b', states[1] == 'ON' ? 1 : 0);
-            }
-
-            const timers = response.timer.split(',');
-
-            if (timers[0] !== '0') {
-                displayTimerMessage('a', timers[0]);
-            }
-
-            if (timers[1] !== '0') {
-                displayTimerMessage('b', timers[1]);
+            if (response.timer !== '0') {
+                displayTimerMessage(response.timer);
             }
 
             document.title = `${documentTitle}-${response.netId}`;
@@ -57,55 +30,53 @@ function getValues() {
         .catch(() => setTimeout(getValues, 3000));
 }
 
-function updateTimerValue(id, value) {
-    setTagValue(`slider-value-${id}`, value);
+function updateTimerValue(value) {
+    setTagValue('slider-value', value);
 }
 
-function setSliderTimer(id) {
-    const sliderValue = document.getElementById(`slider-value-${id}`);
-    setTimer(id, parseInt(sliderValue.textContent));
+function setSliderTimer() {
+    const sliderValue = document.getElementById('slider-value');
+    setTimer(parseInt(sliderValue.textContent));
 }
 
-function setManualTimer(id) {
-    const manualTimer = document.getElementById(`manual-timer-${id}`);
-    setTimer(id, parseInt(manualTimer.value));
+function setManualTimer() {
+    const manualTimer = document.getElementById('manual-timer');
+    setTimer(parseInt(manualTimer.value));
 }
 
-function setTimer(id, value) {
-    fetch(`/action/timer-${id}?minutes=${value}`)
+function setTimer(value) {
+    fetch(`/action/timer?minutes=${value}`)
         .then((response) => response.json())
         .then((response) => {
-            displayTimerMessage(id, response.timer);
+            displayTimerMessage(response.timer);
         });
 }
 
-function toggle(id) {
-    const action = document.getElementById(`switch-${id}`).checked
-        ? 'on'
-        : 'off';
+function toggle() {
+    const action = document.getElementById('switch').checked ? 'on' : 'off';
 
-    fetchWithTimeout(`/action/toggle-${id}?action=${action}`, {
+    fetchWithTimeout(`/action/toggle?action=${action}`, {
         timeout: 3000,
     })
         .then(() => {
             if (action == 'off') {
-                hideTimerMessage(id);
+                hideTimerMessage();
             }
         })
-        .catch(() => setTimeout(() => toggle(id), 3000));
+        .catch(() => setTimeout(() => toggle(), 3000));
 }
 
-function displayTimerMessage(id, timer) {
-    setTagValue(`switch-off-timer-${id}`, timer);
-    setTagValue(`switch-${id}`, 1);
+function displayTimerMessage(timer) {
+    setTagValue('switch-off-timer', timer);
+    setTagValue('switch', 1);
 
     document
-        .getElementById(`switch-off-block-timer-${id}`)
+        .getElementById('switch-off-block-timer')
         .classList.remove('visibility-hidden');
 }
 
-function hideTimerMessage(id) {
+function hideTimerMessage() {
     document
-        .getElementById(`switch-off-block-timer-${id}`)
+        .getElementById('switch-off-block-timer')
         .classList.add('visibility-hidden');
 }

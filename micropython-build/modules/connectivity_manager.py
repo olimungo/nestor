@@ -21,9 +21,7 @@ class ConnectivityManager:
 
     def __init__(self,
         public_name, broker_name, url_routes,
-        mqtt_topic_name, mqtt_subscribe_topics,
-        mqtt_device_type, http_device_type,
-        count_devices=1,
+        mqtt_topic_name, mqtt_subscribe_topics, device_type,
         callback_connectivity_up=None, callback_connectivity_down=None,
         use_ntp=False, use_mdns=False, use_mqtt=False):
 
@@ -32,9 +30,7 @@ class ConnectivityManager:
         self.url_routes = url_routes
         self.mqtt_topic_name = mqtt_topic_name
         self.mqtt_subscribe_topics = mqtt_subscribe_topics
-        self.mqtt_device_type = mqtt_device_type
-        self.http_device_type =  http_device_type
-        self.count_devices = count_devices
+        self.device_type = device_type
         self.callback_connectivity_up = callback_connectivity_up
         self.callback_connectivity_down = callback_connectivity_down
         self.use_ntp = use_ntp
@@ -151,37 +147,33 @@ class ConnectivityManager:
                         from mqtt_manager import MqttManager
                         broker_ip = "{}.{}.{}.{}".format(*broker_ip)
                         self.mqtt = MqttManager(broker_ip, creds.net_id, self.wifi.ip, self.mqtt_topic_name,
-                            self.mqtt_subscribe_topics, self.mqtt_device_type, self.count_devices)
+                            self.mqtt_subscribe_topics, self.device_type)
 
-                        if self.states:
-                            self.mqtt.set_state(self.wifi.ip, self.states)
+                        if self.state:
+                            self.mqtt.set_state(self.wifi.ip, self.state)
             except Exception as e:
                 print("> connectivity_manager.start_mqtt: {}".format(e))
 
     def set_http_config(self, http_config):
         creds = Credentials().load()
 
-        state = b"UNKNOWN"
-
-        if self.count_devices > 1:
-            state = b",".join(self.states)
-        elif len(self.states) == 1:
-            state = b"%s" % self.states[0]
-
-        http_config.update({b"ip" : self.wifi.ip, b"netId": creds.net_id, b"type": self.http_device_type, b"state": state})
+        http_config.update({b"ip" : self.wifi.ip, b"netId": creds.net_id, b"type": self.device_type, b"state": self.state})
 
         self.http_config = http_config
 
         if self.http:
             self.http.set_config(http_config)
 
-    def set_state(self, http_config, states):
-        self.states = states
+    def set_state(self, http_config, state):
+        self.state = state
 
         self.set_http_config(http_config)
 
         if self.mqtt:
-            self.mqtt.set_state(self.wifi.ip, states)
+            self.mqtt.set_state(self.wifi.ip, state)
 
     def get_ip(self):
         return self.wifi.ip
+
+    def publish_mqtt_message(self, device, message):
+        self.mqtt.publish_message(device, message)

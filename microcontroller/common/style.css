@@ -265,6 +265,11 @@ input:-webkit-autofill:focus {
     color: var(--primary-action-color);
 }
 
+.label-large {
+    width: 23rem;
+    color: var(--primary-action-color);
+}
+
 .svg {
     width: 10rem;
 }
