@@ -6,7 +6,7 @@ from spinner import Spinner
 from settings import Settings
 from credentials import Credentials
 
-GPIO_BUTTON = const(16) #D0
+GPIO_BUTTON = const(14) #D5
 GPIO_DATA = const(4) #D2
 #LEDS = const(59)
 LEDS = const(31)
@@ -40,7 +40,7 @@ class Display:
         self.spinner = Spinner()
 
         self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
-        self.button = Pin(GPIO_BUTTON, Pin.IN)
+        self.button = Pin(GPIO_BUTTON, Pin.IN, Pin.PULL_UP)
 
         self.loop = get_event_loop()
 
@@ -83,7 +83,7 @@ class Display:
 
     async def read_button(self):
         while True and self.state == STATE_CLOCK:
-            if self.button.value():
+            if not self.button.value():
                 previous_state = self.state
                 self.state = STATE_IP
 

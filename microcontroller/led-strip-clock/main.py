@@ -17,7 +17,7 @@ COUNT_DEVICES = const(1)
 WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
-USE_MQTT = False
+USE_MQTT = True
 
 class Main:
     def __init__(self):

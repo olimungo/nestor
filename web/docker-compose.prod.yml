@@ -23,7 +23,7 @@ services:
             - NODE_ENV=production
             - PORT=9000
             - REDIS_URL=redis://redis
-            - CORS_ORIGIN=http://nestor.local,http://192.168.0.235
+            - CORS_ORIGIN=http://nestor.local,http://192.168.0.247
     mqtt:
         image: olimungo/nestor-mqtt:0.6
         container_name: mqtt
