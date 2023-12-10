@@ -132,11 +132,13 @@ class WifiManager:
             self.ssids = []
 
             for ssid in ssids:
-                if "{}".format(*ssid[0]) != "0":
-                    self.ssids.append('"%s"' % ssid[0].decode("ascii"))
+                ssid_ascii = ssid[0].decode("ascii")
 
+                if ssid_ascii != "":
+                   self.ssids.append(ssid_ascii)
+            
             self.ssids = list(set(self.ssids))
-            self.ssids.sort()
+            self.ssids.sort(key=str.lower)
 
-
-        return b'{"ssids": [%s]}' % (",".join(self.ssids))
+        import json
+        return b'{"ssids": %s}' % json.dumps(self.ssids)

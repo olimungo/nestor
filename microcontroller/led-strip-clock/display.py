@@ -1,181 +1,108 @@
-from machine import Pin
-from uasyncio import get_event_loop, sleep_ms
+from machine import Pin, Timer
 from neopixel import NeoPixel
-from clock import Clock
-from spinner import Spinner
-from settings import Settings
-from credentials import Credentials
 
-GPIO_BUTTON = const(16) #D0
 GPIO_DATA = const(4) #D2
-#LEDS = const(59)
-LEDS = const(31)
-
-STATE_OFF = const(0)
-STATE_CLOCK = const(1)
-STATE_SPINNER = const(2)
-STATE_IP = const(3)
-
-READ_BUTTON_INTERVAL = const(100)
-DISPLAY_IP_SEGMENT_DURATION = const(2000)
-DISPLAY_IP_SEGMENT_CLEAR_DURATION = const(500)
-SPINNER_RATE = const(120)
-
-ORANGE = (255, 98, 0)
-GREEN = (19, 215, 19)
-
-#DIGITS = [1, 15, 31, 45]
-DIGITS = [1, 8, 17, 24]
+SPINNER_INTERVAL_DURATION = const(150)
 
 class Display:
-    state = STATE_OFF
-    get_time = None
+    spinner_timer = Timer(-1)
 
-    def __init__(self, ip):
-        self.ip = ip.decode("ascii")
+    def __init__(self, size):
+        self.size = size
 
-        settings = Settings().load()
+        if self.size == b"LARGE":
+            self.LEDS = 59
+            self.DIGITS = [1, 15, 31, 45]
+            self.DOTS = 29
+            self.EFFECT_INIT = [(0, 1), (2, 3), (4, 5), (12, 13), (10, 11), (8, 9)]
+        else:
+            self.LEDS = 31
+            self.DIGITS = [1, 8, 17, 24]
+            self.DOTS = 15
+            self.EFFECT_INIT = [0, 1, 2, 6, 5, 4]
 
-        self.clock = Clock(settings.color)
-        self.spinner = Spinner()
-
-        self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
-        self.button = Pin(GPIO_BUTTON, Pin.IN)
-
-        self.loop = get_event_loop()
-
-    def off(self):
-        if self.state != STATE_OFF:
-            self.state = STATE_OFF
-
-            self.stop()
-            self.clear_all()
-
-    def stop(self):
-            self.spinner.stop()
-            self.clock.stop()
-
-    def display_spinner(self):
-        if self.state != STATE_SPINNER:
-            if self.state != STATE_IP:
-                self.stop()
-
-                credentials = Credentials().load()
-
-                if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
-                    color = GREEN
-                else:
-                    color = ORANGE
-
-                self.spinner.start(SPINNER_RATE, color)
-
-            self.state = STATE_SPINNER
-
-    def display_clock(self):
-        if self.state != STATE_CLOCK:
-            if self.state != STATE_IP:
-                self.stop()
-                self.clock.get_time = self.get_time
-                self.clock.start()
-                
-            self.loop.create_task(self.read_button())
-            self.state = STATE_CLOCK
-
-    async def read_button(self):
-        while True and self.state == STATE_CLOCK:
-            if self.button.value():
-                previous_state = self.state
-                self.state = STATE_IP
-
-                self.stop()
-
-                await self.display_ip()
-
-                if self.state == STATE_CLOCK or previous_state == STATE_CLOCK:
-                    self.state = -1
-                    self.display_clock()
-                elif self.state == STATE_SPINNER or previous_state == STATE_SPINNER:
-                    self.state = -1
-                    self.display_spinner()
-                else:
-                    self.state = -1
-                    self.off()
-
-            await sleep_ms(READ_BUTTON_INTERVAL)
-
-    async def display_ip(self):
-        ip = f"{self.ip:s}".split(".")
-
-        self.clock.clear_all()
-
-        await self.dislay_ip_segment(ip[0])
-
-        self.clock.clear_all()
-        await sleep_ms(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
-
-        await self.dislay_ip_segment(ip[1])
-
-        self.clock.clear_all()
-        await sleep_ms(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
-        
-        await self.dislay_ip_segment(ip[2])
-
-        self.clock.clear_all()
-        await sleep_ms(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
-        
-        await self.dislay_ip_segment(ip[3])
-
-    async def dislay_ip_segment(self, segment):
-        self.update(2, 0, (0, 0, 0))
-        self.update(3, 0, (0, 0, 0))
-        self.update(4, 0, (0, 0, 0))
-
-        position = 4
-
-        while segment != "":
-            number = int(segment[-1])
-            segment = segment[:-1]
-            self.update(position, number, GREEN)
-            position -= 1
-
-        self.leds_strip.write()
-
-        await sleep_ms(DISPLAY_IP_SEGMENT_DURATION)
+        self.leds_strip = NeoPixel(Pin(GPIO_DATA), self.LEDS)
+        self.clear_all()
 
     def clear_all(self):
         self.leds_strip.fill((0, 0, 0))
         self.leds_strip.write()
 
-    def update(self, position, value, rgb):
-        leds = []
-        start = DIGITS[position - 1]
+    def spinner_on(self, rgb):
+        self.rgb = rgb
+        self.effect = self.EFFECT_INIT.copy()
 
-        # for i in range(start, start + 7 * 2):
+        self.spinner_timer.init(
+            period=SPINNER_INTERVAL_DURATION, mode=Timer.PERIODIC, callback=self.spinner_tick
+        )
 
-        for i in range(start, start + 7):
-            self.leds_strip[i] = (0, 0, 0)
+    def spinner_off(self):
+        self.spinner_timer.deinit()
 
-        # if value == 0: leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
-        # elif value == 1: leds = [4, 5, 12, 13]
-        # elif value == 2: leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        # elif value == 3: leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
-        # elif value == 4: leds = [0, 1, 4, 5, 6, 7, 12, 13]
-        # elif value == 5: leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
-        # elif value == 6: leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
-        # elif value == 7: leds = [2, 3, 4, 5, 12, 13]
-        # elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        # elif value == 9: leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+    def spinner_tick(self, timer):
+        if len(self.effect) == 0:
+            self.effect = self.EFFECT_INIT.copy()
 
-        if value == 0: leds = [0, 1, 2, 4, 5, 6]
-        elif value == 1: leds = [2, 6]
-        elif value == 2: leds = [1, 2, 3, 4, 5]
-        elif value == 3: leds = [1, 2, 3, 5, 6]
-        elif value == 4: leds = [0, 2, 3, 6]
-        elif value == 5: leds = [0, 1, 3, 5, 6]
-        elif value == 6: leds = [0, 1, 3, 4, 5, 6]
-        elif value == 7: leds = [1, 2, 6]
-        elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6]
-        elif value == 9: leds = [0, 1, 2, 3, 5, 6]
+        current_step = self.effect.pop(0)
 
-        for led in leds:
-            self.leds_strip[led + start] = rgb
+        self.leds_strip.fill((0, 0, 0))
+
+        for start in self.DIGITS:
+            if self.size == b"LARGE":
+                self.leds_strip[start + current_step[0]] = self.rgb
+                self.leds_strip[start + current_step[1]] = self.rgb
+            else:
+                self.leds_strip[start + current_step] = self.rgb
+
+        self.leds_strip.write()
+
+    def write(self, digit1, digit2, dots, digit3, digit4):
+        self.leds_strip.fill((0, 0, 0))
+
+        self.display_digit(1, digit1)
+        self.display_digit(2, digit2)
+
+        self.display_dots(dots)
+
+        self.display_digit(3, digit3)
+        self.display_digit(4, digit4)
+
+        self.leds_strip.write()
+
+    def display_digit(self, digit_position, digit):
+        for led in digit:
+            self.leds_strip[self.DIGITS[digit_position-1] + led[0]] = led[1]
+
+    def display_dots(self, dots):
+        for led in dots:
+            self.leds_strip[self.DOTS + led[0]] = led[1]
+
+    def get_digit(self, digit, rgb):
+        if self.size == b"LARGE":
+            if digit == 0: leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
+            elif digit == 1: leds = [4, 5, 12, 13]
+            elif digit == 2: leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            elif digit == 3: leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+            elif digit == 4: leds = [0, 1, 4, 5, 6, 7, 12, 13]
+            elif digit == 5: leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
+            elif digit == 6: leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
+            elif digit == 7: leds = [2, 3, 4, 5, 12, 13]
+            elif digit == 8: leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+            elif digit == 9: leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
+        else:
+            if digit == 0: leds = [0, 1, 2, 4, 5, 6]
+            elif digit == 1: leds = [2, 6]
+            elif digit == 2: leds = [1, 2, 3, 4, 5]
+            elif digit == 3: leds = [1, 2, 3, 5, 6]
+            elif digit == 4: leds = [0, 2, 3, 6]
+            elif digit == 5: leds = [0, 1, 3, 5, 6]
+            elif digit == 6: leds = [0, 1, 3, 4, 5, 6]
+            elif digit == 7: leds = [1, 2, 6]
+            elif digit == 8: leds = [0, 1, 2, 3, 4, 5, 6]
+            elif digit == 9: leds = [0, 1, 2, 3, 5, 6]
+
+        for index, led in enumerate(leds):
+            leds[index] = (led, rgb)
+
+        return leds
+        

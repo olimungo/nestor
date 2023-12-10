@@ -17,7 +17,6 @@ class ConnectivityManager:
     http_config = None
     task_connect = None
     task_connect_async = None
-    get_time = None
 
     def __init__(self,
         public_name, broker_name, url_routes,
@@ -126,8 +125,6 @@ class ConnectivityManager:
             if not self.ntp:
                 from ntp_time import NtpTime
                 self.ntp = NtpTime()
-            
-            self.get_time = self.ntp.get_time
 
     def start_mdns(self):
         if self.use_mdns:
@@ -174,6 +171,12 @@ class ConnectivityManager:
 
     def get_ip(self):
         return self.wifi.ip
+    
+    def get_time(self):
+        if self.ntp:
+            return self.ntp.get_time()
+        else:
+            return None
 
     def publish_mqtt_message(self, device, message):
         self.mqtt.publish_message(device, message)

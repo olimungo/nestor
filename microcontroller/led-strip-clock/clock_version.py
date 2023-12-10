@@ -1,5 +1,5 @@
-VERSION = b"1.2.1"
-VERSION_DATE = b"20231207"
+VERSION = b"1.0.0"
+VERSION_DATE = b"20231210"
 
 def get_version():
     return VERSION.decode("ascii")

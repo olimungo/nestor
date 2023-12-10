@@ -12,3 +12,4 @@ WORKDIR /micropython/ports/esp8266
 COPY modules/ modules/
 
 RUN make
+

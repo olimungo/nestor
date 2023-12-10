@@ -1,4 +1,4 @@
-ARG VERSION=v1.17
+ARG VERSION=v1.18
 
 FROM registry.gitlab.com/janpoboril/micropython-docker-build/esp8266:$VERSION
 

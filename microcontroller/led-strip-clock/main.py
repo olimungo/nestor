@@ -4,8 +4,9 @@ from time import sleep
 from gc import collect, mem_free
 from connectivity_manager import ConnectivityManager
 from settings import Settings
-from display import Display
+from clock import Clock
 from blink import Blink
+from clock_version import get_version, get_version_date
 
 PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
@@ -18,9 +19,14 @@ WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
 USE_MQTT = False
+CLOCK_SIZE = b"LARGE" # LARGE or SMALL
 
 class Main:
     def __init__(self):
+        print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print("> LED Strip Clock: {} ({})".format(get_version(), get_version_date()))
+        print("> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
         url_routes = {
             b"/action/color": self.set_color,
             b"/action/clock/display": self.display_clock,
@@ -36,9 +42,9 @@ class Main:
             MQTT_TOPIC_NAME, mqtt_subscribe_topics, DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
             use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
-
-        self.display = Display(self.connectivity.get_ip())
-        self.display.display_spinner()
+        
+        self.clock = Clock(self.connectivity.get_ip, self.connectivity.get_time, Settings().load().color, CLOCK_SIZE)
+        self.clock.spinner_on()
 
         self.set_state()
 
@@ -47,15 +53,12 @@ class Main:
         self.loop.close()
 
     def connectivity_up(self):
-        self.display.get_time = self.connectivity.get_time
-        self.display.ip = self.connectivity.get_ip()
-
         settings = Settings().load()
 
         if settings.state != b"1":
-            self.display.off()
+            self.clock.off()
         else:
-            self.display.display_clock()
+            self.clock.on()
 
         self.set_state()
 
@@ -63,17 +66,17 @@ class Main:
         print("> Free mem after all services up: {}".format(mem_free()))
 
     def connectivity_down(self):
-        self.display.display_spinner()
+        self.clock.spinner_on()
 
     def on_off(self, topic, message):
         settings = Settings().load()
 
         if message == b"on" or message == b"off":
             if message == b"on":
-                self.display.display_clock()
+                self.clock.on()
                 settings.state = b"1"
             elif message == b"off":
-                self.display.off()
+                self.clock.off()
                 settings.state = b"0"
 
             settings.write()
@@ -85,7 +88,7 @@ class Main:
         if settings.state != b"1":
             settings.state = b"1"
             settings.write()
-            self.display.display_clock()
+            self.clock.on()
             self.set_state()
 
     def set_color(self, path, params):
@@ -96,12 +99,12 @@ class Main:
         color = params.get(b"hex", None)
 
         if color:
-            self.display.clock.set_color(color)
+            self.clock.set_color(color)
 
             settings.color = color
             settings.write()
 
-        _, _, l = self.display.clock.hsl
+        _, _, l = self.clock.hsl
 
         settings.state = b"1"
         settings.write()
@@ -115,12 +118,12 @@ class Main:
 
         if l > 0:
             self.display_clock()
-            self.display.clock.set_brightness(l)
+            self.clock.set_brightness(l)
 
-            settings.color = b"%s" % self.display.clock.hex
+            settings.color = b"%s" % self.clock.hex
             settings.state = b"1"
         else:
-            self.display.off()
+            self.clock.off()
             settings.state = b"0"
 
         settings.write()
@@ -133,7 +136,7 @@ class Main:
             l = 0
             state = b"OFF"
         else:
-            _, _, l = self.display.clock.hsl
+            _, _, l = self.clock.hsl
             state = b"ON"
 
         http_config = {b"brightness": b"%s" % l, b"color": settings.color}

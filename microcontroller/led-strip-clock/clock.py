@@ -1,119 +1,86 @@
-from machine import Pin, Timer
-from neopixel import NeoPixel
+from machine import Pin, Timer, sleep
+from uasyncio import get_event_loop, sleep_ms
+from display import Display
+from credentials import Credentials
 import colors
 
-GPIO_DATA = const(4) #D2
-LEDS = const(59)
-#DOTS = const(29)
-DOTS = const(15)
-#DIGITS = [1, 15, 31, 45]
-DIGITS = [1, 8, 17, 24]
+GPIO_BUTTON = const(16) #D0
+
+STATE_OFF = const(0)
+STATE_CLOCK = const(1)
+STATE_SPINNER = const(2)
+STATE_IP = const(3)
+
+READ_BUTTON_INTERVAL = const(100)
+CLOCK_TICK_INTERVAL = const(250)
+DISPLAY_IP_SEGMENT_DURATION = const(1500)
+DISPLAY_IP_SEGMENT_CLEAR_DURATION = const(500)
+SPINNER_RATE = const(120)
+
+ORANGE = (255, 98, 0)
+GREEN = (19, 215, 19)
 
 class Clock:
+    state = None
+    get_time = STATE_OFF
     hour1 = hour2 = minute1 = minute2 = second = -1
     rgb = hex = hsl = None
-    tick_timer = Timer(-1)
-    get_time = None
+    timer = Timer(-1)
 
-    def __init__(self, color="0000ff"):
-        self.leds_strip = NeoPixel(Pin(GPIO_DATA), LEDS)
-        self.clear_all()
+    def __init__(self, get_ip, get_time, hex, size):
+        self.get_ip = get_ip
+        self.get_time = get_time
+        self.set_color(hex)
+        self.size = size
 
-        self.set_color(color, False)
+        self.display = Display(size)
+        self.button = Pin(GPIO_BUTTON, Pin.IN)
 
-    def clear_all(self):
-        self.leds_strip.fill((0, 0, 0))
-        self.leds_strip.write()
+        self.loop = get_event_loop()
+        self.loop.create_task(self.read_button())
 
     def tick(self, timer=None):
         if self.get_time:
-            hour1, hour2, minute1, minute2, _, second2 = self.get_time()
-            updated = False
+            self.hour1, self.hour2, self.minute1, self.minute2, _, self.second2 = self.get_time()
 
-            updated |= self.check_update(1, self.hour1, hour1)
-            updated |= self.check_update(2, self.hour2, hour2)
-            updated |= self.check_update(3, self.minute1, minute1)
-            updated |= self.check_update(4, self.minute2, minute2)
-            updated |= self.check_update_seconds(self.second, second2)
-
-            if updated:
-                self.leds_strip.write()
-
-            self.hour1 = hour1
-            self.hour2 = hour2
-            self.minute1 = minute1
-            self.minute2 = minute2
-            self.second = second2
-
-    def check_update(self, position, prevValue, newValue):
-        if prevValue != newValue:
-            self.update(position, newValue, self.rgb)
-            return True
-
-        return False
-
-    def update(self, position, value, rgb):
-        leds = []
-        start = DIGITS[position - 1]
-
-        # for i in range(start, start + 7 * 2):
-
-        for i in range(start, start + 7):
-            self.leds_strip[i] = (0, 0, 0)
-
-        # if value == 0: leds = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13]
-        # elif value == 1: leds = [4, 5, 12, 13]
-        # elif value == 2: leds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        # elif value == 3: leds = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
-        # elif value == 4: leds = [0, 1, 4, 5, 6, 7, 12, 13]
-        # elif value == 5: leds = [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]
-        # elif value == 6: leds = [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13]
-        # elif value == 7: leds = [2, 3, 4, 5, 12, 13]
-        # elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        # elif value == 9: leds = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]
-
-        if value == 0: leds = [0, 1, 2, 4, 5, 6]
-        elif value == 1: leds = [2, 6]
-        elif value == 2: leds = [1, 2, 3, 4, 5]
-        elif value == 3: leds = [1, 2, 3, 5, 6]
-        elif value == 4: leds = [0, 2, 3, 6]
-        elif value == 5: leds = [0, 1, 3, 5, 6]
-        elif value == 6: leds = [0, 1, 3, 4, 5, 6]
-        elif value == 7: leds = [1, 2, 6]
-        elif value == 8: leds = [0, 1, 2, 3, 4, 5, 6]
-        elif value == 9: leds = [0, 1, 2, 3, 5, 6]
-
-        for led in leds:
-            self.leds_strip[led + start] = rgb
-
-    def check_update_seconds(self, prevValue, newValue):
-        if prevValue != newValue:
-            if newValue % 2:
-                value = self.rgb
+            if self.second2 % 2:
+                dots = [(0, self.rgb), (1, self.rgb)]
             else:
-                value = (0, 0, 0)
+                dots = []
 
-            self.leds_strip[DOTS] = self.leds_strip[DOTS + 1] = value
+            self.display.write(
+                self.display.get_digit(self.hour1, self.rgb),
+                self.display.get_digit(self.hour2, self.rgb),
+                dots,
+                self.display.get_digit(self.minute1, self.rgb),
+                self.display.get_digit(self.minute2, self.rgb))
 
-            return True
-
-        return False
-
-    def force_refresh(self):
+    def on(self):
+        self.state = STATE_CLOCK
+        self.display.spinner_off()
         self.hour1 = self.hour2 = self.minute1 = self.minute2 = self.second = -1
-        self.tick()
+        self.timer.init(period=CLOCK_TICK_INTERVAL, mode=Timer.PERIODIC, callback=self.tick)
 
-    def start(self):
-        print("> Clock started")
-        self.hour1 = self.hour2 = self.minute1 = self.minute2 = self.second = -1
-        self.clear_all()
-        self.tick()
-        self.tick_timer.init(period=250, mode=Timer.PERIODIC, callback=self.tick)
+    def off(self):
+        self.state = STATE_OFF
+        self.timer.deinit()
+        self.display.spinner_off()
+        self.display.clear_all()
 
-    def stop(self):
-        self.tick_timer.deinit()
+    def spinner_on(self):
+        self.state = STATE_SPINNER
+        self.timer.deinit()
 
-    def set_color(self, hex, no_refresh=True):
+        credentials = Credentials().load()
+
+        if credentials.is_valid() and credentials.essid != b"" and credentials.password != b"":
+            color = GREEN
+        else:
+            color = ORANGE
+
+        self.display.spinner_on(color)
+
+    def set_color(self, hex):
         if isinstance(hex, bytes):
             hex = hex.decode("ascii")
 
@@ -121,16 +88,68 @@ class Clock:
         self.rgb = colors.hex_to_rgb(hex)
         self.hsl = colors.rgb_to_hsl(self.rgb)
 
-        if no_refresh:
-            self.force_refresh()
-
     def set_brightness(self, l):
         h, s, _ = colors.rgb_to_hsl(self.rgb)
         self.hsl = (h, s, l)
         self.rgb = colors.hsl_to_rgb(self.hsl)
         self.hex = colors.rgb_to_hex(self.rgb)
-        self.force_refresh()
 
-    def off(self):
-        self.tick_timer.deinit()
-        self.clear_all()
+    async def read_button(self):
+        while True:
+            if self.button.value():
+                state = self.state
+                self.off()
+
+                self.display_ip()
+
+                self.state = state
+
+                if self.state == STATE_CLOCK:
+                    self.on()
+                elif self.state == STATE_SPINNER:
+                    self.spinner_on()
+                else:
+                    self.off()
+
+            await sleep_ms(READ_BUTTON_INTERVAL)
+
+    def display_ip(self):
+        ip = f"{self.get_ip().decode('ascii'):s}".split(".")
+
+        self.display_number(ip[0])
+
+        self.display.clear_all()
+        sleep(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
+
+        self.display_number(ip[1])
+
+        self.display.clear_all()
+        sleep(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
+        
+        self.display_number(ip[2])
+
+        self.display.clear_all()
+        sleep(DISPLAY_IP_SEGMENT_CLEAR_DURATION)
+        
+        self.display_number(ip[3])
+
+    def display_number(self, number):
+        self.display.clear_all()
+
+        position = 4
+
+        digits = []
+
+        while number != "":
+            digit = int(number[-1])
+            number = number[:-1]
+            digits.append(self.display.get_digit(digit, ORANGE))
+            position -= 1
+
+        while position > 0:
+            position -= 1
+            digits.append([])
+
+        self.display.write(digits[3], digits[2], [], digits[1], digits[0])
+
+        sleep(DISPLAY_IP_SEGMENT_DURATION)
