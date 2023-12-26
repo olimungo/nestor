@@ -1,12 +1,14 @@
 from machine import reset
 from network import WLAN, STA_IF, AP_IF, AUTH_OPEN
 from uasyncio import get_event_loop, sleep_ms
+from ubinascii import hexlify
 from blink import Blink
 from time import ticks_ms, ticks_diff
 from credentials import Credentials
 
 NO_IP = b"0.0.0.0"
 AP_IP = b"1.2.3.4"
+NO_MAC = b"00:00:00:00:00:00"
 SERVER_SUBNET = "255.255.255.0"
 MAX_WAIT_FOR_CONNECTION_CHECK = const(10)
 WAIT_FOR_CONNECTION_CHECK = const(1000)
@@ -17,6 +19,7 @@ WAIT_FOR_BLINK = const(1000)
 
 class WifiManager:
     ip = NO_IP
+    mac = NO_MAC
     ssids = []
     ssids_timestamp = 0
 
@@ -37,6 +40,8 @@ class WifiManager:
         self.station.active(True)
 
         self.station.config(dhcp_hostname=self.public_id)
+
+        self.mac = self.get_mac_address()
 
         self.loop = get_event_loop()
 
@@ -72,8 +77,8 @@ class WifiManager:
 
             # IP address, netmask, gateway, DNS
             self.access_point.ifconfig((self.ip, SERVER_SUBNET, self.ip, self.ip))
-
             self.access_point.config(essid=self.public_id, authmode=AUTH_OPEN)
+            
             print("> AP mode configured: {:s} ({:s})".format(self.public_id, self.ip))
 
             self.callback_access_point_active()
@@ -142,3 +147,7 @@ class WifiManager:
 
         import json
         return b'{"ssids": %s}' % json.dumps(self.ssids)
+    
+    def get_mac_address(self):
+        mac = self.station.config('mac')
+        return hexlify(mac, ':').upper()

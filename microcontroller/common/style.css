@@ -307,16 +307,21 @@ input:-webkit-autofill:focus {
     color: white;
     text-align: center;
     height: 9rem;
+    justify-content: space-between;
 }
 
-.ip {
+.ip, .mac {
     font-size: 2.5rem;
     font-weight: 500;
     letter-spacing: 0.8rem;
     margin: 1rem 3rem;
     color: var(--primary-color);
-    flex-grow: 1;
     text-align: left;
+
+}
+
+.mac {
+    letter-spacing: 0.5rem;
 }
 
 .tag {

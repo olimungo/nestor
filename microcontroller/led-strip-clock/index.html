@@ -101,7 +101,10 @@
             <div class="margin-bottom-large">&nbsp;</div>
 
             <div class="footer inline">
-                <div id="ip" class="ip">127.0.0.1</div>
+                <div onclick="toggleIpMac()">
+                    <div id="ip" class="ip">127.0.0.1</div>
+                    <div id="mac" class="mac display-none">00:00:00:00:00:00</div>
+                </div>
 
                 <button
                     class="button-clog"

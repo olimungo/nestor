@@ -154,7 +154,7 @@ class ConnectivityManager:
     def set_http_config(self, http_config):
         creds = Credentials().load()
 
-        http_config.update({b"ip" : self.wifi.ip, b"netId": creds.net_id, b"type": self.device_type, b"state": self.state})
+        http_config.update({b"ip" : self.wifi.ip, b"mac" : self.wifi.mac, b"netId": creds.net_id, b"type": self.device_type, b"state": self.state})
 
         self.http_config = http_config
 

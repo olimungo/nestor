@@ -17,6 +17,7 @@ function getValues() {
         .then((response) => response.json())
         .then((response) => {
             setTagValue('ip', response.ip);
+            setTagValue('mac', response.mac);
             setTagValue('tag-net-id', response.netId);
             setTagValue('hex', response.color);
 
@@ -53,4 +54,12 @@ function setManualColor() {
                 setTagValue('slider', response.brightness);
             });
     }
+}
+
+function toggleIpMac() {
+    const ip = document.getElementById('ip');
+    const mac = document.getElementById('mac');
+
+    ip.classList.toggle('display-none')
+    mac.classList.toggle('display-none')
 }
