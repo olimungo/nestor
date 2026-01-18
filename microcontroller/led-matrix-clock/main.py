@@ -11,11 +11,9 @@ PUBLIC_NAME = b"Clock"
 BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"clocks"
-MQTT_DEVICE_TYPE = b"CLOCK"
-HTTP_DEVICE_TYPE = b"CLOCK"
-COUNT_DEVICES = const(1)
+DEVICE_TYPE = b"CLOCK"
 
-WAIT_BEFORE_RESET = const(10) # seconds
+WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
 USE_MQTT = True
@@ -37,10 +35,9 @@ class Main:
         }
 
         self.connectivity = ConnectivityManager(PUBLIC_NAME, BROKER_NAME, url_routes,
-            MQTT_TOPIC_NAME, mqtt_subscribe_topics,
-            MQTT_DEVICE_TYPE, HTTP_DEVICE_TYPE, COUNT_DEVICES,
+            MQTT_TOPIC_NAME, mqtt_subscribe_topics, DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
-            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
+            use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)        
 
         self.spi = SPI(1, baudrate=10000000, polarity=1, phase=0)
         self.board = Matrix8x8(self.spi, Pin(CS), 4)
@@ -120,7 +117,7 @@ class Main:
 
         http_config = {b"brightness": brightness}
 
-        self.connectivity.set_state(http_config, [state])
+        self.connectivity.set_state(http_config, state)
 
 try:
     Main()

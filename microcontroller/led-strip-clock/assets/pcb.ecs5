@@ -1,0 +1,91 @@
+<xml version="1.0" encoding="UTF-8">
+<sure_cuts_alot version_major="5" version_minor="28" product="ezcutstudio">
+<project_notes title="" author="" email="" website="" notes="" category="" keyword1="" keyword2="" keyword3="" keyword4="" description="" cut_type="cut" help="none" />
+<preview data="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" />
+<scal5_data mat_wu="11690" mat_hu="8270" material_wu="11690" material_hu="8270" mat_f="3532" mat_c="3532" mat_orientation="vertical" mat_units="mm" mat_zoom="0.806531" cut_machine="Silhouette Portrait 2" cut_model="Silhouette Portrait 2" tool_type="arrow" >
+<pages current="0">
+<page id="1" name="Page 1" color="4294967295" regmark="n" guides="true" canvas="false" >
+<guides></guides>
+<tiles col_type="even" row_type="even" col_even="1" row_even="1" col_fixed="1" row_fixed="1" col_overlap="false" col_overlap_inch="0" row_overlap="false" row_overlap_inch="0" >
+</tiles><selection><select id="1050" />
+<select id="413" />
+</selection><objects><group_folder  id="412" name="pcb.svg" library="pcb.svg" layer_color="4278246656" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="false" selected="false" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<objects>
+<group  id="413" name="layer1" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="11.1589" i="1" />
+<objects>
+<group  id="414" name="g1" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="0" i="1" />
+<objects>
+<group  id="415" name="g2" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="0" i="1" />
+<objects>
+<shape  id="416" name="gge45380" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3880.92" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="18738" >
+<pth i="1" t="e" s="2495" pts="Mp:5764.5,6258 Lp:6052,4931 Lp:6103.5,4314.5 Lp:6216,3982.5 Lp:6267.5,3769 Lp:6554.5,3686 Lp:6604.5,3691 Lp:6608.5,3747.5 Lp:6589,3761 Lp:6616,3779 Lp:6620,3854.5 Lp:6576,3901.5 Lp:6299.5,3900.5 Lp:6256,4606 Lp:6151.5,6277 ;"/>
+</path_list>
+</shape>
+<shape  id="417" name="gge45389" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3880.92" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="8311" >
+<pth i="1" t="e" s="897" pts="Mp:6444,6477.5 Lp:6619.56,5853.94 ;"/>
+</path_list>
+</shape>
+<shape  id="418" name="gge45383" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3880.92" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="48713" >
+<pth i="1" t="e" s="3417" pts="Mp:6308,6470.5 Lp:6540,7308.5 Lp:7003,5630.5 Lp:7515,4738.5 Lp:8050.25,4308.25 Lp:4442.5,4080.5 Lp:4954.5,3901 Lp:5512.5,3804 ;"/>
+</path_list>
+</shape>
+</objects>
+</group>
+</objects>
+</group>
+</objects>
+</group>
+</objects>
+</group_folder>
+<group_folder  id="1049" name="pcb.svg (1)" library="pcb.svg" layer_color="4292673536" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="false" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<objects>
+<group  id="1050" name="layer1" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="11.1589" i="1" />
+<objects>
+<group  id="1051" name="g1" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="0" i="1" />
+<objects>
+<group  id="1052" name="g2" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="color" fill_color="4287137928" fill_alpha="1" stroke_type="color" stroke_color="4287137928" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="0" i="1" />
+<objects>
+<shape  id="1053" name="gge45380" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3562.36" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="18173" >
+<pth i="1" t="e" s="3414" pts="Mp:5202.5,6800 Lp:5486,5451 Lp:5533.5,4823.5 Lp:5642,4486.5 Lp:5689.5,4270 Lp:5972.5,4186 Lp:6018.5,4190 Lp:6018.5,4246.5 Lp:5995,4259 Lp:6018,4277 Lp:6018,4352.5 Lp:5970,4399.5 Lp:5689.5,4398.5 Lp:5642,5458 Lp:5533.5,6952 ;"/>
+</path_list>
+</shape>
+<shape  id="1054" name="gge45389" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3562.36" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="1523" >
+<pth i="1" t="e" s="3227" pts="Mp:4200,5759.5 Lp:4255.56,5414.94 ;"/>
+</path_list>
+</shape>
+<shape  id="1055" name="gge45383" library="" layer_color="4278190080" visible="true" locked="false" expanded="false" fill_type="none" fill_color="4294967295" fill_alpha="1" stroke_type="color" stroke_color="4278190080" stroke_alpha="1" stroke_width="1" stroke_miter="10" stroke_cap="b" stroke_join="m" cutdraw_type="cut" style="normal" shadow_type="rounded" shadow_size="0.05" keep_aspect_ratio="true" selected="true" weld="false" tool="0" perm_group="false" path_object="false" rotate_type="angle" clip="n" pc_group="false" >
+<transform a="0" b="0.977766" c="0" d="-0.994277" e="0" f="0" g="3562.36" h="-3490.12" i="1" />
+<path_list emw="1" emh="1" emx="5235" >
+<pth i="1" t="e" s="85" pts="Mp:4572,4783.5 Lp:4300,4450.5 Lp:4259,4235.5 Lp:4267,4075.5 Lp:4298.25,4010.25 Lp:4282.5,3965.5 Lp:4290.5,3878 Lp:4344.5,3827 ;"/>
+</path_list>
+</shape>
+</objects>
+</group>
+</objects>
+</group>
+</objects>
+</group>
+</objects>
+</group_folder>
+</objects></page>
+</pages>
+</scal5_data>
+</sure_cuts_alot>
+
+</xml>

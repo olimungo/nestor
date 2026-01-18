@@ -13,12 +13,11 @@ BROKER_NAME = b"nestor.local"
 # BROKER_NAME = b"death-star.local"
 MQTT_TOPIC_NAME = b"clocks"
 DEVICE_TYPE = b"CLOCK"
-COUNT_DEVICES = const(1)
 
 WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
-USE_MQTT = False
+USE_MQTT = True
 CLOCK_SIZE = b"LARGE" # LARGE or SMALL
 
 class Main:
@@ -42,7 +41,7 @@ class Main:
             MQTT_TOPIC_NAME, mqtt_subscribe_topics, DEVICE_TYPE,
             self.connectivity_up, self.connectivity_down,
             use_ntp=True, use_mdns=USE_MDNS, use_mqtt=USE_MQTT)
-        
+
         self.clock = Clock(self.connectivity.get_ip, self.connectivity.get_time, Settings().load().color, CLOCK_SIZE)
         self.clock.spinner_on()
 
@@ -81,7 +80,7 @@ class Main:
 
             settings.write()
             self.set_state()
-        
+
     def display_clock(self, path=None, params=None):
         settings = Settings().load()
 
@@ -149,6 +148,6 @@ except Exception as e:
     Blink().flash_once_slow()
     print("> Software failure.\nGuru medidation #00000000003.00C06560")
     print("> {}".format(e))
-    
+
     sleep(WAIT_BEFORE_RESET)
     reset()

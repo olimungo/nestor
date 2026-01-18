@@ -66,7 +66,7 @@ class MqttManager:
         self.mqtt.subscribe(subscription)
         print(f"> MQTT subscription to {subscription:s}")
         
-        self.set_state(self.ip, self.states)
+        self.set_state(self.ip, self.state)
         self.task_send_state = self.loop.create_task(self.send_state())
         self.task_check_for_message = self.loop.create_task(self.check_for_message())
 
@@ -120,11 +120,11 @@ class MqttManager:
         if mqtt_command == b"add-tag":
             tag = message.split(b"/")[1]
             tags.append(tag)
-            self.set_state(self.ip, self.states)
+            self.set_state(self.ip, self.state)
         elif mqtt_command == b"remove-tag":
             tag = message.split(b"/")[1]
             tags.remove(tag)
-            self.set_state(self.ip, self.states)
+            self.set_state(self.ip, self.state)
         else:
             callback = self.topics.get(mqtt_command, None)
 

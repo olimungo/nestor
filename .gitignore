@@ -3,3 +3,6 @@ commands.txt
 node_modules
 log.txt
 messages.log
+.DS_Store
+
+.codegpt

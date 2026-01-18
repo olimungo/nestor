@@ -1,6 +1,6 @@
 // common-scripts.js must be loaded before this file
 
-const documentTitle = 'Switch';
+const documentTitle = 'Remote';
 
 window.addEventListener('DOMContentLoaded', (event) => {
     getValues();

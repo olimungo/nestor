@@ -4,8 +4,8 @@ from display import Display
 from credentials import Credentials
 import colors
 
-#GPIO_BUTTON = const(14) #D5
-GPIO_BUTTON = const(16) #D0 - for old versions of the LED strip clock, don't forget to also change below (no pull-up)
+GPIO_BUTTON = const(14) #D5
+#GPIO_BUTTON = const(16) #D0 - for old versions of the LED strip clock, don't forget to also change below (no pull-up) + test when reading value
 
 STATE_OFF = const(0)
 STATE_CLOCK = const(1)
@@ -36,8 +36,8 @@ class Clock:
 
         self.display = Display(size)
 
-        #self.button = Pin(GPIO_BUTTON, Pin.IN, Pin.PULL_UP)
-        self.button = Pin(GPIO_BUTTON, Pin.IN) # for old versions of LED strip clock
+        self.button = Pin(GPIO_BUTTON, Pin.IN, Pin.PULL_UP)
+        #self.button = Pin(GPIO_BUTTON, Pin.IN) # for old versions of LED strip clock
 
         self.loop = get_event_loop()
         self.loop.create_task(self.read_button())
@@ -99,7 +99,8 @@ class Clock:
 
     async def read_button(self):
         while True:
-            if self.button.value():
+            # if self.button.value(): # for old versions of the LED strip clock
+            if not self.button.value():
                 state = self.state
                 self.off()
 

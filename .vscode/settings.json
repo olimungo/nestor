@@ -1,3 +1,6 @@
 {
-    "python.analysis.extraPaths": ["./micropython-build/modules"]
+    "python.analysis.extraPaths": [
+        "./micropython-build/modules"
+    ],
+    "CodeGPT.apiKey": "Ollama"
 }
