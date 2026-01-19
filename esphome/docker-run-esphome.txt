@@ -1,0 +1,24 @@
+docker run \
+    --hostname=7b286d605eda \
+    --name=esphome \
+    --env=ESPHOME_DASHBOARD_USE_PING=true \
+    --env=PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    --env=LANG=C.UTF-8 --env=GPG_KEY=7169605F62C751356D054A26A821E680E5FA6305 \
+    --env=PYTHON_VERSION=3.12.10 \
+    --env=PYTHON_SHA256=07ab697474595e06f06647417d3c7fa97ded07afc1a7e4454c5639919b46eaea \
+    --env=UV_SYSTEM_PYTHON=true \
+    --env=PIP_ROOT_USER_ACTION=ignore \
+    --env=PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    --volume=/Users/olimungo/Projects/nestor/esphome/config:/config \
+    --volume=/config \
+    --network=bridge \
+    --workdir=/config \
+    -p 6052:6052 --restart=no \
+    --label='org.opencontainers.image.authors=The ESPHome Authors' \
+    --label='org.opencontainers.image.description=ESPHome is a system to configure your microcontrollers by simple yet powerful configuration files and control them remotely through Home Automation systems' \
+    --label='org.opencontainers.image.documentation=https://esphome.io/' \
+    --label='org.opencontainers.image.licenses=ESPHome' \
+    --label='org.opencontainers.image.source=https://github.com/esphome/esphome' --label='org.opencontainers.image.title=ESPHome' \
+    --label='org.opencontainers.image.url=https://esphome.io/' \
+    --label='org.opencontainers.image.version=2025.12.0' \
+    --runtime=runc -t -d ghcr.io/esphome/esphome
