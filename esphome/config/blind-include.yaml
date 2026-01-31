@@ -67,47 +67,50 @@ i2c_device:
 script:
     - id: move_motor
       parameters:
-          direction: int # 0=Brake, 1=CCW, 2=CW, 3=Stop, 4=Standby
+          action: int # 0=Brake, 1=CCW, 2=CW, 3=Stop, 4=Standby
       then:
           - lambda: |-
-                uint8_t final_operation = direction;
+                uint8_t final_action = action;
 
                 // If inversion is ON, swap 1 (CCW) and 2 (CW)
                 if (id(invert_rotation)) {
-                    if (direction == 1) final_operation = 2;
-                    else if (direction == 2) final_operation = 1;
+                    if (action == 1) final_action = 2;
+                    if (action == 2) final_action = 1;
                 }
 
-                uint16_t pwm_val = id(motor_speed); 
+                uint16_t pwm = id(motor_speed); 
 
                 uint8_t data[4] = {
-                    (uint8_t)(0 | 0x10), // channel
-                    (uint8_t)final_operation, // direction
-                    (uint8_t)(pwm_val >> 8), // speed: high byte
-                    (uint8_t)pwm_val // speed: low byte
+                    0x00 | 0x10, // channel
+                    (uint8_t)final_action, // action
+                    (uint8_t)(pwm >> 8), // speed: high byte
+                    (uint8_t)pwm // speed: low byte
                 };
 
                 id(motor_controller).write(data, 4);
 
     - id: blinds_open_action
       then:
-          - lambda: id(move_motor)->execute(1);
+          - script.execute:
+              id: move_motor
+              action: 1
 
     - id: blinds_close_action
       then:
-          - lambda: id(move_motor)->execute(2);
+          - script.execute:
+              id: move_motor
+              action: 2
 
     - id: blinds_stop_action
       then:
-          - lambda: |-
-                uint8_t data[4] = {
-                  (uint8_t)(0 | 0x10), // channel: 0 = motor A; 1 = motor B
-                  1,    // direction
-                  0x00, // speed: high byte
-                  0x00  // speed: low byte
-                };
-
-                id(motor_controller).write(data, 4);
+          - script.execute:
+              id: move_motor
+              action: 0
+          - delay: 500ms
+          - script.execute:
+              id: move_motor
+              action: 4
+              
 number:
     - platform: template
       name: 'Motor speed'
@@ -152,7 +155,7 @@ switch:
       name: 'Invert motor direction'
       id: motor_inversion_switch
       optimistic: true
-      restore_mode: RESTORE_DEFAULT_OFF
+      lambda: return id(invert_rotation);
       turn_on_action:
           - lambda: id(invert_rotation) = true;
       turn_off_action:
