@@ -16,7 +16,7 @@ DEVICE_TYPE = b"CLOCK"
 WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
-USE_MQTT = True
+USE_MQTT = False
 
 SPINNER_MINIMUM_DISPLAY = const(2000)
 CS = const(15)

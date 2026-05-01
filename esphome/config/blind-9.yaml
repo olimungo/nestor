@@ -1,1 +1,0 @@
-!include { file: blind-include.yaml, vars: { blind_number: 9 } }

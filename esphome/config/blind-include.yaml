@@ -1,8 +1,10 @@
 substitutions:
     blind_number: 0
     i2c_device_address: 0x30
-    delay_led_on: 1000ms
+    delay_led_on: 500ms
+    delay_read_brightness: 75ms
     static_ip_prefix: !secret static_ip_prefix
+    binary_sensor_window_number: 0
 
 globals:
     - id: motor_speed
@@ -12,11 +14,11 @@ globals:
     - id: threshold_voltage
       type: float
       restore_value: yes
-      initial_value: '0.9'
-    - id: invert_rotation
-      type: bool
+      initial_value: '99'
+    - id: threshold_voltage_difference
+      type: float
       restore_value: yes
-      initial_value: 'false'
+      initial_value: '0.4'
 
 esphome:
     name: blind-${blind_number}
@@ -73,7 +75,7 @@ script:
                 uint8_t final_action = action;
 
                 // If inversion is ON, swap 1 (CCW) and 2 (CW)
-                if (id(invert_rotation)) {
+                if (id(invert_rotation_switch).state) {
                     if (action == 1) final_action = 2;
                     if (action == 2) final_action = 1;
                 }
@@ -92,25 +94,55 @@ script:
     - id: blinds_open_action
       then:
           - script.execute:
-              id: move_motor
-              action: 1
+                id: move_motor
+                action: 1
 
     - id: blinds_close_action
       then:
           - script.execute:
-              id: move_motor
-              action: 2
+                id: move_motor
+                action: 2
 
     - id: blinds_stop_action
       then:
           - script.execute:
-              id: move_motor
-              action: 0
-          - delay: 500ms
+                id: move_motor
+                action: 0
+          - delay: 50ms
           - script.execute:
-              id: move_motor
-              action: 4
-              
+                id: move_motor
+                action: 4
+
+    - id: set_threshold_voltage
+      then:
+          - delay: ${delay_led_on}
+          - lambda: id(threshold_voltage) = 99;
+          - switch.turn_on: led_power_switch
+          - delay: ${delay_read_brightness}
+          - lambda: id(threshold_voltage) = id(photoresistor_sensor).state + id(threshold_voltage_difference);
+          - sensor.template.publish:
+                id: brightness_value
+                state: !lambda return id(photoresistor_sensor).state;
+
+button:
+    - platform: restart
+      id: reboot_button_internal
+      name: 'Reboot'
+      icon: 'mdi:restart'
+
+    - platform: template
+      name: 'Brightness read'
+      icon: 'mdi:lightbulb-search'
+      on_press:
+          then:
+              - switch.turn_on: led_power_switch
+              - delay: 200ms
+              - component.update: photoresistor_sensor
+              - sensor.template.publish:
+                    id: brightness_value
+                    state: !lambda return id(photoresistor_sensor).state;
+              - switch.turn_off: led_power_switch
+
 number:
     - platform: template
       name: 'Motor speed'
@@ -128,22 +160,6 @@ number:
                     format: 'Motor speed changed to: %.1f'
                     args: ['x']
 
-    - platform: template
-      name: 'Threshold voltage'
-      id: threshold_voltage_input
-      optimistic: true
-      min_value: 0.5
-      max_value: 3.0
-      step: 0.1
-      restore_value: true
-      initial_value: 0.9
-      set_action:
-          then:
-              - lambda: id(threshold_voltage) = x;
-              - logger.log:
-                    format: 'Threshold voltage changed to: %.1f'
-                    args: ['x']
-
 switch:
     - platform: gpio
       id: led_power_switch
@@ -153,13 +169,9 @@ switch:
 
     - platform: template
       name: 'Invert motor direction'
-      id: motor_inversion_switch
+      id: invert_rotation_switch
       optimistic: true
-      lambda: return id(invert_rotation);
-      turn_on_action:
-          - lambda: id(invert_rotation) = true;
-      turn_off_action:
-          - lambda: id(invert_rotation) = false;
+      restore_mode: RESTORE_DEFAULT_OFF
 
 sensor:
     - platform: adc
@@ -177,6 +189,12 @@ sensor:
                 timeout: 500ms
                 value: 0
 
+    - platform: template
+      name: 'Brightness'
+      id: brightness_value
+      unit_of_measurement: 'V'
+      accuracy_decimals: 2
+
 binary_sensor:
     - platform: template
       id: photoresistor_binary_sensor
@@ -184,9 +202,15 @@ binary_sensor:
       internal: true
       lambda: return id(photoresistor_sensor).state > id(threshold_voltage);
 
+    - platform: homeassistant
+      id: open_close_window_binary_sensor
+      internal: true
+      entity_id: binary_sensor.open_close_window_${binary_sensor_window_number}
+
 cover:
     - platform: endstop
-      name: 'Blind'
+      id: physical_blind
+      internal: true
       open_duration: 17.5s
       close_duration: 19s
       max_duration: 21s
@@ -195,14 +219,35 @@ cover:
 
       open_action:
           - script.execute: blinds_open_action
-          - delay: ${delay_led_on}
-          - switch.turn_on: led_power_switch
+          - script.execute: set_threshold_voltage
 
       close_action:
           - script.execute: blinds_close_action
-          - delay: ${delay_led_on}
-          - switch.turn_on: led_power_switch
+          - script.execute: set_threshold_voltage
 
       stop_action:
           - switch.turn_off: led_power_switch
           - script.execute: blinds_stop_action
+
+    - platform: template
+      name: 'Blind'
+      id: blind
+      device_class: blind
+      has_position: true
+      lambda: return id(physical_blind).position;
+
+      open_action:
+          - cover.open: physical_blind
+
+      stop_action:
+          - cover.stop: physical_blind
+
+      close_action:
+          - if:
+                condition:
+                    binary_sensor.is_off: open_close_window_binary_sensor
+                then:
+                    - cover.close: physical_blind
+                else:
+                    - switch.turn_off: led_power_switch
+                    - logger.log: 'Close cancelled: the window is open.'

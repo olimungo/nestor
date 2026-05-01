@@ -58,20 +58,24 @@ class NtpTime:
         try:
             collect()
 
-            worldtime = get("http://worldtimeapi.org/api/ip")
-            offset = worldtime["utc_offset"]
+            request = get("http://ip-api.com/json?fields=offset")
+            offset = request["offset"]
+            abs_offset = abs(offset)
 
-            self.offset_hour = int(offset[1:3])
-            self.offset_minute = int(offset[4:6])
+            self.offset_hour = abs_offset // 3600
+            self.offset_minute = (abs_offset % 3600) // 60
 
-            if offset[:1] == "-":
+            if offset < 0:
                 self.offset_hour = -self.offset_hour
+                self.offset_minute = -self.offset_minute
 
-            print("> Time offset retrieved: {}h{}m".format(self.offset_hour, self.offset_minute))
+            now = self.get_time()
+            print("> Time offset retrieved: {} seconds => {} hour(s) and {} minute(s)".format(offset, self.offset_hour, self.offset_minute))
+            print("> Time: {}{}:{}{}".format(now[0], now[1], now[2], now[3]))
 
             return True
         except Exception as e:
-            print("> NtpTime.get_offset error: {}".format(e))
+            print("> NtpTime.update_offset error: {}".format(e))
             return False         
 
     async def update_time_async(self, update_success):

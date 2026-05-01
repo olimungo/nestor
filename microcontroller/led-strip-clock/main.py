@@ -17,8 +17,8 @@ DEVICE_TYPE = b"CLOCK"
 WAIT_BEFORE_RESET = const(3) # seconds
 
 USE_MDNS = True
-USE_MQTT = True
-CLOCK_SIZE = b"LARGE" # LARGE or SMALL
+USE_MQTT = False
+CLOCK_SIZE = b"SMALL" # LARGE or SMALL
 
 class Main:
     def __init__(self):
